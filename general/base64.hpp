@@ -44,7 +44,7 @@ static int count_padding_chars(const char * const buffer, const int size)
 {
   int count = 0;
   for( int i = size - 1; i >= 0; --i ) {
-    if( buffer[size] != '=' )
+    if( buffer[i] != '=' )
       break;
     ++count;
   }
@@ -76,7 +76,7 @@ static void final_b64_r648_encode_sixteen_bits(const uint8_t * const in, char * 
   out[2] = b64_r648_encode_six_bits( last_four_in_1 );
   out[3] = '=';
 }
-static void final_b64_r648_decode_sixteen_bits(const char * const in, char * const out)
+static void final_b64_r648_decode_sixteen_bits(const char * const in, uint8_t * const out)
 {
   uint8_t first_decoded = b64_r648_decode_six_bits( in[0] ),
           second_decoded = b64_r648_decode_six_bits( in[1] ),
@@ -104,11 +104,21 @@ static void b64_r648_decode_twentyfour_bits(const char * const in, uint8_t * con
     encoded[i] = b64_r648_decode_six_bits( in[i] );
 
   out[0] = (encoded[0] << 2) | (encoded[1] >> 4);
-  out[1] = (encoded[1] << 4) | (encoded[1] >> 2);
+  out[1] = (encoded[1] << 4) | (encoded[2] >> 2);
   out[2] = (encoded[2] << 6) | (encoded[3]     );
 }
 
-void binary_to_b64_r648(const uint8_t * const in, char * const out, const size_t size_in)
+constexpr size_t calculate_b64_r648_size( size_t size_in )
+{
+  size_t count = 0;
+  while( size_in > 3 ) {
+    size_in -= 3;
+    count   += 4; 
+  }
+  return count + 4;
+}
+
+void b64_r648_encode(const uint8_t * const in, char * const out, const size_t size_in)
 {
   const size_t number_24bit_chunks = size_in / 3;
   const size_t leftover_bytes_offset = number_24bit_chunks * 3;
@@ -118,14 +128,45 @@ void binary_to_b64_r648(const uint8_t * const in, char * const out, const size_t
     b64_r648_encode_twentyfour_bits( in + input_offset, out + output_offset );
   }
   const size_t bytes_left = size_in - leftover_bytes_offset;
-  if( bytes_left == 1 ) {
-    final_b64_r648_encode_eight_bits( in[input_offset], out + output_offset );
-  } else if( bytes_left == 2 ) {
-    final_b64_r648_encode_sixteen_bits( in + input_offset, out + output_offset );
+  switch( bytes_left ) {
+    default:
+      break;
+    case(1):
+      final_b64_r648_encode_eight_bits( in[input_offset], out + output_offset );
+      break;
+    case(2):
+      final_b64_r648_encode_sixteen_bits( in + input_offset, out + output_offset );
+      break;
   }
 }
-void b64_r648_to_b64(const char * const in, uint8_t * const out, const size_t size_in)
+void b64_r648_decode(const char * const in, uint8_t * const out, const size_t size_in)
 {
+  static constexpr const size_t Input_Quantum_Size =  4; // 4 encoded input bytes produce
+  static constexpr const size_t Output_Quantum_Size = 3; // 3 plain output bytes
+  const size_t last_input_quantum_offset = size_in - Input_Quantum_Size;
+  const int padding_chars = count_padding_chars( in, size_in );
+  size_t input_offset = 0,
+         output_offset = 0;
+#if 0
+  for( ; input_offset < last_input_quantum_offset;
+#endif
+  for( ; input_offset < last_input_quantum_offset;
+      input_offset  += Input_Quantum_Size,
+      output_offset += Output_Quantum_Size )
+  {
+    b64_r648_decode_twentyfour_bits( in + input_offset, out + output_offset );
+  }
+  switch( padding_chars ) {
+    default:
+      b64_r648_decode_twentyfour_bits( in + input_offset, out + output_offset );
+      break;
+    case(1):
+      final_b64_r648_decode_sixteen_bits( in + input_offset, out + output_offset );
+      break;
+    case(2):
+      final_b64_r648_decode_eight_bits( in + input_offset, out + output_offset );
+      break;
+  }
 }
 
 
