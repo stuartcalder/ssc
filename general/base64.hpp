@@ -66,7 +66,7 @@ static void b64_r648_encode_twentyfour_bits( const uint8_t * const in, char * co
   out[3] = b64_r648_encode_six_bits( last_six_in_2 );
 }
 
-void binary_to_b64_r648( const uint8_t * const in, uint8_t * const out, const size_t size_in )
+void binary_to_b64_r648( const uint8_t * const in, char * const out, const size_t size_in )
 {
   const size_t number_24bit_chunks = size_in / 3;
   const size_t leftover_bytes_offset = number_24bit_chunks * 3;
@@ -77,7 +77,7 @@ void binary_to_b64_r648( const uint8_t * const in, uint8_t * const out, const si
   }
   const size_t bytes_left = size_in - leftover_bytes_offset;
   if( bytes_left == 1 ) {
-    final_b64_r648_encode_eight_bits( in + input_offset, out + output_offset );
+    final_b64_r648_encode_eight_bits( in[input_offset], out + output_offset );
   } else if( bytes_left == 2 ) {
     final_b64_r648_encode_sixteen_bits( in + input_offset, out + output_offset );
   }
