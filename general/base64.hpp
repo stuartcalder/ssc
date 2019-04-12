@@ -14,7 +14,7 @@
     first octet
 
  */
-static char b64_r648_encode_six_bits( const uint8_t a )
+static char b64_r648_encode_six_bits(const uint8_t a)
 {
   if( a >= 0 && a <= 25 )
     return 'A' + a;
@@ -26,7 +26,7 @@ static char b64_r648_encode_six_bits( const uint8_t a )
     return '+';
   return '/'; // true: a == 63
 }
-static uint8_t b64_r648_decode_six_bits( const char a )
+static uint8_t b64_r648_decode_six_bits(const char a)
 {
   if( a >= 'A' && a <= 'Z' ) {
     return 0 + (a - 'A');
@@ -40,7 +40,7 @@ static uint8_t b64_r648_decode_six_bits( const char a )
     return 63;
   }
 }
-static int count_padding_chars( const char * const buffer, const int size )
+static int count_padding_chars(const char * const buffer, const int size)
 {
   int count = 0;
   for( int i = size - 1; i >= 0; --i ) {
@@ -50,7 +50,7 @@ static int count_padding_chars( const char * const buffer, const int size )
   }
   return count;
 }
-static void final_b64_r648_encode_eight_bits( const uint8_t in_bits, char * const out )
+static void final_b64_r648_encode_eight_bits(const uint8_t in_bits, char * const out)
 {
   uint8_t first_six = in_bits >> 2,
            last_two = (in_bits & 0b00000011) << 4;
@@ -59,20 +59,14 @@ static void final_b64_r648_encode_eight_bits( const uint8_t in_bits, char * cons
   out[2] = '=';
   out[3] = '=';
 }
-static void final_b64_r648_decode_eight_bits( const char * const in_bits, uint8_t * out )
+static void final_b64_r648_decode_eight_bits(const char * const in_bits, uint8_t * out)
 {
-  //TODO
-
-  
-
-  out[0] =
-  out[1] =
-  out[2] =
+  uint8_t first_six = b64_r648_decode_six_bits( in_bits[0] ) << 2,
+          last_two  = b64_r648_decode_six_bits( in_bits[1] ) >> 4;
+  out[0] = first_six | last_two;
 }
-static void final_b64_r648_encode_sixteen_bits( const uint8_t * const in, char * const out )
+static void final_b64_r648_encode_sixteen_bits(const uint8_t * const in, char * const out)
 {
-  uint8_t buffer[2];
-  std::memcpy( buffer, in, sizeof(buffer) );
   uint8_t first_six_in_0 = in[0] >> 2,
           last_two_in_0  = (in[0] & 0b00000011) << 4,
           first_four_in_1 = in[1] >> 4,
@@ -82,7 +76,15 @@ static void final_b64_r648_encode_sixteen_bits( const uint8_t * const in, char *
   out[2] = b64_r648_encode_six_bits( last_four_in_1 );
   out[3] = '=';
 }
-static void b64_r648_encode_twentyfour_bits( const uint8_t * const in, char * const out )
+static void final_b64_r648_decode_sixteen_bits(const char * const in, char * const out)
+{
+  uint8_t first_decoded = b64_r648_decode_six_bits( in[0] ),
+          second_decoded = b64_r648_decode_six_bits( in[1] ),
+          third_decoded = b64_r648_decode_six_bits( in[2] );
+  out[0] = (first_decoded << 2) | (second_decoded >> 4);
+  out[1] = (second_decoded << 4) | (third_decoded >> 2);
+}
+static void b64_r648_encode_twentyfour_bits(const uint8_t * const in, char * const out)
 {
   uint8_t first_six_in_0 = in[0] >> 2,
           last_two_in_0  = (in[0] & 0b00000011) << 4,
@@ -95,8 +97,18 @@ static void b64_r648_encode_twentyfour_bits( const uint8_t * const in, char * co
   out[2] = b64_r648_encode_six_bits( last_four_in_1 | first_two_in_2 );
   out[3] = b64_r648_encode_six_bits( last_six_in_2 );
 }
+static void b64_r648_decode_twentyfour_bits(const char * const in, uint8_t * const out)
+{
+  uint8_t encoded[4];
+  for( int i = 0; i < sizeof(encoded); ++i )
+    encoded[i] = b64_r648_decode_six_bits( in[i] );
 
-void binary_to_b64_r648( const uint8_t * const in, char * const out, const size_t size_in )
+  out[0] = (encoded[0] << 2) | (encoded[1] >> 4);
+  out[1] = (encoded[1] << 4) | (encoded[1] >> 2);
+  out[2] = (encoded[2] << 6) | (encoded[3]     );
+}
+
+void binary_to_b64_r648(const uint8_t * const in, char * const out, const size_t size_in)
 {
   const size_t number_24bit_chunks = size_in / 3;
   const size_t leftover_bytes_offset = number_24bit_chunks * 3;
@@ -112,5 +124,12 @@ void binary_to_b64_r648( const uint8_t * const in, char * const out, const size_
     final_b64_r648_encode_sixteen_bits( in + input_offset, out + output_offset );
   }
 }
+void b64_r648_to_b64(const char * const in, uint8_t * const out, const size_t size_in)
+{
+}
+
+
+
+
 
 #endif
