@@ -4,7 +4,7 @@
 
 namespace Files
 {
-  size_t get_file_size( FILE *stream )
+  size_t get_file_size( std::FILE *stream )
   {
     size_t num_bytes = 0;
     while( std::fgetc( stream ) != EOF )
