@@ -26,6 +26,30 @@ static char b64_r648_encode_six_bits( const uint8_t a )
     return '+';
   return '/'; // true: a == 63
 }
+static uint8_t b64_r648_decode_six_bits( const char a )
+{
+  if( a >= 'A' && a <= 'Z' ) {
+    return 0 + (a - 'A');
+  } else if( a >= 'a' && a <= 'z' ) {
+    return 26 + (a - 'a');
+  } else if( a >= '0' && a <= '9' ) {
+    return 52 + (a - '0');
+  } else if( a == '+' ) {
+    return 62;
+  } else { // true: a == '/'
+    return 63;
+  }
+}
+static int count_padding_chars( const char * const buffer, const int size )
+{
+  int count = 0;
+  for( int i = size - 1; i >= 0; --i ) {
+    if( buffer[size] != '=' )
+      break;
+    ++count;
+  }
+  return count;
+}
 static void final_b64_r648_encode_eight_bits( const uint8_t in_bits, char * const out )
 {
   uint8_t first_six = in_bits >> 2,
@@ -38,6 +62,12 @@ static void final_b64_r648_encode_eight_bits( const uint8_t in_bits, char * cons
 static void final_b64_r648_decode_eight_bits( const char * const in_bits, uint8_t * out )
 {
   //TODO
+
+  
+
+  out[0] =
+  out[1] =
+  out[2] =
 }
 static void final_b64_r648_encode_sixteen_bits( const uint8_t * const in, char * const out )
 {
