@@ -1,5 +1,6 @@
 CC = g++
 CPPFLAGS = -std=c++17 -fPIC -O2 -march=native -pipe -fno-exceptions
+INSTALL_DIR = '/home/stuart/src/library/'
 
 aes.gch: aes.hpp
 	$(CC) $(CPPFLAGS) -c aes.hpp
@@ -23,3 +24,6 @@ all: aes.gch cbc.gch ctr.gch operations.gch testing.gch threefish.gch
 
 clean:
 	$(RM) *.o *.gch
+
+install:
+	cp *.o $(INSTALL_DIR)
