@@ -5,15 +5,15 @@
 #include <iostream>
 #include <endian.h>
 
-template <size_t KEYSIZE = 256>
+template <size_t KEYBITS = 256>
 class AES
 {  /* AES<int> Begin ------------------------------------------------------------------- */
 public:
 /************************** PUBLIC CONSTANTS ****************************************/
-  static_assert( (KEYSIZE == 128 || KEYSIZE == 192 || KEYSIZE == 256),
-                 "KEYSIZE for AES must be 128, 192, or 256 bits" );       // Disallow invalid KEYSIZEs
+  static_assert( (KEYBITS == 128 || KEYBITS == 192 || KEYBITS == 256),
+                 "KEYBITS for AES must be 128, 192, or 256 bits" );       // Disallow invalid KEYBITSs
   static constexpr size_t Nb = 4;                                            // Number of columns (32-bit words) comprising the state
-  static constexpr size_t Nk = KEYSIZE / 32;                                 // Number of 32-bit words comprising the cipher key
+  static constexpr size_t Nk = KEYBITS / 32;                                 // Number of 32-bit words comprising the cipher key
   static constexpr size_t Nr = Nk + 6;
 /************************** PUBLIC FUNCTIONS ****************************************/
 //Constructors
@@ -97,23 +97,23 @@ private:
 }; /* AES<int> End ------------------------------------------------------------------ */
 
 // Constructor
-template <size_t KEYSIZE>
-AES<KEYSIZE>::AES(const uint8_t k[])
+template <size_t KEYBITS>
+AES<KEYBITS>::AES(const uint8_t k[])
 {
   std::memcpy( key, k, sizeof(key) );
   KeyExpansion();
 }
 // Destructor
-template <size_t KEYSIZE>
-AES<KEYSIZE>::~AES()
+template <size_t KEYBITS>
+AES<KEYBITS>::~AES()
 {
   // Overwrite everything private and important.
   explicit_bzero( state, sizeof(state) );
   explicit_bzero( key, sizeof(key) );
   explicit_bzero( key_schedule, sizeof(key_schedule) );
 }
-template <size_t KEYSIZE>
-void AES<KEYSIZE>::cipher(const uint8_t in[], uint8_t out[])
+template <size_t KEYBITS>
+void AES<KEYBITS>::cipher(const uint8_t in[], uint8_t out[])
 {
   std::memcpy( state, in, sizeof(state) );
   AddRoundKey(0);
@@ -128,8 +128,8 @@ void AES<KEYSIZE>::cipher(const uint8_t in[], uint8_t out[])
   AddRoundKey(Nr);
   std::memcpy( out, state, sizeof(state) );
 }
-template <size_t KEYSIZE>
-void AES<KEYSIZE>::inverse_cipher(const uint8_t in[], uint8_t out[])
+template <size_t KEYBITS>
+void AES<KEYBITS>::inverse_cipher(const uint8_t in[], uint8_t out[])
 {
   std::memcpy( state, in, sizeof(state) );
   AddRoundKey(Nr);
@@ -144,8 +144,8 @@ void AES<KEYSIZE>::inverse_cipher(const uint8_t in[], uint8_t out[])
   AddRoundKey(0);
   std::memcpy( out, state, sizeof(state) );
 }
-template <size_t KEYSIZE>
-void AES<KEYSIZE>::debug()
+template <size_t KEYBITS>
+void AES<KEYBITS>::debug()
 {
   auto cmp = [](auto a, auto b){
     for( int col = 0; col < 4; ++col )
@@ -178,8 +178,8 @@ void AES<KEYSIZE>::debug()
   std::memcpy( buffer, state, sizeof(buffer) );
   
 }
-template <size_t KEYSIZE>
-void AES<KEYSIZE>::KeyExpansion()
+template <size_t KEYBITS>
+void AES<KEYBITS>::KeyExpansion()
 {
   uint32_t temp;
   int i = 0;
@@ -210,8 +210,8 @@ void AES<KEYSIZE>::KeyExpansion()
   }
 }
 
-template <size_t KEYSIZE>
-void AES<KEYSIZE>::SubBytes()
+template <size_t KEYBITS>
+void AES<KEYBITS>::SubBytes()
 {
   for( int col = 0; col < Nb; ++col ) {
     for ( int row = 0; row < 4; ++row) {
@@ -219,8 +219,8 @@ void AES<KEYSIZE>::SubBytes()
     }
   }
 }
-template <size_t KEYSIZE>
-void AES<KEYSIZE>::InvSubBytes()
+template <size_t KEYBITS>
+void AES<KEYBITS>::InvSubBytes()
 {
   for( int col = 0; col < Nb; ++col ) {
     for( int row = 0; row < 4; ++row ) {
@@ -228,8 +228,8 @@ void AES<KEYSIZE>::InvSubBytes()
     }
   }
 }
-template <size_t KEYSIZE>
-void AES<KEYSIZE>::ShiftRows()
+template <size_t KEYBITS>
+void AES<KEYBITS>::ShiftRows()
 {
   // This is pretty nasty looking.
   for( int row = 1; row < 4; ++row ) {          // For each shifted row...
@@ -244,8 +244,8 @@ void AES<KEYSIZE>::ShiftRows()
     }/*while(num_shifts>0)*/
   }/*for*/
 }
-template <size_t KEYSIZE>
-void AES<KEYSIZE>::InvShiftRows()
+template <size_t KEYBITS>
+void AES<KEYBITS>::InvShiftRows()
 {
   for( int row = 1; row < 4; ++row ) {
     int num_shifts = row;
@@ -259,8 +259,8 @@ void AES<KEYSIZE>::InvShiftRows()
     }/*while(num_shifts>0)*/
   }/*for*/
 }
-template <size_t KEYSIZE>
-void AES<KEYSIZE>::MixColumns()
+template <size_t KEYBITS>
+void AES<KEYBITS>::MixColumns()
 {
   for( int col = 0; col < Nb; ++col ) {// For each column of state
     uint8_t original[Nb];              // Initially, just a copy of the state of 1 column
@@ -276,8 +276,8 @@ void AES<KEYSIZE>::MixColumns()
     state[col][3] = two[3] ^ original[2] ^ original[1] ^ two[0] ^ original[0];
   }/*for(int col=0;col<Nb;++col)*/
 }
-template <size_t KEYSIZE>
-void AES<KEYSIZE>::InvMixColumns()
+template <size_t KEYBITS>
+void AES<KEYBITS>::InvMixColumns()
 {
   for( int col = 0; col < Nb; ++col ) {
     uint8_t original[Nb];
@@ -305,8 +305,8 @@ void AES<KEYSIZE>::InvMixColumns()
     state[col][3] = (fourteen[3]) ^ (eleven[0]) ^ (thirteen[1]) ^ (nine[2]);
   }/*for(*int col=0;col<Nb;++col)*/
 }
-template <size_t KEYSIZE>
-uint32_t AES<KEYSIZE>::SubWord(uint32_t word)
+template <size_t KEYBITS>
+uint32_t AES<KEYBITS>::SubWord(uint32_t word)
 {
 #if 0 // ORIGINAL IMPLEMENTATION
   uint8_t bytes[4];
@@ -333,21 +333,21 @@ uint32_t AES<KEYSIZE>::SubWord(uint32_t word)
   return htobe32( *(reinterpret_cast<uint32_t*>( bytes )) );
 #endif
 }
-template <size_t KEYSIZE>
-uint32_t AES<KEYSIZE>::RotWord(uint32_t word)
+template <size_t KEYBITS>
+uint32_t AES<KEYBITS>::RotWord(uint32_t word)
 {
   return (word >> 24) | (word << 8);
 }
-template <size_t KEYSIZE>
-uint8_t AES<KEYSIZE>::xtime(uint8_t byte)
+template <size_t KEYBITS>
+uint8_t AES<KEYBITS>::xtime(uint8_t byte)
 {
   const uint8_t high = static_cast<uint8_t> (
     static_cast<int8_t>( byte ) >> 7
   );
   return (byte << 1) ^ (0x1b & high);
 }
-template <size_t KEYSIZE>
-void AES<KEYSIZE>::AddRoundKey(int round)
+template <size_t KEYBITS>
+void AES<KEYBITS>::AddRoundKey(int round)
 {
   for( int col = 0; col < 4; ++col ) {
     const int ks_index = (round*Nb) + col;
