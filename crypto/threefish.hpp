@@ -229,6 +229,7 @@ void ThreeFish<KEYBITS>::cipher(const uint64_t *in, uint64_t *out)
       std::memcpy( state_copy, state, sizeof(state_copy) );
       for( int i = 0; i < Number_Words; ++i )
         state[i] = state_copy[ permute_index( i ) ];
+      explicit_bzero( state_copy, sizeof(state_copy) );
     }//-
   }
   add_subkey( Number_Rounds );
@@ -246,6 +247,7 @@ void ThreeFish<KEYSIZE>::inverse_cipher(const uint64_t *in, uint64_t *out)
       std::memcpy( state_copy, state, sizeof(state_copy) );
       for( int i = 0; i < Number_Words; ++i )
         state[i] = state_copy[ inverse_permute_index( i ) ];
+      explicit_bzero( state_copy, sizeof(state_copy) );
     }//-
     for( int j = 0; j<= (Number_Words / 2) -1; ++j )
       inverse_MIX( (state + (2 * j)), (state + (2 * j) + 1), round, j );
