@@ -160,11 +160,6 @@ void ThreeFish<KEYBITS>::expand_key( uint64_t *k, uint64_t *tw )
     key[ Number_Words ] ^= key[i];
   }
 
-  if constexpr(debug_print){
-    std::cout << "Key is now\n";
-    print_uint8_buffer( reinterpret_cast<uint8_t*>( key ), sizeof(key) );
-  }
-
   // Arbitrary keyschedule generation
   for( int subkey = 0; subkey < Number_Subkeys; ++subkey ) {// for each subkey
     const int subkey_index = subkey * Number_Words;
@@ -176,15 +171,6 @@ void ThreeFish<KEYBITS>::expand_key( uint64_t *k, uint64_t *tw )
       = ( key[ (subkey + (Number_Words - 2)) % (Number_Words + 1) ] + tweak[ (subkey + 1) % 3 ] );
     key_schedule[ subkey_index + (Number_Words - 1) ]
       = ( key[ (subkey + (Number_Words - 1)) % (Number_Words + 1) ] + static_cast<uint64_t>( subkey ) );
-    if constexpr (false && debug_print) {
-      std::cout << "on subkey round " << subkey << " it is now...\n";
-      print_uint8_buffer( reinterpret_cast<uint8_t*>( key_schedule ), sizeof(key_schedule));
-    }
-  }
-  if constexpr (debug_print) {
-    std::cout << "Expanded key...\n";
-    print_uint8_buffer( reinterpret_cast<uint8_t*>( key_schedule ), sizeof(key_schedule) );
-    std::cout << "\n\n";
   }
 
   // clear sensitive memory
