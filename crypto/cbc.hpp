@@ -6,6 +6,24 @@
 #include <cstdio>
 #include <utility>
 
+/*
+ * CBC < block_cipher_t, BLOCK_SIZE >
+ *
+ * This class implements The Cipher-Block-Chaining mode of operation for cryptographic block ciphers.
+    * block_cipher_t  =====> Some type that implements four specific methods:
+        size_t encrypt(const uint8_t *bytes_in, uint8_t *bytes_out, const size_t size_in, const uint8_t *iv);
+                  If IV is nullptr, the "state" is assumed to be already seeded with past invocations
+                  If IV is not nullptr, it is used to seed the state for encryption
+        size_t decrypt(const uint8_t *bytes_in, uint8_t *bytes_out, const size_t size_in, const uint8_t *iv);
+                  If IV is nullptr, the "state" is assumed to be already seeded with past invocations
+                  If IV is not nullptr, it is used to seed the state for encryption
+        void   encrypt_no_padding(const uint8_t *bytes_in, uint8_t *bytes_out, const size_t size_in, const uint8_t *iv);
+                  Same IV conditions as above ; does not do any sort of padding ; must only be used with buffers
+                  perfectly divisible by BLOCK_SIZE
+        inline void   decrypt_no_padding(const uint8_t *bytes_in, uint8_t *bytes_out, const size_t size_in, const uint8_t *iv);
+                  Same conditions as above.
+    * BLOCK_SIZE      =====> a size_t unsigned integer describing the number of bits in 1 block of the block cipher.
+  */
 template< typename block_cipher_t, size_t BLOCK_SIZE >
 class CBC
 {
