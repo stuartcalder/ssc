@@ -147,9 +147,6 @@ void b64_r648_decode(const char * const in, uint8_t * const out, const size_t si
   const int padding_chars = count_padding_chars( in, size_in );
   size_t input_offset = 0,
          output_offset = 0;
-#if 0
-  for( ; input_offset < last_input_quantum_offset;
-#endif
   for( ; input_offset < last_input_quantum_offset;
       input_offset  += Input_Quantum_Size,
       output_offset += Output_Quantum_Size )
