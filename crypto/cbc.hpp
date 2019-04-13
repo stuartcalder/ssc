@@ -191,26 +191,4 @@ inline void CBC<block_cipher_t,BLOCK_BITS>::decrypt_no_padding(const uint8_t *by
 {
   decrypt( bytes_in, bytes_out, size_in, iv );
 }
-template< typename block_cipher_t, size_t BLOCK_BITS >
-void CBC<block_cipher_t,BLOCK_BITS>::decrypt_no_padding( const uint8_t *bytes_in, uint8_t *bytes_out, const size_t size_in, const uint8_t *iv )
-{
-  using std::memcpy;
-
-  if( iv != nullptr )
-    memcpy( state, iv, sizeof(state) );
-  const size_t last_block_offset = size_in - BLOCK_BYTES;
-  uint8_t ciphertext[ BLOCK_BYTES ];
-  uint8_t buffer    [ BLOCK_BYTES ];
-  for( size_t b_off = 0; b_off <= last_block_offset; b_off += BLOCK_BYTES ) {
-    const uint8_t *block_in  = bytes_in  + b_off,
-            *block_out = bytes_out + b_off;
-    memcpy( ciphertext, block_in, sizeof(ciphertext) );
-    blk_cipher.inverse_cipher( ciphertext, buffer );
-    xor_block( buffer, state );
-    memcpy( block_out, buffer, sizeof(buffer) );
-    memcpy( state, ciphertext, sizeof(state) );
-  }
-  explicit_bzero( buffer, sizeof(buffer) );
-  explicit_bzero( ciphertext, sizeof(ciphertext) );
-}
 #endif
