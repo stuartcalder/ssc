@@ -28,7 +28,7 @@ public:
   static constexpr const bool debug_print = false;
   /* CONSTRUCTORS / DESTRUCTORS */
   ThreeFish() = delete;
-  ThreeFish( uint64_t *k, uint64_t *tw = nullptr ) {
+  ThreeFish( const uint64_t *k, const uint64_t *tw = nullptr ) {
       expand_key( k, tw );
   }
   ~ThreeFish(); // forward declared
@@ -51,7 +51,7 @@ private:
   void MIX        ( uint64_t *x0, uint64_t *x1, const int round, const int index );
   void inverse_MIX( uint64_t *x0, uint64_t *x1, const int round, const int index );
   uint64_t get_rotate_constant( int round, int index );
-  void expand_key(uint64_t *key, uint64_t *tweak);
+  void expand_key(const uint64_t *key, const uint64_t *tweak);
   void add_subkey(int round);
   void subtract_subkey(int round);
   uint64_t permute_index( int i );
@@ -134,7 +134,7 @@ uint64_t ThreeFish<KEYBITS>::get_rotate_constant( int round, int index )
 }
 
 template <size_t KEYBITS >
-void ThreeFish<KEYBITS>::expand_key( uint64_t *k, uint64_t *tw )
+void ThreeFish<KEYBITS>::expand_key( const uint64_t *k, const uint64_t *tw )
 {
   using std::memcpy;
   

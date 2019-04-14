@@ -5,7 +5,6 @@
 #include <cstring>
 #include <cstdio>
 #include <utility>
-#include "testing.hpp"
 
 template< typename block_cipher_t, int BLOCK_BITS >
 class CTR
