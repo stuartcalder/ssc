@@ -5,7 +5,6 @@
 #include <cstring>
 #include <iostream>
 #include "operations.hpp"
-#include "testing.hpp"
 
 template< size_t KEYBITS=512 >
 class ThreeFish
