@@ -6,11 +6,12 @@
 #include <iostream>
 #include "operations.hpp"
 
-template< size_t Key_Bits=512 >
+template< size_t KEY_BITS=512 >
 class Threefish_Runtime_Keyschedule
 {
 public:
   /* STATIC CHECKS */
+  static constexpr const size_t Key_Bits = KEY_BITS;
   static_assert ( 
       (Key_Bits == 256 || Key_Bits == 512 || Key_Bits == 1024), "Invalid keysize" 
   );
@@ -64,8 +65,8 @@ private:
   uint64_t inverse_permute_index(const int i) const;
 };
 
-template< size_t Key_Bits >
-Threefish_Runtime_Keyschedule<Key_Bits>::~Threefish_Runtime_Keyschedule()
+template< size_t KEY_BITS >
+Threefish_Runtime_Keyschedule<KEY_BITS>::~Threefish_Runtime_Keyschedule()
 {
   explicit_bzero( state        , sizeof(state) );
   explicit_bzero( subkey_buffer, sizeof(subkey_buffer) );
@@ -73,8 +74,8 @@ Threefish_Runtime_Keyschedule<Key_Bits>::~Threefish_Runtime_Keyschedule()
   explicit_bzero( tweak        , sizeof(tweak) );
 }
 
-template< size_t Key_Bits >
-void Threefish_Runtime_Keyschedule<Key_Bits>::set_key(const uint64_t *k)
+template< size_t KEY_BITS >
+void Threefish_Runtime_Keyschedule<KEY_BITS>::set_key(const uint64_t *k)
 {
   std::memcpy( key, k, sizeof(uint64_t) * Number_Words );
   uint64_t parity_word = Constant_240;
@@ -84,8 +85,8 @@ void Threefish_Runtime_Keyschedule<Key_Bits>::set_key(const uint64_t *k)
 }
 
 
-template< size_t Key_Bits >
-void Threefish_Runtime_Keyschedule<Key_Bits>::set_tweak(const uint64_t *tw)
+template< size_t KEY_BITS >
+void Threefish_Runtime_Keyschedule<KEY_BITS>::set_tweak(const uint64_t *tw)
 {
   if( tw != nullptr ) {
     std::memcpy( tweak, tw, sizeof(uint64_t) * 2 );
@@ -95,8 +96,8 @@ void Threefish_Runtime_Keyschedule<Key_Bits>::set_tweak(const uint64_t *tw)
   }
 }
 
-template< size_t Key_Bits >
-void Threefish_Runtime_Keyschedule<Key_Bits>::MIX(uint64_t *x0, uint64_t *x1, const int round, const int index) const
+template< size_t KEY_BITS >
+void Threefish_Runtime_Keyschedule<KEY_BITS>::MIX(uint64_t *x0, uint64_t *x1, const int round, const int index) const
 {
   auto & y0 = x0;
   auto & y1 = x1;
@@ -105,8 +106,8 @@ void Threefish_Runtime_Keyschedule<Key_Bits>::MIX(uint64_t *x0, uint64_t *x1, co
   (*y1) = ( rotate_left<uint64_t>( (*x1), get_rotate_constant( round, index ) ) ^ (*y0) );
 }
 
-template< size_t Key_Bits >
-void Threefish_Runtime_Keyschedule<Key_Bits>::inverse_MIX(uint64_t *x0, uint64_t *x1, const int round, const int index) const
+template< size_t KEY_BITS >
+void Threefish_Runtime_Keyschedule<KEY_BITS>::inverse_MIX(uint64_t *x0, uint64_t *x1, const int round, const int index) const
 {
   auto & y0 = x0;
   auto & y1 = x1;
@@ -117,8 +118,8 @@ void Threefish_Runtime_Keyschedule<Key_Bits>::inverse_MIX(uint64_t *x0, uint64_t
 
 }
 
-template< size_t Key_Bits >
-uint64_t Threefish_Runtime_Keyschedule<Key_Bits>::get_rotate_constant(const int round, const int index) const
+template< size_t KEY_BITS >
+uint64_t Threefish_Runtime_Keyschedule<KEY_BITS>::get_rotate_constant(const int round, const int index) const
 {
   static_assert (
       Number_Words == 4 || Number_Words == 8 || Number_Words == 16,
@@ -163,8 +164,8 @@ uint64_t Threefish_Runtime_Keyschedule<Key_Bits>::get_rotate_constant(const int 
   }
 }
 
-template <size_t Key_Bits>
-void Threefish_Runtime_Keyschedule<Key_Bits>::calculate_subkey(const int subkey_index)
+template <size_t KEY_BITS>
+void Threefish_Runtime_Keyschedule<KEY_BITS>::calculate_subkey(const int subkey_index)
 {
   for( int i = 0; i <= (Number_Words - 4); ++i ) {
     subkey_buffer[i] = key[ (subkey_index + i) % (Number_Words + 1) ];
@@ -177,8 +178,8 @@ void Threefish_Runtime_Keyschedule<Key_Bits>::calculate_subkey(const int subkey_
       key[ (subkey_index + (Number_Words - 1)) % (Number_Words + 1) ] + static_cast<uint64_t>(subkey_index);
 }
 
-template <size_t Key_Bits>
-void Threefish_Runtime_Keyschedule<Key_Bits>::add_subkey(const int round)
+template <size_t KEY_BITS>
+void Threefish_Runtime_Keyschedule<KEY_BITS>::add_subkey(const int round)
 {
   const int subkey_index = round / 4;
   calculate_subkey( subkey_index );
@@ -187,8 +188,8 @@ void Threefish_Runtime_Keyschedule<Key_Bits>::add_subkey(const int round)
   }
 }
 
-template <size_t Key_Bits>
-void Threefish_Runtime_Keyschedule<Key_Bits>::subtract_subkey(const int round)
+template <size_t KEY_BITS>
+void Threefish_Runtime_Keyschedule<KEY_BITS>::subtract_subkey(const int round)
 {
   const int subkey_index = round / 4;
   calculate_subkey( subkey_index );
@@ -197,8 +198,8 @@ void Threefish_Runtime_Keyschedule<Key_Bits>::subtract_subkey(const int round)
   }
 }
 
-template <size_t Key_Bits>
-void Threefish_Runtime_Keyschedule<Key_Bits>::cipher(const uint64_t *in, uint64_t *out)
+template <size_t KEY_BITS>
+void Threefish_Runtime_Keyschedule<KEY_BITS>::cipher(const uint64_t *in, uint64_t *out)
 {
   std::memcpy( state, in, sizeof(state) );
   for( int round = 0; round < Number_Rounds; ++round ) {
@@ -242,8 +243,8 @@ void Threefish_Runtime_Keyschedule<KEYSIZE>::inverse_cipher(const uint64_t *in, 
   std::memcpy( out, state, sizeof(state) );
 }
 
-template <size_t Key_Bits>
-uint64_t Threefish_Runtime_Keyschedule<Key_Bits>::permute_index(const int i) const
+template <size_t KEY_BITS>
+uint64_t Threefish_Runtime_Keyschedule<KEY_BITS>::permute_index(const int i) const
 {
   if constexpr( Number_Words == 4 ) {
     switch( i ) {
@@ -267,8 +268,8 @@ uint64_t Threefish_Runtime_Keyschedule<Key_Bits>::permute_index(const int i) con
   }
 }
 
-template <size_t Key_Bits>
-uint64_t Threefish_Runtime_Keyschedule<Key_Bits>::inverse_permute_index(const int i) const
+template <size_t KEY_BITS>
+uint64_t Threefish_Runtime_Keyschedule<KEY_BITS>::inverse_permute_index(const int i) const
 {
   if constexpr( Number_Words == 4 ) {
     switch( i ) {
