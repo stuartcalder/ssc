@@ -15,11 +15,14 @@ public:
       (Key_Bits == 256 || Key_Bits == 512 || Key_Bits == 1024), "Invalid keysize" 
   );
   static_assert (
-      (CHAR_BIT == 8), "This implementation needs 8-bit chars"]
+      (CHAR_BIT == 8), "This implementation needs 8-bit chars"
   );
   /* PUBLIC CONSTANTS */
   static constexpr const int       Number_Words   = Key_Bits / 64;
-  static constexpr const int       Number_Rounds  = [Number_Words](){ if( Number_Words == 16 ) return 80; else return 72; }();
+#if 0
+  static constexpr const int       Number_Rounds  = [Number_Words]{ if( Number_Words == 16 ) return 80; else return 72; }();
+#endif
+  static constexpr const int       Number_Rounds  = [](auto words){ if( words == 16 ) return 80; else return 72; }( Number_Words );
   static constexpr const int       Number_Subkeys = (Number_Rounds / 4) + 1;
   static constexpr const uint64_t  Constant_240   = 0x1bd1'1bda'a9fc'1a22;
   /* PUBLIC FUNCTIONS */
@@ -53,7 +56,7 @@ private:
   /* PRIVATE FUNCTIONS */
   void     MIX                  (uint64_t *x0, uint64_t *x1, const int round, const int index) const;
   void     inverse_MIX          (uint64_t *x0, uint64_t *x1, const int round, const int index) const;
-  void     calculate_subkey     (const int subkey_index) const;
+  void     calculate_subkey     (const int subkey_index);
   void     add_subkey           (const int round);
   void     subtract_subkey      (const int round);
   uint64_t get_rotate_constant  (const int round, const int index) const;
@@ -84,8 +87,12 @@ void Threefish_Runtime_Keyschedule<Key_Bits>::set_key(const uint64_t *k)
 template< size_t Key_Bits >
 void Threefish_Runtime_Keyschedule<Key_Bits>::set_tweak(const uint64_t *tw)
 {
-  std::memcpy( tweak, tw, sizeof(uint64_t) * 2 );
-  tweak[2] = tweak[0] ^ tweak[1];
+  if( tw != nullptr ) {
+    std::memcpy( tweak, tw, sizeof(uint64_t) * 2 );
+    tweak[2] = tweak[0] ^ tweak[1];
+  } else {
+    std::memset( tweak, 0, sizeof(tweak) );
+  }
 }
 
 template< size_t Key_Bits >
@@ -157,7 +164,7 @@ uint64_t Threefish_Runtime_Keyschedule<Key_Bits>::get_rotate_constant(const int 
 }
 
 template <size_t Key_Bits>
-void Threefish_Runtime_Keyschedule<Key_Bits>::calculate_subkey(const int subkey_index) const
+void Threefish_Runtime_Keyschedule<Key_Bits>::calculate_subkey(const int subkey_index)
 {
   for( int i = 0; i <= (Number_Words - 4); ++i ) {
     subkey_buffer[i] = key[ (subkey_index + i) % (Number_Words + 1) ];
@@ -203,7 +210,7 @@ void Threefish_Runtime_Keyschedule<Key_Bits>::cipher(const uint64_t *in, uint64_
       MIX( (state + (2 * j)), (state + (2 * j) + 1), round, j );
     // Permutations
     {//+
-      uint64_t state_copy[ Number_Words ];
+      uint64_t state_copy[ sizeof(state) ];
       std::memcpy( state_copy, state, sizeof(state_copy) );
       for( int i = 0; i < Number_Words; ++i )
         state[i] = state_copy[ permute_index( i ) ];
