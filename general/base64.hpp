@@ -14,6 +14,7 @@
     first octet
 
  */
+/* STATIC FUNCTIONS */
 static char b64_r648_encode_six_bits(const uint8_t a)
 {
   if( a >= 0 && a <= 25 )
@@ -107,7 +108,7 @@ static void b64_r648_decode_twentyfour_bits(const char * const in, uint8_t * con
   out[1] = (encoded[1] << 4) | (encoded[2] >> 2);
   out[2] = (encoded[2] << 6) | (encoded[3]     );
 }
-
+/* GLOBAL FUNCTIONS */
 constexpr size_t calculate_b64_r648_size( size_t size_in )
 {
   size_t count = 0;
