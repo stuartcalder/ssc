@@ -18,4 +18,6 @@ uint_t rotate_right( uint_t value, uint_t count )
   return ( value >> count ) | ( value << (-count & mask));
 }
 
+void generate_random_bytes( void * const buffer, size_t num_bytes );
+
 #endif
