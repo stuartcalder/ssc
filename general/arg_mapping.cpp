@@ -15,7 +15,7 @@ void Arg_Mapping::parse_c_args(const int argc, const char * argv[])
   std::pair< std::string, std::string > temp_pair;
   for( int i = 0; i < vec.size(); ++i ) {
     // is this string an option?
-    if( is_option( vec[i] ) {
+    if( is_option( vec[i] ) ) {
       // it is an option, put it in the `first` of the temp_pair
       temp_pair.first = vec[i];
       // is the next string (if there is one) an option, or an argument to this option?
