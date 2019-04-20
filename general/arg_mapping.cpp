@@ -66,6 +66,10 @@ void Arg_Mapping::print_mapping() const
   }
 }
 
+Arg_Mapping::Arg_Mapping(const int argc, const char * argv[])
+{
+  parse_c_args( argc, argv );
+}
 
 
 
