@@ -71,6 +71,8 @@ Arg_Mapping::Arg_Mapping(const int argc, const char * argv[])
   parse_c_args( argc, argv );
 }
 
-
-
-
+auto Arg_Mapping::get() const
+  -> const Arg_Map_t &
+{
+  return mapping;
+}

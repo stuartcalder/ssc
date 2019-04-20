@@ -7,15 +7,18 @@
 class Arg_Mapping
 {
 public:
+/* PUBLIC CONSTANTS & ALIASES */
+  using Arg_Map_t = std::vector< std::pair< std::string, std::string > >;
 /* PUBLIC INTERFACE */
-  void parse_c_args(const int argc, const char * argv[]);
-  inline void clear();
-  void print_mapping() const;
+  void          print_mapping() const;
+  void          parse_c_args(const int argc, const char * argv[]);
+  inline void   clear();
+  inline auto get() const -> const Arg_Map_t &;
 /* CONSTRUCTOR(S) */
   Arg_Mapping(const int argc, const char * argv[]);
 private:
 /* PRIVATE DATA */
-  std::vector< std::pair< std::string, std::string > > mapping;
+  Arg_Mapping_t mapping;
 /* PRIVATE INTERFACE */
   bool is_option     (const std::string & str) const;
 };
