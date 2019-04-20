@@ -76,3 +76,9 @@ auto Arg_Mapping::get() const
 {
   return mapping;
 }
+
+auto Arg_Mapping::consume()
+  -> Arg_Map_t
+{
+  return mapping;
+}
