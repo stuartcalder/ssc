@@ -1,6 +1,11 @@
 #include "arg_mapping.hpp"
 
-void Arg_Mapping::parse(const int argc, const char * argv[])
+void Arg_Mapping::clear()
+{
+  mapping.clear();
+}
+
+void Arg_Mapping::parse_c_args(const int argc, const char * argv[])
 {
   /* Vectorize the arguments */
   std::vector< std::string > vec;
@@ -28,7 +33,7 @@ void Arg_Mapping::parse(const int argc, const char * argv[])
     // Clear whatever was or wasn't in the temp_pair and continue on through the arguments.
     temp_pair.first.clear();
     temp_pair.second.clear();
-  }
+  }/* end for( int i = 0; i < vec.size(); ++i ) */
 }
 
 bool Arg_Mapping::is_option(const std::string & str) const
@@ -39,3 +44,29 @@ bool Arg_Mapping::is_option(const std::string & str) const
       return false;
   return true;
 }
+
+void Arg_Mapping::print_mapping() const
+{
+  /* Determine longest string length out of all of them
+     to use as the minimum field width */
+  int min_field_size = 0;
+  for( const auto & pair : mapping ) {
+    if( pair.first.size() > min_field_size )
+      min_field_size = pair.first.size();
+    if( pair.second.size() > min_field_size )
+      min_field_size = pair.second.size();
+  }
+  /* Print out everything */
+  for( const auto & pair : mapping ) {
+    int size_0 = pair.first.size(),
+        size_1 = pair.second.size();
+    std::printf( "{ %*s, %*s }\n",
+                 min_field_size, pair.first.c_str(),
+                 min_field_size, pair.second.c_str() );
+  }
+}
+
+
+
+
+

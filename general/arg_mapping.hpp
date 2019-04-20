@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdio>
 #include <utility>
 #include <string>
 #include <vector>
@@ -6,10 +7,10 @@
 class Arg_Mapping
 {
 public:
-/* CONSTANTS & ALIASES */
-  static constexpr const bool Debug = true;
 /* PUBLIC INTERFACE */
-  void parse(const int argc, const char * argv[]);
+  void parse_c_args(const int argc, const char * argv[]);
+  inline void clear();
+  void print_mapping() const;
 private:
 /* PRIVATE DATA */
   std::vector< std::pair< std::string, std::string > > mapping;
