@@ -20,6 +20,7 @@ uint_t rotate_right( uint_t value, uint_t count )
 template< size_t Block_Bits >
 void xor_block(void * block, const void * add)
 {
+  static_assert( Block_Bits % 8, "Bits must be a multiple of bytes" );
   static constexpr const size_t Block_Bytes = Block_Bits / 8;
   if constexpr( Block_Bits == 128 )
   {
