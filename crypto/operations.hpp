@@ -1,7 +1,7 @@
-#ifndef OPERATIONS_HPP
-#define OPERATIONS_HPP
+#pragma once
 #include <cstdint>
 #include <climits>
+#include <unistd.h>
 
 template< typename uint_t >
 uint_t rotate_left( uint_t value, uint_t count )
@@ -19,5 +19,3 @@ uint_t rotate_right( uint_t value, uint_t count )
 }
 
 void generate_random_bytes( void * const buffer, size_t num_bytes );
-
-#endif
