@@ -5,6 +5,10 @@ template< size_t State_Bits >
 class Skein
 {
 public:
+  static_assert(
+      State_Bits == 256 || State_Bits == 512 || State_Bits == 1024,
+      "Skein and Threefish only designed for 256, 512, 1024 bit-lengths."
+  );
   using ThreeFish_t = ThreeFish_Runtime_Keyschedule< State_Bits >;
   static constexpr const size_t State_Bytes = State_Bits / 8;
 
