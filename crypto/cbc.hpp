@@ -1,5 +1,4 @@
-#ifndef CBC_HPP
-#define CBC_HPP
+#pragma once
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
@@ -50,7 +49,7 @@ private:
   /* PRIVATE INTERFACE */
   size_t apply_iso_iec_7816_padding(uint8_t *bytes, const size_t prepadding_size) const;
   size_t count_iso_iec_7816_padding_bytes( const uint8_t * const bytes, const size_t padded_size ) const;
-  void xor_block(uint8_t *block, const uint8_t *add) const;
+  const auto & _xor_block = xor_block< BLOCK_BITS >;
   bool state_is_seeded() const;
 };
 
@@ -141,7 +140,7 @@ void CBC<block_cipher_t,BLOCK_BITS>::encrypt_no_padding(const uint8_t *bytes_in,
   const size_t last_block_offset = size_in - BLOCK_BYTES;
   for( size_t b_off = 0; b_off <= last_block_offset; b_off += BLOCK_BYTES ) {
     uint8_t *current_block = bytes_out + b_off;
-    xor_block( current_block, state );
+    _xor_block( current_block, state );
     blk_cipher.cipher( current_block, current_block );
     memcpy( state, current_block, sizeof(state) );
   }
@@ -160,7 +159,7 @@ size_t CBC<block_cipher_t,BLOCK_BITS>::encrypt(const uint8_t *bytes_in, uint8_t 
   const size_t last_block_offset = padded_size - BLOCK_BYTES;
   for( size_t block_offset = 0; block_offset <= last_block_offset; block_offset += BLOCK_BYTES ) {
     uint8_t *current_block = bytes_out + block_offset;
-    xor_block( current_block, state );
+    _xor_block( current_block, state );
     blk_cipher.cipher( current_block, current_block );
     memcpy( state, current_block, sizeof(state) );
   }
@@ -181,7 +180,7 @@ size_t CBC<block_cipher_t,BLOCK_BITS>::decrypt(const uint8_t *bytes_in, uint8_t 
     uint8_t       *block_out = bytes_out + b_off;
     memcpy( ciphertext, block_in, sizeof(ciphertext) );
     blk_cipher.inverse_cipher( ciphertext, buffer );
-    xor_block( buffer, state );
+    _xor_block( buffer, state );
     memcpy( block_out, buffer, sizeof(buffer) );
     memcpy( state, ciphertext, sizeof(state) );
   }
@@ -204,11 +203,10 @@ void CBC<block_cipher_t,BLOCK_BITS>::decrypt_no_padding(const uint8_t *bytes_in,
     uint8_t       *block_out = bytes_out + b_off;
     memcpy( ciphertext, block_in, sizeof(ciphertext) );
     blk_cipher.inverse_cipher( ciphertext, buffer );
-    xor_block( buffer, state );
+    _xor_block( buffer, state );
     memcpy( block_out, buffer, sizeof(buffer) );
     memcpy( state, ciphertext, sizeof(state) );
   }
   explicit_bzero( buffer, sizeof(buffer) );
   explicit_bzero( ciphertext, sizeof(ciphertext) );
 }
-#endif
