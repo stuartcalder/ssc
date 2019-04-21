@@ -1,6 +1,4 @@
-#ifndef SKEIN_HPP
-#define SKEIN_HPP
-
+#pragma once
 #include "threefish.hpp"
 
 template< size_t Block_Bits >
@@ -29,5 +27,3 @@ void Skein<Block_Bits>::UBI(const uint64_t * const starting_val,
 {
 
 }
-
-#endif
