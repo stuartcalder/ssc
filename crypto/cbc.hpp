@@ -47,10 +47,10 @@ private:
   block_cipher_t  blk_cipher;
   uint8_t state[ BLOCK_BYTES ] = { 0 };
   /* PRIVATE INTERFACE */
-  size_t apply_iso_iec_7816_padding(uint8_t *bytes, const size_t prepadding_size) const;
-  size_t count_iso_iec_7816_padding_bytes( const uint8_t * const bytes, const size_t padded_size ) const;
-  const auto & _xor_block = xor_block< BLOCK_BITS >;
-  bool state_is_seeded() const;
+  size_t  apply_iso_iec_7816_padding      (uint8_t *bytes, const size_t prepadding_size) const;
+  size_t  count_iso_iec_7816_padding_bytes(const uint8_t * const bytes, const size_t padded_size) const;
+  bool    state_is_seeded() const;
+  constexpr const auto & _xor_block = xor_block< BLOCK_BITS >;
 };
 
 // CONSTRUCTORS
@@ -90,22 +90,6 @@ size_t CBC<block_cipher_t,BLOCK_BITS>::count_iso_iec_7816_padding_bytes(const ui
       return count;
   }
   exit(3);
-}
-template< typename block_cipher_t, size_t BLOCK_BITS >
-void CBC<block_cipher_t,BLOCK_BITS>::xor_block(uint8_t *block, const uint8_t *add) const
-{
-  if constexpr( Micro_Optimizations && BLOCK_BITS == 128 ) {
-    /* 128-bit block case */
-    auto first_dword  = reinterpret_cast<uint64_t*>( block );
-    auto second_dword = reinterpret_cast<const uint64_t*>( add );
-
-    (*first_dword) ^= (*second_dword);
-    (*(first_dword + 1)) ^= (*(second_dword + 1));
-  } else {
-    /* General block case */
-    for( size_t i = 0; i < BLOCK_BYTES; ++i )
-      block[i] ^= add[i];
-  }
 }
 /*
   bool CBC<block_cipher_t,BLOCK_BITS>::state_is_seeded()

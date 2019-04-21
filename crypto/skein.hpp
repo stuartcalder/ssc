@@ -1,14 +1,16 @@
 #pragma once
-#include "threefish.hpp"
+#include "threefish_runtime_keyschedule.hpp"
 
-template< size_t Block_Bits >
+template< size_t State_Bits >
 class Skein
 {
 public:
-  static constexpr const size_t State_Bytes = Block_Bits / 8;
+  using ThreeFish_t = ThreeFish_Runtime_Keyschedule< State_Bits >;
+  static constexpr const size_t State_Bytes = State_Bits / 8;
 
-  Skein(ThreeFish<Block_Bits> &&tf);
+  Skein(ThreeFish_t &&tf);
 private:
+  ThreeFish_t _threefish;
   void UBI(const uint64_t * const starting_val,
            const uint8_t  * const message,
            const uint8_t  * const tweak);
@@ -17,7 +19,7 @@ private:
 
 template< size_t Block_Bits >
 Skein<Block_Bits>::Skein(ThreeFish<Block_Bits> &&tf)
-  : threefish{ tf }
+  : _threefish{ tf }
 {
 }
 template< size_t Block_Bits >
