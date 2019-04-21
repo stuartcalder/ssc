@@ -33,7 +33,7 @@ void cbc_encrypt_file(const char * const input_filename,
                      "Output file is %p\n", input_file, output_file );
     exit( EXIT_FAILURE );
   }
-  /////////////////Open the input file and the output file////////////////////////////
+  /////////////////Encrypt whole blocks until the last////////////////////////////
   size_t bytes_to_encrypt = get_file_size( input_file );
   auto buffer = make_unique<uint8_t[]>( file_buffer_size );
   fwrite( iv, 1, Block_Bytes, output_file );
@@ -43,11 +43,13 @@ void cbc_encrypt_file(const char * const input_filename,
     fwrite( buffer.get(), file_buffer_size, 1, output_file );
     bytes_to_encrypt -= file_buffer_size;
   }
+  /////////////////Encrypt the last//////////////////////////////////////////////
   { // +
     fread( buffer.get(), 1, bytes_to_encrypt, input_file );
     size_t encrypted = cbc.encrypt( buffer.get(), buffer.get(), bytes_to_encrypt );
     fwrite( buffer.get(), 1, encrypted, output_file );
   } // -
+  ////////////////Cleanup////////////////////////////////////////////////////////
   explicit_bzero( buffer.get(), file_buffer_size );
   fclose( input_file );
   fclose( output_file );
