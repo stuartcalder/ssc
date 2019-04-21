@@ -77,14 +77,14 @@ void Threefish_Precomputed_Keyschedule<KEY_BITS>::MIX(uint64_t *x0, uint64_t *x1
 }
 
 template< size_t KEY_BITS >
-void Threefish_Precomputed_Keyschedule<KEY_BITS>::inverse_MIX(uint64_t *x0, uint64_t *x1, const int round, const int index) const
+void Threefish_Precomputed_Keyschedule<KEY_BITS>::inverse_MIX(uint64_t *y0, uint64_t *y1, const int round, const int index) const
 {
-  uint64_t * const y0 = x0;
-  uint64_t * const y1 = x1;
+  uint64_t * const x0 = y0;
+  uint64_t * const x1 = y1;
 
-  (*y1) = ((*x0) ^ (*x1));
-  (*y1) = rotate_right<uint64_t>( (*x1), get_rotate_constant( round, index ) ) ;
-  (*y0) = (*x0) - (*y1);
+  (*x1) = ((*y0) ^ (*y1));
+  (*x1) = rotate_right<uint64_t>( (*y1), get_rotate_constant( round, index ) ) ;
+  (*x0) = (*y0) - (*x1);
 
 }
 
@@ -233,7 +233,7 @@ void Threefish_Precomputed_Keyschedule<KEYSIZE>::inverse_cipher(const uint64_t *
         state[i] = state_copy[ inverse_permute_index( i ) ];
       explicit_bzero( state_copy, sizeof(state_copy) );
     }//-
-    for( int j = 0; j<= (Number_Words / 2) -1; ++j )
+    for( int j = 0; j<= (Number_Words / 2) - 1; ++j )
       inverse_MIX( (state + (2 * j)), (state + (2 * j) + 1), round, j );
     if( round % 4 == 0 )
       subtract_subkey( round );
