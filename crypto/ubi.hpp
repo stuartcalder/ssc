@@ -46,23 +46,23 @@ private:
   void       _clear_tweak_all();
   void       _set_tweak_type(const Type_Mask t_mask);
   void       _clear_msg();
-  uint64_t   _read_msg_block(const uint64_t * const message_offset,
-                             const uint64_t         bytes_left);
+  uint64_t   _read_msg_block(const uint8_t * const message_offset,
+                             const uint64_t        bytes_left);
 };
 
 template< typename Tweakable_Block_Cipher_t,
           size_t   State_Bits >
 void UBI<Tweakable_Block_Cipher_t,State_Bits>::chain
   (const Type_Mask type_mask,
-   const uint64_t * const message,
+   const uint8_t  * const message,
    const uint64_t message_size,
    const uint64_t * const in)
 {///////////////////BEGIN CHAINING////////////////////////////////////
-  uint64_t * message_offset = message;
+  uint8_t * message_offset = message;
 /* Ensure none of the input pointers are nullptr */
   if( message == nullptr ) {
     std::fprintf( stderr, "Nullptr for message in UBI call.\n" );
-    exit( EXIT_FAILURE );
+    std::exit( EXIT_FAILURE );
   }
 /* Setup Tweak */
   _clear_tweak_all();
