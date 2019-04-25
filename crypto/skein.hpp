@@ -1,4 +1,15 @@
 #pragma once
+#include "threefish.hpp"
+#include "ubi.hpp"
+
+template< size_t State_Bits >
+class Skein
+{
+public:
+  using UBI = UBI< Threefish<State_Bits>, State_Bits >;
+private:
+};
+#if 0
 #include "threefish_runtime_keyschedule.hpp"
 
 template< size_t State_Bits >
@@ -33,3 +44,4 @@ void Skein<Block_Bits>::UBI(const uint64_t * const starting_val,
 {
 
 }
+#endif

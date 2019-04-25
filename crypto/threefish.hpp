@@ -7,7 +7,7 @@
 #include "operations.hpp"
 
 template< size_t Key_Bits=512 >
-class ThreeFish
+class Threefish
 {
 public:
   /* STATIC CHECKS */
@@ -23,11 +23,11 @@ public:
   static constexpr const int       Number_Subkeys = (Number_Rounds / 4) + 1;
   static constexpr const uint64_t  Constant_240   = 0x1bd1'1bda'a9fc'1a22;
   /* CONSTRUCTORS / DESTRUCTORS */
-  ThreeFish() = delete;
-  ThreeFish(const uint64_t *k, const uint64_t *tw = nullptr) {
+  Threefish() = delete;
+  Threefish(const uint64_t *k, const uint64_t *tw = nullptr) {
       expand_key( k, tw );
   }
-  ~ThreeFish(); // forward declared
+  ~Threefish(); // forward declared
   /* PUBLIC FUNCTIONS */
   void cipher(const uint64_t *in, uint64_t *out); // forward declared
   void cipher(const uint8_t *in, uint8_t *out);
@@ -53,27 +53,27 @@ private:
 };
 
 template< size_t Key_Bits >
-void ThreeFish<Key_Bits>::cipher(const uint8_t *in,
+void Threefish<Key_Bits>::cipher(const uint8_t *in,
                                        uint8_t *out)
 {
   cipher( reinterpret_cast<const uint64_t*>(in), reinterpret_cast<uint64_t*>(out) );
 }
 
 template< size_t Key_Bits >
-void ThreeFish<Key_Bits>::inverse_cipher(const uint8_t *in, uint8_t *out)
+void Threefish<Key_Bits>::inverse_cipher(const uint8_t *in, uint8_t *out)
 {
   inverse_cipher( reinterpret_cast<const uint64_t*>( in ), reinterpret_cast<uint64_t*>( out ) );
 }
 
 template< size_t Key_Bits >
-ThreeFish<Key_Bits>::~ThreeFish()
+Threefish<Key_Bits>::~Threefish()
 {
   explicit_bzero( key_schedule, sizeof(key_schedule) );
   explicit_bzero( state, sizeof(state) );
 }
 
 template< size_t Key_Bits >
-void ThreeFish<Key_Bits>::MIX(uint64_t *x0, uint64_t *x1, const int round, const int index) const
+void Threefish<Key_Bits>::MIX(uint64_t *x0, uint64_t *x1, const int round, const int index) const
 {
   uint64_t * const y0 = x0;
   uint64_t * const y1 = x1;
@@ -83,7 +83,7 @@ void ThreeFish<Key_Bits>::MIX(uint64_t *x0, uint64_t *x1, const int round, const
 }
 
 template< size_t Key_Bits >
-void ThreeFish<Key_Bits>::inverse_MIX(uint64_t *x0, uint64_t *x1, const int round, const int index) const
+void Threefish<Key_Bits>::inverse_MIX(uint64_t *x0, uint64_t *x1, const int round, const int index) const
 {
   uint64_t * const y0 = x0;
   uint64_t * const y1 = x1;
@@ -95,7 +95,7 @@ void ThreeFish<Key_Bits>::inverse_MIX(uint64_t *x0, uint64_t *x1, const int roun
 }
 
 template< size_t Key_Bits >
-uint64_t ThreeFish<Key_Bits>::get_rotate_constant(const int round, const int index) const
+uint64_t Threefish<Key_Bits>::get_rotate_constant(const int round, const int index) const
 {
   static_assert (
       Number_Words == 4 || Number_Words == 8 || Number_Words == 16,
@@ -141,7 +141,7 @@ uint64_t ThreeFish<Key_Bits>::get_rotate_constant(const int round, const int ind
 }
 
 template <size_t Key_Bits >
-void ThreeFish<Key_Bits>::expand_key(const uint64_t *k, const uint64_t *tw)
+void Threefish<Key_Bits>::expand_key(const uint64_t *k, const uint64_t *tw)
 {
   using std::memcpy;
   
@@ -183,7 +183,7 @@ void ThreeFish<Key_Bits>::expand_key(const uint64_t *k, const uint64_t *tw)
 }
 
 template <size_t Key_Bits>
-void ThreeFish<Key_Bits>::add_subkey(const int round)
+void Threefish<Key_Bits>::add_subkey(const int round)
 {
   const int subkey = round / 4;
   const int offset = subkey * Number_Words;
@@ -193,7 +193,7 @@ void ThreeFish<Key_Bits>::add_subkey(const int round)
 }
 
 template <size_t Key_Bits>
-void ThreeFish<Key_Bits>::subtract_subkey(const int round)
+void Threefish<Key_Bits>::subtract_subkey(const int round)
 {
   const int subkey = round / 4;
   const int offset = subkey * Number_Words;
@@ -203,7 +203,7 @@ void ThreeFish<Key_Bits>::subtract_subkey(const int round)
 }
 
 template <size_t Key_Bits>
-void ThreeFish<Key_Bits>::cipher(const uint64_t *in, uint64_t *out)
+void Threefish<Key_Bits>::cipher(const uint64_t *in, uint64_t *out)
 {
   std::memcpy( state, in, sizeof(state) );
   for( int round = 0; round < Number_Rounds; ++round ) {
@@ -227,7 +227,7 @@ void ThreeFish<Key_Bits>::cipher(const uint64_t *in, uint64_t *out)
 }
 
 template <size_t KEYSIZE>
-void ThreeFish<KEYSIZE>::inverse_cipher(const uint64_t *in, uint64_t *out)
+void Threefish<KEYSIZE>::inverse_cipher(const uint64_t *in, uint64_t *out)
 {
   std::memcpy( state, in, sizeof(state) );
   subtract_subkey( Number_Rounds );
@@ -248,7 +248,7 @@ void ThreeFish<KEYSIZE>::inverse_cipher(const uint64_t *in, uint64_t *out)
 }
 
 template <size_t Key_Bits>
-uint64_t ThreeFish<Key_Bits>::permute_index(const int i) const
+uint64_t Threefish<Key_Bits>::permute_index(const int i) const
 {
   if constexpr( Number_Words == 4 ) {
     switch( i ) {
@@ -273,7 +273,7 @@ uint64_t ThreeFish<Key_Bits>::permute_index(const int i) const
 }
 
 template <size_t Key_Bits>
-uint64_t ThreeFish<Key_Bits>::inverse_permute_index(const int i) const
+uint64_t Threefish<Key_Bits>::inverse_permute_index(const int i) const
 {
   if constexpr( Number_Words == 4 ) {
     switch( i ) {
