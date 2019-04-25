@@ -33,7 +33,7 @@ public:
   void cipher(const uint8_t *in, uint8_t *out);
   void inverse_cipher(const uint64_t *in, uint64_t *out); // forward declared
   void inverse_cipher(const uint8_t *in, uint8_t *out);
-  void rekey(const uint64_t *new_key, const uint64_t *new_tweak = nullptr)
+  void rekey(const uint64_t *new_key, const uint64_t *new_tweak = nullptr);
   {
     expand_key( new_key, new_tweak );
   }
@@ -51,6 +51,13 @@ private:
   uint64_t permute_index        (const int i) const;
   uint64_t inverse_permute_index(const int i) const;
 };
+
+template< size_t Key_Bits >
+void Threefish<Key_Bits>::rekey(const uint64_t * new_key,
+                                const uint64_t * new_tweak)
+{
+  expand_key( new_key, new_tweak );
+}
 
 template< size_t Key_Bits >
 void Threefish<Key_Bits>::cipher(const uint8_t *in,
