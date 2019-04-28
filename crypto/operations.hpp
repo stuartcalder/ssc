@@ -20,7 +20,7 @@ uint_t rotate_right( uint_t value, uint_t count )
 template< size_t Block_Bits >
 void xor_block(void * block, const void * add)
 {
-  static_assert( Block_Bits % 8, "Bits must be a multiple of bytes" );
+  static_assert( (Block_Bits % 8 == 0), "Bits must be a multiple of bytes" );
   static constexpr const size_t Block_Bytes = Block_Bits / 8;
   if constexpr( Block_Bits == 128 )
   {
@@ -30,7 +30,7 @@ void xor_block(void * block, const void * add)
     (*first_dword) ^= (*second_dword);
     (*(first_dword + 1)) ^= (*(second_dword + 1));
   }
-  else if constexpr( Block_Bits = 256 )
+  else if constexpr( Block_Bits == 256 )
   {
     auto first_dword = reinterpret_cast<uint64_t*>( block );
     auto second_dword = reinterpret_cast<const uint64_t*>( add );
@@ -39,7 +39,7 @@ void xor_block(void * block, const void * add)
     (*(first_dword + 2)) ^= (*(second_dword + 2));
     (*(first_dword + 3)) ^= (*(second_dword + 3));
   }
-  else if constexpr( Block_Bits = 512 )
+  else if constexpr( Block_Bits == 512 )
   {
     auto first_dword  = reinterpret_cast<uint64_t*>( block );
     auto second_dword = reinterpret_cast<const uint64_t*>( add );

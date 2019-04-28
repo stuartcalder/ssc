@@ -7,7 +7,8 @@ class Skein
 {
 public:
   using UBI_t = UBI< Threefish<State_Bits>, State_Bits >;
-  using Type_Mask_t = UBI_t::Type_Mask;
+  using Type_Mask_t = typename UBI_t::Type_Mask_t;
+  static constexpr const size_t State_Bytes = State_Bits / 8;
   void hash(const void * const in, void * const out, const uint64_t bytes_in) const;
 private:
   void _process_config_block (UBI_t & ubi,
@@ -48,7 +49,7 @@ void Skein<State_Bits>::_process_config_block(UBI_t & ubi,
     0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00
   };
-  *(reinterpret_cast<uint64_t *>( config + 8 )) = output_length;
+  (*(reinterpret_cast<uint64_t *>( config + 8 ))) = num_output_bits;
 /* Process it */
   ubi.chain( Type_Mask_t::T_cfg,
              config,
@@ -70,14 +71,14 @@ void Skein<State_Bits>::_output_transform(UBI_t & ubi,
                                           const uint64_t * key_in,
                                           const uint64_t num_output_bytes) const
 {
-  uint8_t * bytes_out = out;
+  uint8_t * bytes_out = reinterpret_cast<uint8_t *>(out);
   uint64_t number_iterations = num_output_bytes / State_Bytes;
   uint64_t bytes_left = num_output_bytes;
   if( (num_output_bytes % State_Bytes) != 0 ) {
     ++number_iterations;
   }
   for( uint64_t i = 0; i < number_iterations; ++i ) {
-    ubi.chain( Type_Mask_t::T_out, i, sizeof(uint64_t), key_in );
+    ubi.chain( Type_Mask_t::T_out, &i, sizeof(i), key_in );
     if( bytes_left >= State_Bytes ) {
       std::memcpy( bytes_out, ubi.get_key_state(), State_Bytes );
       bytes_out  += State_Bytes;
@@ -95,10 +96,12 @@ void Skein<State_Bits>::hash(const void * const in, void * const out, const uint
 {
   UBI_t ubi;
   { // +
-    uint8_t key_in[ State_Bytes ] = { 0 };
+    uint64_t key_in[ State_Bytes / sizeof(uint64_t) ] = { 0 };
     _process_config_block ( ubi, State_Bits, key_in );
   } // -
-  _process_message_block( ubi, in, bytes_in );
+  _process_message_block( ubi,
+                          reinterpret_cast<const uint8_t *>(in),
+                          bytes_in );
   uint64_t key[ State_Bytes / sizeof(uint64_t) ];
   std::memcpy( key, ubi.get_key_state(), sizeof(key) );
   _output_transform( ubi, out, key, State_Bytes );

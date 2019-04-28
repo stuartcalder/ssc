@@ -15,7 +15,7 @@ public:
       (Key_Bits == 256 || Key_Bits == 512 || Key_Bits == 1024), "Invalid keysize" 
   );
   static_assert (
-      (CHAR_BIT == 8), "This implementation needs 8-bit chars"]
+      (CHAR_BIT == 8), "This implementation needs 8-bit chars"
   );
   /* PUBLIC CONSTANTS */
   static constexpr const int       Number_Words   = Key_Bits / 64;
@@ -34,9 +34,6 @@ public:
   void inverse_cipher(const uint64_t *in, uint64_t *out); // forward declared
   void inverse_cipher(const uint8_t *in, uint8_t *out);
   void rekey(const uint64_t *new_key, const uint64_t *new_tweak = nullptr);
-  {
-    expand_key( new_key, new_tweak );
-  }
 private:
   /* PRIVATE DATA */
   uint64_t state       [ Number_Words ];

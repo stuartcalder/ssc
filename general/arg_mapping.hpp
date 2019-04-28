@@ -19,7 +19,7 @@ public:
   Arg_Mapping(const int argc, const char * argv[]);
 private:
 /* PRIVATE DATA */
-  Arg_Mapping_t mapping;
+  Arg_Map_t mapping;
 /* PRIVATE INTERFACE */
   bool is_option     (const std::string & str) const;
 };

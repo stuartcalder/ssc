@@ -50,7 +50,7 @@ private:
   size_t  apply_iso_iec_7816_padding      (uint8_t *bytes, const size_t prepadding_size) const;
   size_t  count_iso_iec_7816_padding_bytes(const uint8_t * const bytes, const size_t padded_size) const;
   bool    state_is_seeded() const;
-  constexpr const auto & _xor_block = xor_block< BLOCK_BITS >;
+  static constexpr const auto & _xor_block = xor_block< BLOCK_BITS >;
 };
 
 // CONSTRUCTORS

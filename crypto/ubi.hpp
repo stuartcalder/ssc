@@ -58,7 +58,7 @@ void UBI<Tweakable_Block_Cipher_t,State_Bits>::chain
    const uint64_t message_size,
    const uint64_t * const in)
 {///////////////////BEGIN CHAINING////////////////////////////////////
-  uint8_t * message_offset = message;
+  auto message_offset = reinterpret_cast<const uint8_t *>(message);
 /* Ensure none of the input pointers are nullptr */
   if( message == nullptr ) {
     std::fprintf( stderr, "Nullptr for message in UBI call.\n" );
@@ -118,9 +118,9 @@ uint64_t * UBI<Tweakable_Block_Cipher_t,State_Bits>::_set_tweak_position
   (const uint64_t position)
 {
   static constexpr const auto Num_Position_Bytes = 96 / 8;
-  constexpr auto pos_out = reinterpret_cast<uint64_t *>(
+  auto pos_out = reinterpret_cast<uint64_t *>(
     reinterpret_cast<uint8_t *>( _tweak_state ) \
-    + sizeof(_tweak_state) - Num_Position_Bytes;
+    + sizeof(_tweak_state) - Num_Position_Bytes
   );
   (*pos_out) = position;
   return pos_out;
@@ -131,7 +131,7 @@ template< typename Tweakable_Block_Cipher_t,
 void UBI<Tweakable_Block_Cipher_t,State_Bits>::_set_tweak_first
   ()
 {
-  ( reinterpret_cast<uint8_t *>( _tweak_state ) ) |= 0b0100'0000;
+  (*(reinterpret_cast<uint8_t *>( _tweak_state ))) |= 0b0100'0000;
 }
 
 template< typename Tweakable_Block_Cipher_t,
@@ -139,7 +139,7 @@ template< typename Tweakable_Block_Cipher_t,
 void UBI<Tweakable_Block_Cipher_t,State_Bits>::_set_tweak_last
   ()
 {
-  ( reinterpret_cast<uint8_t *>( _tweak_state ) ) |= 0b1000'0000;
+  (*(reinterpret_cast<uint8_t *>( _tweak_state ))) |= 0b1000'0000;
 }
 
 template< typename Tweakable_Block_Cipher_t,
@@ -147,7 +147,7 @@ template< typename Tweakable_Block_Cipher_t,
 void UBI<Tweakable_Block_Cipher_t,State_Bits>::_clear_tweak_first
   ()
 {
-  ( reinterpret_cast<uint8_t *>( _tweak_state ) ) &= 0b1011'1111;
+  (*(reinterpret_cast<uint8_t *>( _tweak_state ))) &= 0b1011'1111;
 }
 
 template< typename Tweakable_Block_Cipher_t,
@@ -155,7 +155,7 @@ template< typename Tweakable_Block_Cipher_t,
 void UBI<Tweakable_Block_Cipher_t,State_Bits>::_clear_tweak_last
   ()
 {
-  ( reinterpret_cast<uint8_t *>( _tweak_state ) ) &= 0b0111'1111;
+  (*(reinterpret_cast<uint8_t *>( _tweak_state ))) &= 0b0111'1111;
 }
 
 template< typename Tweakable_Block_Cipher_t,
@@ -171,7 +171,7 @@ template< typename Tweakable_Block_Cipher_t,
 void UBI<Tweakable_Block_Cipher_t,State_Bits>::_set_tweak_type
   (const Type_Mask_t type_mask)
 {
-  ( reinterpret_cast<uint8_t *>( _tweak_state ) ) |= type_mask;
+  (*(reinterpret_cast<uint8_t *>( _tweak_state ))) |= static_cast<uint8_t>(type_mask);
 }
 
 template< typename Tweakable_Block_Cipher_t,
