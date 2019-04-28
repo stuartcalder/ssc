@@ -12,7 +12,7 @@ public:
   static_assert( State_Bytes % 8 == 0, "Must be divisible into 64-bit words" );
   static constexpr const size_t Tweak_Bits  = 128;
   static constexpr const size_t Tweak_Bytes = Tweak_Bits / 8;
-  enum class Type_Mask : uint8_t {
+  enum class Type_Mask_t : uint8_t {
     T_key = 0,
     T_cfg = 4,
     T_prs = 8,
@@ -24,12 +24,12 @@ public:
   };
 /* Constructor(s) */
 /* Public Interface */
-  void chain(const Type_Mask      type_mask,
-             const uint64_t * const message,
-             const uint64_t    message_size,
+  void chain(const Type_Mask_t      type_mask,
+             const void * const       message,
+             const uint64_t      message_size,
              const uint64_t * const in = nullptr);
 
-  void output(uint64_t * const out);
+  uint64_t * get_key_state();
 private:
 /* Private Compile-Time constants */
   static constexpr const auto & _xor_block = xor_block< State_Bits >;
@@ -44,17 +44,17 @@ private:
   void       _clear_tweak_first();
   void       _clear_tweak_last();
   void       _clear_tweak_all();
-  void       _set_tweak_type(const Type_Mask t_mask);
+  void       _set_tweak_type(const Type_Mask_t t_mask);
   void       _clear_msg();
-  uint64_t   _read_msg_block(const uint8_t * const message_offset,
+  uint64_t   _read_msg_block(const void * const message_offset,
                              const uint64_t        bytes_left);
 };
 
 template< typename Tweakable_Block_Cipher_t,
           size_t   State_Bits >
 void UBI<Tweakable_Block_Cipher_t,State_Bits>::chain
-  (const Type_Mask type_mask,
-   const uint8_t  * const message,
+  (const Type_Mask_t type_mask,
+   const void  * const message,
    const uint64_t message_size,
    const uint64_t * const in)
 {///////////////////BEGIN CHAINING////////////////////////////////////
@@ -169,7 +169,7 @@ void UBI<Tweakable_Block_Cipher_t,State_Bits>::_clear_tweak_all
 template< typename Tweakable_Block_Cipher_t,
           size_t   State_Bits >
 void UBI<Tweakable_Block_Cipher_t,State_Bits>::_set_tweak_type
-  (const Type_Mask type_mask)
+  (const Type_Mask_t type_mask)
 {
   ( reinterpret_cast<uint8_t *>( _tweak_state ) ) |= type_mask;
 }
@@ -185,7 +185,7 @@ void UBI<Tweakable_Block_Cipher_t,State_Bits>::_clear_msg
 template< typename Tweakable_Block_Cipher_t,
           size_t   State_Bits >
 uint64_t UBI<Tweakable_Block_Cipher_t,State_Bits>::_read_msg_block
-  (const uint64_t * const message_offset,
+  (const void * const message_offset,
    const uint64_t         bytes_left)
 {
   uint64_t bytes_read;
@@ -203,8 +203,8 @@ uint64_t UBI<Tweakable_Block_Cipher_t,State_Bits>::_read_msg_block
 
 template< typename Tweakable_Block_Cipher_t,
           size_t   State_Bits >
-uint64_t UBI<Tweakable_Block_Cipher_t,State_Bits>::output
-  (uint64_t * const out)
+uint64_t * UBI<Tweakable_Block_Cipher_t,State_Bits>::get_key_state
+  ()
 {
-  std::memcpy( out, _key_state, sizeof(_key_state) );
+  return _key_state;
 }
