@@ -1,5 +1,6 @@
 #pragma once
 #include "operations.hpp"
+#include "../general/print.hpp"
 
 template< typename Tweakable_Block_Cipher_t,
           size_t   State_Bits >
@@ -58,6 +59,7 @@ void UBI<Tweakable_Block_Cipher_t,State_Bits>::chain
    const uint64_t message_size,
    const uint64_t * const in)
 {///////////////////BEGIN CHAINING////////////////////////////////////
+  static constexpr const bool Debug = true;
   auto message_offset = reinterpret_cast<const uint8_t *>(message);
 /* Ensure none of the input pointers are nullptr */
   if( message == nullptr ) {
@@ -82,6 +84,15 @@ void UBI<Tweakable_Block_Cipher_t,State_Bits>::chain
   }
 /* Set the position, and get a pointer to it for use later */
   uint64_t * position = _set_tweak_position( bytes_just_read );
+//////////////////////////////////////////////////////////////////////////////////////// DEBUGGING
+  if constexpr( Debug )
+  {
+    std::puts( "The first tweak:" );
+    print_integral_buffer<uint8_t>( (uint8_t*)_tweak_state, sizeof(_tweak_state) );
+    std::printf( "Position is currently %llu\n", (*position) );
+    std::printf( "Message bytes left is currently %llu\n", message_bytes_left );
+  }
+////////////////////////////////////////////////////////////////////////////////////////
   // First block Setup
   Tweakable_Block_Cipher_t blk_cipher{ _key_state, _tweak_state };
 
@@ -96,6 +107,13 @@ void UBI<Tweakable_Block_Cipher_t,State_Bits>::chain
     message_offset     += bytes_just_read;
     message_bytes_left -= bytes_just_read;
     (*position)        += bytes_just_read;
+//////////////////////////////////////////////////////////////////////////////////////// DEBUGGING
+  if constexpr( Debug )
+  {
+    std::puts( "Proceeding tweak:" );
+    print_integral_buffer<uint8_t>( (uint8_t*)_tweak_state, sizeof(_tweak_state) );
+  }
+////////////////////////////////////////////////////////////////////////////////////////
     blk_cipher.rekey( _key_state, _tweak_state );
     blk_cipher.cipher( _msg_state, _key_state );
     _xor_block( _key_state, _msg_state );
@@ -105,6 +123,13 @@ void UBI<Tweakable_Block_Cipher_t,State_Bits>::chain
   if( message_bytes_left > 0 ) {
     _set_tweak_last();
     (*position) += _read_msg_block( message_offset, message_bytes_left );
+////////////////////////////////////////////////////////////////////////////////////////  DEBUGGING
+  if constexpr( Debug )
+  {
+    std::puts( "Last tweak:" );
+    print_integral_buffer<uint8_t>( (uint8_t*)_tweak_state, sizeof(_tweak_state) );
+  }
+////////////////////////////////////////////////////////////////////////////////////////
     blk_cipher.rekey( _key_state, _tweak_state );
     blk_cipher.cipher( _msg_state, _key_state );
     _xor_block( _key_state, _msg_state );

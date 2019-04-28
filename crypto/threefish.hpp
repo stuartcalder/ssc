@@ -5,6 +5,7 @@
 #include <cstring>
 #include <iostream>
 #include "operations.hpp"
+#include "../general/print.hpp"
 
 template< size_t Key_Bits=512 >
 class Threefish
@@ -147,6 +148,7 @@ uint64_t Threefish<Key_Bits>::get_rotate_constant(const int round, const int ind
 template <size_t Key_Bits >
 void Threefish<Key_Bits>::expand_key(const uint64_t *k, const uint64_t *tw)
 {
+  static constexpr bool Debug = true;
   using std::memcpy;
   
   // key / tweak setup
@@ -164,6 +166,11 @@ void Threefish<Key_Bits>::expand_key(const uint64_t *k, const uint64_t *tw)
     tweak[1] = 0;
     tweak[2] = 0;
   }
+  if constexpr( Debug )
+  {
+    printf("The tweak for the keyschedule is now\n");
+    print_integral_buffer<uint64_t>( tweak, 3 );
+  }
 
   // Define parity words for the key. (tweak parity word is above)
   key[ Number_Words ] = Constant_240;
@@ -176,14 +183,29 @@ void Threefish<Key_Bits>::expand_key(const uint64_t *k, const uint64_t *tw)
     const int subkey_index = subkey * Number_Words;
     for( int i = 0; i <= Number_Words - 4; ++i )// each word of the subkey
       key_schedule[ subkey_index + i ] = key[ (subkey + i) % (Number_Words + 1) ];
-    key_schedule[ subkey_index + (Number_Words - 3) ] = ( key[ (subkey + (Number_Words - 3)) % (Number_Words + 1) ] + tweak[ subkey % 3 ] );
-    key_schedule[ subkey_index + (Number_Words - 2) ] = ( key[ (subkey + (Number_Words - 2)) % (Number_Words + 1) ] + tweak[ (subkey + 1) % 3 ] );
-    key_schedule[ subkey_index + (Number_Words - 1) ] = ( key[ (subkey + (Number_Words - 1)) % (Number_Words + 1) ] + static_cast<uint64_t>( subkey ) );
+    if constexpr( Debug )
+    {
+      printf( "Adding tweak[ subkey % 3 ] which is:\t\t" );
+      print_integral_buffer<uint64_t>( (tweak + (subkey % 3)), 1 );
+    }
+    key_schedule[ subkey_index + (Number_Words - 3) ] =  key[ (subkey + (Number_Words - 3)) % (Number_Words + 1) ] + tweak[ subkey % 3 ];
+    if constexpr( Debug )
+    {
+      printf( "Adding tweak[ (subkey + 1) % 3 ] which is:\t\t" );
+      print_integral_buffer<uint64_t>( (tweak + ((subkey + 1) % 3)), 1 );
+    }
+    key_schedule[ subkey_index + (Number_Words - 2) ] =  key[ (subkey + (Number_Words - 2)) % (Number_Words + 1) ] + tweak[ (subkey + 1) % 3 ];
+    key_schedule[ subkey_index + (Number_Words - 1) ] =  key[ (subkey + (Number_Words - 1)) % (Number_Words + 1) ] + static_cast<uint64_t>( subkey );
   }
 
   // clear sensitive memory
   explicit_bzero( key  , sizeof(key)   );
   explicit_bzero( tweak, sizeof(tweak) );
+  if constexpr( Debug )
+  {
+    printf( "The entire keyschedule is\n" );
+    print_integral_buffer<uint64_t>( key_schedule, sizeof(key_schedule)/8 );
+  }
 }
 
 template <size_t Key_Bits>
