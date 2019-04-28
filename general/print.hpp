@@ -4,7 +4,7 @@
 #include <cstdio>
 
 template< typename integral_t >
-void print_integral_buffer( void * const i_buf, const size_t num_bytes )
+void print_integral_buffer( void * const i_buf, const size_t num_elements )
 {
   using std::printf;
   static constexpr const auto& format_str = []( const size_t size ) {
@@ -15,9 +15,9 @@ void print_integral_buffer( void * const i_buf, const size_t num_bytes )
     else if( size == sizeof( unsigned int) )
       return "%x,";
     else if( size == sizeof(unsigned long) )
-      return "%lx,";
+      return "%8lx,";
     else if( size == sizeof(unsigned long long) )
-      return "%llx,";
+      return "%8llx,";
     else if( size == sizeof(size_t) )
       return "%zx,";
     return "";
@@ -25,7 +25,7 @@ void print_integral_buffer( void * const i_buf, const size_t num_bytes )
   const integral_t * const alias = reinterpret_cast<const integral_t*>( i_buf );
   
   printf( "0x" );
-  for( size_t i = 0; i < num_bytes; i += sizeof(integral_t) ) {
+  for( size_t i = 0; i < num_elements; ++i ) {
     printf( format_str, alias[i] );
   }
   printf( "\n" );

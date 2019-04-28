@@ -1,6 +1,7 @@
 #pragma once
 #include "threefish.hpp"
 #include "ubi.hpp"
+#include "../general/print.hpp"
 
 template< size_t State_Bits >
 class Skein
@@ -32,6 +33,7 @@ void Skein<State_Bits>::_process_config_block(UBI_t & ubi,
                                               const uint64_t num_output_bits,
                                               const uint64_t * const key_in) const
 {
+  static constexpr const bool Debug = true;
 /* Setup configuration string */
   uint8_t config[ 32 ] = {
     // first 4 bytes
@@ -50,11 +52,21 @@ void Skein<State_Bits>::_process_config_block(UBI_t & ubi,
     0x00, 0x00, 0x00, 0x00
   };
   (*(reinterpret_cast<uint64_t *>( config + 8 ))) = num_output_bits;
+  if constexpr( Debug )
+  {
+    puts("Config string before it's fed into UBI:");
+    print_integral_buffer<uint8_t>( config, sizeof(config) );
+  }
 /* Process it */
   ubi.chain( Type_Mask_t::T_cfg,
              config,
              sizeof(config),
              key_in );
+  if constexpr( Debug )
+  {
+    puts("After the configuration string transform:");
+    print_integral_buffer<uint8_t>( (uint8_t*)ubi.get_key_state(), UBI_t::State_Bytes );
+  }
 }
 
 template< size_t State_Bits >
@@ -94,11 +106,17 @@ void Skein<State_Bits>::_output_transform(UBI_t & ubi,
 template< size_t State_Bits >
 void Skein<State_Bits>::hash(const void * const in, void * const out, const uint64_t bytes_in) const
 {
+  static constexpr const bool Debug = true;
   UBI_t ubi;
   { // +
     uint64_t key_in[ State_Bytes / sizeof(uint64_t) ] = { 0 };
     _process_config_block ( ubi, State_Bits, key_in );
   } // -
+  if constexpr( Debug )
+  {
+    puts("Key state before after processing config block");
+    print_integral_buffer<uint8_t>( ubi.get_key_state(), 64 );
+  }
   _process_message_block( ubi,
                           reinterpret_cast<const uint8_t *>(in),
                           bytes_in );
