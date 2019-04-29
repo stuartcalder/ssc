@@ -26,9 +26,9 @@ public:
 /* Constructor(s) */
 /* Public Interface */
   void chain(const Type_Mask_t      type_mask,
-             const void * const       message,
+             const uint8_t * const       message,
              const uint64_t      message_size,
-             const uint64_t * const in = nullptr);
+             const uint8_t * const in = nullptr);
 
   uint64_t * get_key_state();
 private:
@@ -39,7 +39,6 @@ private:
   uint64_t _key_state  [ State_Bytes / sizeof(uint64_t) ];
   uint64_t _msg_state  [ State_Bytes / sizeof(uint64_t) ];
 /* Private Interface */
-  uint64_t * _set_tweak_position(const uint64_t position);
   void       _set_tweak_first();
   void       _set_tweak_last();
   void       _clear_tweak_first();
@@ -47,7 +46,7 @@ private:
   void       _clear_tweak_all();
   void       _set_tweak_type(const Type_Mask_t t_mask);
   void       _clear_msg();
-  uint64_t   _read_msg_block(const void * const message_offset,
+  uint64_t   _read_msg_block(const uint8_t * const message_offset,
                              const uint64_t        bytes_left);
 };
 
@@ -55,11 +54,10 @@ template< typename Tweakable_Block_Cipher_t,
           size_t   State_Bits >
 void UBI<Tweakable_Block_Cipher_t,State_Bits>::chain
   (const Type_Mask_t type_mask,
-   const void  * const message,
+   const uint8_t  * const message,
    const uint64_t message_size,
-   const uint64_t * const in)
+   const uint8_t  * const in)
 {///////////////////BEGIN CHAINING////////////////////////////////////
-  static constexpr const bool Debug = true;
   auto message_offset = reinterpret_cast<const uint8_t *>(message);
 /* Ensure none of the input pointers are nullptr */
   if( message == nullptr ) {
@@ -79,20 +77,12 @@ void UBI<Tweakable_Block_Cipher_t,State_Bits>::chain
   uint64_t bytes_just_read    = _read_msg_block( message_offset, message_bytes_left );
   message_offset     += bytes_just_read;
   message_bytes_left -= bytes_just_read;
-  if( bytes_just_read < State_Bytes ) {
+  if( bytes_just_read < State_Bytes || message_bytes_left == 0 ) {
     _set_tweak_last();
   }
 /* Set the position, and get a pointer to it for use later */
-  uint64_t * position = _set_tweak_position( bytes_just_read );
-//////////////////////////////////////////////////////////////////////////////////////// DEBUGGING
-  if constexpr( Debug )
-  {
-    std::puts( "The first tweak:" );
-    print_integral_buffer<uint8_t>( (uint8_t*)_tweak_state, sizeof(_tweak_state) );
-    std::printf( "Position is currently %llu\n", (*position) );
-    std::printf( "Message bytes left is currently %llu\n", message_bytes_left );
-  }
-////////////////////////////////////////////////////////////////////////////////////////
+  uint64_t * const position = reinterpret_cast<uint64_t *>(_tweak_state);
+  (*position) = bytes_just_read;
   // First block Setup
   Tweakable_Block_Cipher_t blk_cipher{ _key_state, _tweak_state };
 
@@ -107,13 +97,6 @@ void UBI<Tweakable_Block_Cipher_t,State_Bits>::chain
     message_offset     += bytes_just_read;
     message_bytes_left -= bytes_just_read;
     (*position)        += bytes_just_read;
-//////////////////////////////////////////////////////////////////////////////////////// DEBUGGING
-  if constexpr( Debug )
-  {
-    std::puts( "Proceeding tweak:" );
-    print_integral_buffer<uint8_t>( (uint8_t*)_tweak_state, sizeof(_tweak_state) );
-  }
-////////////////////////////////////////////////////////////////////////////////////////
     blk_cipher.rekey( _key_state, _tweak_state );
     blk_cipher.cipher( _msg_state, _key_state );
     _xor_block( _key_state, _msg_state );
@@ -123,13 +106,6 @@ void UBI<Tweakable_Block_Cipher_t,State_Bits>::chain
   if( message_bytes_left > 0 ) {
     _set_tweak_last();
     (*position) += _read_msg_block( message_offset, message_bytes_left );
-////////////////////////////////////////////////////////////////////////////////////////  DEBUGGING
-  if constexpr( Debug )
-  {
-    std::puts( "Last tweak:" );
-    print_integral_buffer<uint8_t>( (uint8_t*)_tweak_state, sizeof(_tweak_state) );
-  }
-////////////////////////////////////////////////////////////////////////////////////////
     blk_cipher.rekey( _key_state, _tweak_state );
     blk_cipher.cipher( _msg_state, _key_state );
     _xor_block( _key_state, _msg_state );
@@ -139,24 +115,10 @@ void UBI<Tweakable_Block_Cipher_t,State_Bits>::chain
 
 template< typename Tweakable_Block_Cipher_t,
           size_t   State_Bits >
-uint64_t * UBI<Tweakable_Block_Cipher_t,State_Bits>::_set_tweak_position
-  (const uint64_t position)
-{
-  static constexpr const auto Num_Position_Bytes = 96 / 8;
-  auto pos_out = reinterpret_cast<uint64_t *>(
-    reinterpret_cast<uint8_t *>( _tweak_state ) \
-    + sizeof(_tweak_state) - Num_Position_Bytes
-  );
-  (*pos_out) = position;
-  return pos_out;
-}
-
-template< typename Tweakable_Block_Cipher_t,
-          size_t   State_Bits >
 void UBI<Tweakable_Block_Cipher_t,State_Bits>::_set_tweak_first
   ()
 {
-  (*(reinterpret_cast<uint8_t *>( _tweak_state ))) |= 0b0100'0000;
+  (*(reinterpret_cast<uint8_t *>( _tweak_state ) + sizeof(_tweak_state) - 1)) |= 0b0100'0000;
 }
 
 template< typename Tweakable_Block_Cipher_t,
@@ -164,7 +126,7 @@ template< typename Tweakable_Block_Cipher_t,
 void UBI<Tweakable_Block_Cipher_t,State_Bits>::_set_tweak_last
   ()
 {
-  (*(reinterpret_cast<uint8_t *>( _tweak_state ))) |= 0b1000'0000;
+  (*(reinterpret_cast<uint8_t *>( _tweak_state ) + sizeof(_tweak_state) - 1)) |= 0b1000'0000;
 }
 
 template< typename Tweakable_Block_Cipher_t,
@@ -172,7 +134,7 @@ template< typename Tweakable_Block_Cipher_t,
 void UBI<Tweakable_Block_Cipher_t,State_Bits>::_clear_tweak_first
   ()
 {
-  (*(reinterpret_cast<uint8_t *>( _tweak_state ))) &= 0b1011'1111;
+  (*(reinterpret_cast<uint8_t *>( _tweak_state ) + sizeof(_tweak_state) - 1)) &= 0b1011'1111;
 }
 
 template< typename Tweakable_Block_Cipher_t,
@@ -180,7 +142,7 @@ template< typename Tweakable_Block_Cipher_t,
 void UBI<Tweakable_Block_Cipher_t,State_Bits>::_clear_tweak_last
   ()
 {
-  (*(reinterpret_cast<uint8_t *>( _tweak_state ))) &= 0b0111'1111;
+  (*(reinterpret_cast<uint8_t *>( _tweak_state ) + sizeof(_tweak_state) - 1)) &= 0b0111'1111;
 }
 
 template< typename Tweakable_Block_Cipher_t,
@@ -196,7 +158,7 @@ template< typename Tweakable_Block_Cipher_t,
 void UBI<Tweakable_Block_Cipher_t,State_Bits>::_set_tweak_type
   (const Type_Mask_t type_mask)
 {
-  (*(reinterpret_cast<uint8_t *>( _tweak_state ))) |= static_cast<uint8_t>(type_mask);
+  (*(reinterpret_cast<uint8_t *>( _tweak_state ) + sizeof(_tweak_state) - 1)) |= static_cast<uint8_t>(type_mask);
 }
 
 template< typename Tweakable_Block_Cipher_t,
@@ -210,7 +172,7 @@ void UBI<Tweakable_Block_Cipher_t,State_Bits>::_clear_msg
 template< typename Tweakable_Block_Cipher_t,
           size_t   State_Bits >
 uint64_t UBI<Tweakable_Block_Cipher_t,State_Bits>::_read_msg_block
-  (const void * const message_offset,
+  (const uint8_t * const message_offset,
    const uint64_t         bytes_left)
 {
   uint64_t bytes_read;

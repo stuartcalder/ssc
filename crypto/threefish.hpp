@@ -28,11 +28,27 @@ public:
   Threefish(const uint8_t *k, const uint8_t *tw = nullptr) {
       expand_key( k, tw );
   }
+  Threefish(const uint64_t *k, const uint64_t *tw = nullptr) {
+      expand_key( reinterpret_cast<const uint8_t *>(k),
+                  reinterpret_cast<const uint8_t *>(tw) );
+  }
   ~Threefish(); // forward declared
   /* PUBLIC FUNCTIONS */
   void cipher(const uint8_t *in, uint8_t *out);
+  void cipher(const uint64_t *in, uint64_t *out) {
+      cipher( reinterpret_cast<const uint8_t *>(in),
+              reinterpret_cast<uint8_t *>(out) );
+  }
   void inverse_cipher(const uint8_t *in, uint8_t *out);
+  void inverse_cipher(const uint64_t *in, uint64_t *out) {
+      inverse_cipher( reinterpret_cast<const uint8_t *>(in),
+                      reinterpret_cast<uint8_t *>(out) );
+  }
   void rekey(const uint8_t *new_key, const uint8_t *new_tweak = nullptr);
+  void rekey(const uint64_t *new_key, const uint64_t *new_tweak = nullptr) {
+      rekey( reinterpret_cast<const uint8_t *>(new_key),
+             reinterpret_cast<const uint8_t *>(new_tweak) );
+  }
 private:
   /* PRIVATE DATA */
   uint64_t state       [ Number_Words ];
@@ -149,12 +165,6 @@ void Threefish<Key_Bits>::expand_key(const uint8_t *k, const uint8_t *tw)
     tweak[1] = 0;
     tweak[2] = 0;
   }
-  if constexpr( Debug )
-  {
-    printf("The tweak for the keyschedule is now\n");
-    print_integral_buffer<uint64_t>( tweak, 3 );
-  }
-
   // Define parity words for the key. (tweak parity word is above)
   key[ Number_Words ] = Constant_240;
   for( int i = 0; i < Number_Words; ++i ) {
@@ -166,17 +176,7 @@ void Threefish<Key_Bits>::expand_key(const uint8_t *k, const uint8_t *tw)
     const int subkey_index = subkey * Number_Words;
     for( int i = 0; i <= Number_Words - 4; ++i )// each word of the subkey
       key_schedule[ subkey_index + i ] = key[ (subkey + i) % (Number_Words + 1) ];
-    if constexpr( Debug )
-    {
-      printf( "Adding tweak[ subkey % 3 ] which is:\t\t" );
-      print_integral_buffer<uint64_t>( (tweak + (subkey % 3)), 1 );
-    }
     key_schedule[ subkey_index + (Number_Words - 3) ] =  key[ (subkey + (Number_Words - 3)) % (Number_Words + 1) ] + tweak[ subkey % 3 ];
-    if constexpr( Debug )
-    {
-      printf( "Adding tweak[ (subkey + 1) % 3 ] which is:\t\t" );
-      print_integral_buffer<uint64_t>( (tweak + ((subkey + 1) % 3)), 1 );
-    }
     key_schedule[ subkey_index + (Number_Words - 2) ] =  key[ (subkey + (Number_Words - 2)) % (Number_Words + 1) ] + tweak[ (subkey + 1) % 3 ];
     key_schedule[ subkey_index + (Number_Words - 1) ] =  key[ (subkey + (Number_Words - 1)) % (Number_Words + 1) ] + static_cast<uint64_t>( subkey );
   }
@@ -184,11 +184,6 @@ void Threefish<Key_Bits>::expand_key(const uint8_t *k, const uint8_t *tw)
   // clear sensitive memory
   explicit_bzero( key  , sizeof(key)   );
   explicit_bzero( tweak, sizeof(tweak) );
-  if constexpr( Debug )
-  {
-    printf( "The entire keyschedule is\n" );
-    print_integral_buffer<uint64_t>( key_schedule, sizeof(key_schedule)/8 );
-  }
 }
 
 template <size_t Key_Bits>

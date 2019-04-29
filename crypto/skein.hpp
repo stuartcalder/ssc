@@ -14,13 +14,13 @@ public:
 private:
   void _process_config_block (UBI_t & ubi,
                               const uint64_t num_output_bits,
-                              const uint64_t * const key_in) const;
+                              const uint8_t * const key_in) const;
   void _process_message_block(UBI_t & ubi,
                               const uint8_t * const message_in,
                               const uint64_t message_size) const;
   void _output_transform     (UBI_t & ubi,
                               void * const out,
-                              const uint64_t * key_in,
+                              const uint8_t * key_in,
                               const uint64_t num_output_bytes) const;
                               
 
@@ -31,7 +31,7 @@ private:
 template< size_t State_Bits >
 void Skein<State_Bits>::_process_config_block(UBI_t & ubi,
                                               const uint64_t num_output_bits,
-                                              const uint64_t * const key_in) const
+                                              const uint8_t * const key_in) const
 {
   static constexpr const bool Debug = true;
 /* Setup configuration string */
@@ -39,7 +39,7 @@ void Skein<State_Bits>::_process_config_block(UBI_t & ubi,
     // first 4 bytes
     0x53, 0x48, 0x41, 0x33, // schema identifier "SHA3"
     // next 2 bytes
-    0x80, 0x00,             // version number (1)
+    0x01, 0x00,             // version number (1)
     // next 2 bytes
     0x00, 0x00,             // reserved (0)
     // next 8 bytes
@@ -65,7 +65,7 @@ void Skein<State_Bits>::_process_config_block(UBI_t & ubi,
   if constexpr( Debug )
   {
     puts("After the configuration string transform:");
-    print_integral_buffer<uint8_t>( (uint8_t*)ubi.get_key_state(), UBI_t::State_Bytes );
+    print_integral_buffer<uint64_t>( (uint64_t*)ubi.get_key_state(), UBI_t::State_Bytes / 8 );
   }
 }
 
@@ -80,7 +80,7 @@ void Skein<State_Bits>::_process_message_block(UBI_t & ubi,
 template< size_t State_Bits >
 void Skein<State_Bits>::_output_transform(UBI_t & ubi,
                                           void * const out,
-                                          const uint64_t * key_in,
+                                          const uint8_t * key_in,
                                           const uint64_t num_output_bytes) const
 {
   uint8_t * bytes_out = reinterpret_cast<uint8_t *>(out);
@@ -90,7 +90,7 @@ void Skein<State_Bits>::_output_transform(UBI_t & ubi,
     ++number_iterations;
   }
   for( uint64_t i = 0; i < number_iterations; ++i ) {
-    ubi.chain( Type_Mask_t::T_out, &i, sizeof(i), key_in );
+    ubi.chain( Type_Mask_t::T_out, reinterpret_cast<uint8_t *>(&i), sizeof(i), key_in );
     if( bytes_left >= State_Bytes ) {
       std::memcpy( bytes_out, ubi.get_key_state(), State_Bytes );
       bytes_out  += State_Bytes;
@@ -109,7 +109,7 @@ void Skein<State_Bits>::hash(const void * const in, void * const out, const uint
   static constexpr const bool Debug = true;
   UBI_t ubi;
   { // +
-    uint64_t key_in[ State_Bytes / sizeof(uint64_t) ] = { 0 };
+    uint8_t key_in[ State_Bytes ] = { 0 };
     _process_config_block ( ubi, State_Bits, key_in );
   } // -
   if constexpr( Debug )
@@ -120,7 +120,7 @@ void Skein<State_Bits>::hash(const void * const in, void * const out, const uint
   _process_message_block( ubi,
                           reinterpret_cast<const uint8_t *>(in),
                           bytes_in );
-  uint64_t key[ State_Bytes / sizeof(uint64_t) ];
+  uint8_t key[ State_Bytes ];
   std::memcpy( key, ubi.get_key_state(), sizeof(key) );
   _output_transform( ubi, out, key, State_Bytes );
 }
