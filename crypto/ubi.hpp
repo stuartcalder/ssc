@@ -1,6 +1,7 @@
 #pragma once
+#include <cstdio>
+#include <cstdlib>
 #include "operations.hpp"
-#include "../general/print.hpp"
 
 template< typename Tweakable_Block_Cipher_t,
           size_t   State_Bits >
@@ -31,6 +32,7 @@ public:
              const uint8_t * const in = nullptr);
 
   uint64_t * get_key_state();
+  void clear_key_state();
 private:
 /* Private Compile-Time constants */
   static constexpr const auto & _xor_block = xor_block< State_Bits >;
@@ -194,4 +196,12 @@ uint64_t * UBI<Tweakable_Block_Cipher_t,State_Bits>::get_key_state
   ()
 {
   return _key_state;
+}
+
+template< typename Tweakable_Block_Cipher_t,
+          size_t   State_Bits >
+void UBI<Tweakable_Block_Cipher_t,State_Bits>::clear_key_state
+  ()
+{
+  std::memset( _key_state, 0, sizeof(_key_state) );
 }

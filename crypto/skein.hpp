@@ -1,40 +1,36 @@
 #pragma once
 #include "threefish.hpp"
 #include "ubi.hpp"
-#include "../general/print.hpp"
 
 template< size_t State_Bits >
 class Skein
 {
 public:
+  static_assert( (State_Bits ==  256 ||
+                  State_Bits ==  512 ||
+                  State_Bits == 1024 ),
+                 "Skein is only defined for 256, 512, 1024 bit states." );
   using UBI_t = UBI< Threefish<State_Bits>, State_Bits >;
   using Type_Mask_t = typename UBI_t::Type_Mask_t;
   static constexpr const size_t State_Bytes = State_Bits / 8;
-  void hash(const void * const in,
-            void * const out,
-            const uint64_t bytes_in,
-            const uint64_t bytes_out = State_Bytes) const;
+  void hash(uint8_t * const bytes_out,
+            const uint8_t * const bytes_in,
+            const uint64_t num_bytes_in,
+            const uint64_t num_bytes_out = State_Bytes);
+
 private:
-  void _process_config_block (UBI_t & ubi,
-                              const uint64_t num_output_bits,
-                              const uint8_t * const key_in) const;
-  void _process_message_block(UBI_t & ubi,
-                              const uint8_t * const message_in,
-                              const uint64_t message_size) const;
-  void _output_transform     (UBI_t & ubi,
-                              void * const out,
-                              const uint8_t * key_in,
-                              const uint64_t num_output_bytes) const;
-                              
+  UBI_t _ubi;
+  void _process_config_block (const uint64_t num_output_bits);
 
+  void _process_message_block(const uint8_t * const message_in,
+                              const uint64_t message_size);
 
-                              
+  void _output_transform     (uint8_t * const out,
+                              const uint64_t num_output_bytes);
 };
 
 template< size_t State_Bits >
-void Skein<State_Bits>::_process_config_block(UBI_t & ubi,
-                                              const uint64_t num_output_bits,
-                                              const uint8_t * const key_in) const
+void Skein<State_Bits>::_process_config_block(const uint64_t num_output_bits)
 {
 /* Setup configuration string */
   uint8_t config[ 32 ] = {
@@ -54,59 +50,50 @@ void Skein<State_Bits>::_process_config_block(UBI_t & ubi,
     0x00, 0x00, 0x00, 0x00
   };
   (*(reinterpret_cast<uint64_t *>( config + 8 ))) = num_output_bits;
-/* Process it */
-  ubi.chain( Type_Mask_t::T_cfg,
-             config,
-             sizeof(config),
-             key_in );
+  _ubi.chain( Type_Mask_t::T_cfg, config, sizeof(config) );
 }
 
 template< size_t State_Bits >
-void Skein<State_Bits>::_process_message_block(UBI_t & ubi,
-                                               const uint8_t * const message_in,
-                                               const uint64_t message_size) const
+void Skein<State_Bits>::_process_message_block(const uint8_t * const message_in,
+                                               const uint64_t message_size)
 {
-  ubi.chain( Type_Mask_t::T_msg, message_in, message_size );
+  _ubi.chain( Type_Mask_t::T_msg, message_in, message_size );
 }
 
 template< size_t State_Bits >
-void Skein<State_Bits>::_output_transform(UBI_t & ubi,
-                                          void * const out,
-                                          const uint8_t * key_in,
-                                          const uint64_t num_output_bytes) const
+void Skein<State_Bits>::_output_transform(uint8_t * const out,
+                                          const uint64_t num_output_bytes)
 {
-  uint8_t * bytes_out = reinterpret_cast<uint8_t *>(out);
+  uint8_t * bytes_out = out;
   uint64_t number_iterations = num_output_bytes / State_Bytes;
-  uint64_t bytes_left = num_output_bytes;
   if( (num_output_bytes % State_Bytes) != 0 ) {
     ++number_iterations;
   }
+  uint64_t bytes_left = num_output_bytes;
   for( uint64_t i = 0; i < number_iterations; ++i ) {
-    ubi.chain( Type_Mask_t::T_out, reinterpret_cast<uint8_t *>(&i), sizeof(i), key_in );
+    _ubi.chain( Type_Mask_t::T_out,
+                reinterpret_cast<uint8_t *>(&i),
+                sizeof(i) );
     if( bytes_left >= State_Bytes ) {
-      std::memcpy( bytes_out, ubi.get_key_state(), State_Bytes );
+      std::memcpy( bytes_out, _ubi.get_key_state(), State_Bytes );
       bytes_out  += State_Bytes;
       bytes_left -= State_Bytes;
     }
     else {
-      std::memcpy( bytes_out, ubi.get_key_state(), bytes_left );
+      std::memcpy( bytes_out, _ubi.get_key_state(), bytes_left );
       break;
     }
   }
 }
 
 template< size_t State_Bits >
-void Skein<State_Bits>::hash(const void * const in, void * const out, const uint64_t bytes_in, const uint64_t bytes_out) const
+void Skein<State_Bits>::hash(uint8_t * const bytes_out,
+                             const uint8_t * const bytes_in,
+                             const uint64_t num_bytes_in,
+                             const uint64_t num_bytes_out)
 {
-  UBI_t ubi;
-  { // +
-    uint8_t key_in[ State_Bytes ] = { 0 };
-    _process_config_block ( ubi, bytes_out * 8, key_in );
-  } // -
-  _process_message_block( ubi,
-                          reinterpret_cast<const uint8_t *>(in),
-                          bytes_in );
-  uint8_t key[ State_Bytes ];
-  std::memcpy( key, ubi.get_key_state(), sizeof(key) );
-  _output_transform( ubi, out, key, bytes_out );
+  _ubi.clear_key_state();
+  _process_config_block( (num_bytes_out * 8) );
+  _process_message_block( bytes_in, num_bytes_in );
+  _output_transform( bytes_out, num_bytes_out );
 }
