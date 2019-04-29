@@ -3,7 +3,6 @@
 #include <climits>
 #include <cstdlib>
 #include <cstring>
-#include <iostream>
 #include "operations.hpp"
 #include "../general/print.hpp"
 
@@ -51,6 +50,7 @@ public:
   }
 private:
   /* PRIVATE DATA */
+  uint64_t state_copy  [ Number_Words ];
   uint64_t state       [ Number_Words ];
   uint64_t key_schedule[ Number_Subkeys * Number_Words ];
   /* PRIVATE FUNCTIONS */
@@ -76,6 +76,7 @@ Threefish<Key_Bits>::~Threefish()
 {
   explicit_bzero( key_schedule, sizeof(key_schedule) );
   explicit_bzero( state, sizeof(state) );
+  explicit_bzero( state_copy, sizeof(state_copy) );
 }
 
 template< size_t Key_Bits >
@@ -218,13 +219,10 @@ void Threefish<Key_Bits>::cipher(const uint8_t *in, uint8_t *out)
     for( int j = 0; j <= (Number_Words / 2) - 1; ++j )
       MIX( (state + (2 * j)), (state + (2 * j) + 1), round, j );
     // Permutations
-    {//+
-      uint64_t state_copy[ Number_Words ];
-      std::memcpy( state_copy, state, sizeof(state_copy) );
-      for( int i = 0; i < Number_Words; ++i )
-        state[i] = state_copy[ permute_index( i ) ];
-      explicit_bzero( state_copy, sizeof(state_copy) );
-    }//-
+    std::memcpy( state_copy, state, sizeof(state_copy) );
+    for( int i = 0; i < Number_Words; ++i ) {
+      state[i] = state_copy[ permute_index( i ) ];
+    }
   }
   add_subkey( Number_Rounds );
   std::memcpy( out, state, sizeof(state) );
@@ -236,13 +234,10 @@ void Threefish<KEYSIZE>::inverse_cipher(const uint8_t *in, uint8_t *out)
   std::memcpy( state, in, sizeof(state) );
   subtract_subkey( Number_Rounds );
   for( int round = Number_Rounds - 1; round >= 0; --round ) {
-    {//+
-      uint64_t state_copy[ Number_Words ];
-      std::memcpy( state_copy, state, sizeof(state_copy) );
-      for( int i = 0; i < Number_Words; ++i )
-        state[i] = state_copy[ inverse_permute_index( i ) ];
-      explicit_bzero( state_copy, sizeof(state_copy) );
-    }//-
+    std::memcpy( state_copy, state, sizeof(state_copy) );
+    for( int i = 0; i < Number_Words; ++i ) {
+      state[i] = state_copy[ inverse_permute_index( i ) ];
+    }
     for( int j = 0; j<= (Number_Words / 2) -1; ++j )
       inverse_MIX( (state + (2 * j)), (state + (2 * j) + 1), round, j );
     if( round % 4 == 0 )
