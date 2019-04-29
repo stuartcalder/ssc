@@ -10,7 +10,10 @@ public:
   using UBI_t = UBI< Threefish<State_Bits>, State_Bits >;
   using Type_Mask_t = typename UBI_t::Type_Mask_t;
   static constexpr const size_t State_Bytes = State_Bits / 8;
-  void hash(const void * const in, void * const out, const uint64_t bytes_in) const;
+  void hash(const void * const in,
+            void * const out,
+            const uint64_t bytes_in,
+            const uint64_t bytes_out = State_Bytes) const;
 private:
   void _process_config_block (UBI_t & ubi,
                               const uint64_t num_output_bits,
@@ -33,7 +36,6 @@ void Skein<State_Bits>::_process_config_block(UBI_t & ubi,
                                               const uint64_t num_output_bits,
                                               const uint8_t * const key_in) const
 {
-  static constexpr const bool Debug = true;
 /* Setup configuration string */
   uint8_t config[ 32 ] = {
     // first 4 bytes
@@ -52,21 +54,11 @@ void Skein<State_Bits>::_process_config_block(UBI_t & ubi,
     0x00, 0x00, 0x00, 0x00
   };
   (*(reinterpret_cast<uint64_t *>( config + 8 ))) = num_output_bits;
-  if constexpr( Debug )
-  {
-    puts("Config string before it's fed into UBI:");
-    print_integral_buffer<uint8_t>( config, sizeof(config) );
-  }
 /* Process it */
   ubi.chain( Type_Mask_t::T_cfg,
              config,
              sizeof(config),
              key_in );
-  if constexpr( Debug )
-  {
-    puts("After the configuration string transform:");
-    print_integral_buffer<uint64_t>( (uint64_t*)ubi.get_key_state(), UBI_t::State_Bytes / 8 );
-  }
 }
 
 template< size_t State_Bits >
@@ -104,23 +96,17 @@ void Skein<State_Bits>::_output_transform(UBI_t & ubi,
 }
 
 template< size_t State_Bits >
-void Skein<State_Bits>::hash(const void * const in, void * const out, const uint64_t bytes_in) const
+void Skein<State_Bits>::hash(const void * const in, void * const out, const uint64_t bytes_in, const uint64_t bytes_out) const
 {
-  static constexpr const bool Debug = true;
   UBI_t ubi;
   { // +
     uint8_t key_in[ State_Bytes ] = { 0 };
-    _process_config_block ( ubi, State_Bits, key_in );
+    _process_config_block ( ubi, bytes_out * 8, key_in );
   } // -
-  if constexpr( Debug )
-  {
-    puts("Key state before after processing config block");
-    print_integral_buffer<uint8_t>( ubi.get_key_state(), 64 );
-  }
   _process_message_block( ubi,
                           reinterpret_cast<const uint8_t *>(in),
                           bytes_in );
   uint8_t key[ State_Bytes ];
   std::memcpy( key, ubi.get_key_state(), sizeof(key) );
-  _output_transform( ubi, out, key, State_Bytes );
+  _output_transform( ubi, out, key, bytes_out );
 }

@@ -77,7 +77,7 @@ void UBI<Tweakable_Block_Cipher_t,State_Bits>::chain
   uint64_t bytes_just_read    = _read_msg_block( message_offset, message_bytes_left );
   message_offset     += bytes_just_read;
   message_bytes_left -= bytes_just_read;
-  if( bytes_just_read < State_Bytes || message_bytes_left == 0 ) {
+  if( message_bytes_left == 0 ) {
     _set_tweak_last();
   }
 /* Set the position, and get a pointer to it for use later */
