@@ -43,7 +43,7 @@ void xor_block(void * block, const void * add)
   {
     auto first_dword  = reinterpret_cast<uint64_t*>( block );
     auto second_dword = reinterpret_cast<const uint64_t*>( add );
-    (*(first_dword)) ^= (*(second_dword));
+    (*(first_dword))     ^= (*(second_dword));
     (*(first_dword + 1)) ^= (*(second_dword + 1));
     (*(first_dword + 2)) ^= (*(second_dword + 2));
     (*(first_dword + 3)) ^= (*(second_dword + 3));
