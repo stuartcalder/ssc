@@ -38,11 +38,12 @@ void Arg_Mapping::parse_c_args(const int argc, const char * argv[])
 
 bool Arg_Mapping::is_option(const std::string & str) const
 {
+  bool status = true;
   if( str.size() <= 1 )
-      return false;
-  if( str[0] != '-' )
-      return false;
-  return true;
+      status = false;
+  else if( str[0] != '-' )
+      status = false;
+  return status;
 }
 
 void Arg_Mapping::print_mapping() const
@@ -58,8 +59,6 @@ void Arg_Mapping::print_mapping() const
   }
   /* Print out everything */
   for( const auto & pair : mapping ) {
-    int size_0 = pair.first.size(),
-        size_1 = pair.second.size();
     std::printf( "{ %*s, %*s }\n",
                  min_field_size, pair.first.c_str(),
                  min_field_size, pair.second.c_str() );
