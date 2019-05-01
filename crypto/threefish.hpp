@@ -250,20 +250,25 @@ void Threefish<KEYSIZE>::inverse_cipher(const uint8_t *in, uint8_t *out)
 template <size_t Key_Bits>
 uint64_t Threefish<Key_Bits>::permute_index(const int i) const
 {
-  if constexpr( Number_Words == 4 ) {
+  if constexpr( Number_Words == 4 )
+  {
     switch( i ) {
       case 0: return 0;
       case 1: return 3;
       case 2: return 2;
       case 3: return 1;
     }
-  } else if constexpr( Number_Words == 8 ) {
+  }
+  else if constexpr( Number_Words == 8 )
+  {
     static constexpr const uint64_t perm[] = {
 /* i  0  1  2  3  4  5  6  7 */
       2, 1, 4, 7, 6, 5, 0, 3
     };
     return perm[i];
-  } else if constexpr( Number_Words == 16 ) {
+  }
+  else if constexpr( Number_Words == 16 )
+  {
     static constexpr const uint64_t perm[] = {
 /* i  0  1  2   3  4   5  6   7   8  9  10 11  12 13 14 15 */
       0, 9, 2, 13, 6, 11, 4, 15, 10, 7, 12, 3, 14, 5, 8, 1
