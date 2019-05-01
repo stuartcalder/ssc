@@ -23,7 +23,8 @@ public:
   static constexpr const int       Number_Subkeys = (Number_Rounds / 4) + 1;
   static constexpr const uint64_t  Constant_240   = 0x1bd1'1bda'a9fc'1a22;
   /* CONSTRUCTORS / DESTRUCTORS */
-  Threefish() = delete;
+  Threefish() {
+  }
   Threefish(const uint8_t *k, const uint8_t *tw = nullptr) {
       expand_key( k, tw );
   }

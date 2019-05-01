@@ -37,6 +37,7 @@ private:
 /* Private Compile-Time constants */
   static constexpr const auto & _xor_block = xor_block< State_Bits >;
 /* Private Data */
+  Tweakable_Block_Cipher_t _block_cipher;
   uint64_t _tweak_state[ Tweak_Bytes / sizeof(uint64_t) ];
   uint64_t _key_state  [ State_Bytes / sizeof(uint64_t) ];
   uint64_t _msg_state  [ State_Bytes / sizeof(uint64_t) ];
@@ -86,10 +87,10 @@ void UBI<Tweakable_Block_Cipher_t,State_Bits>::chain
   uint64_t * const position = reinterpret_cast<uint64_t *>(_tweak_state);
   (*position) = bytes_just_read;
   // First block Setup
-  Tweakable_Block_Cipher_t blk_cipher{ _key_state, _tweak_state };
+  _block_cipher.rekey( _key_state, _tweak_state );
 
   // First block
-  blk_cipher.cipher( _msg_state, _key_state );
+  _block_cipher.cipher( _msg_state, _key_state );
   _xor_block( _key_state, _msg_state );
   _clear_tweak_first();
 
@@ -99,8 +100,8 @@ void UBI<Tweakable_Block_Cipher_t,State_Bits>::chain
     message_offset     += bytes_just_read;
     message_bytes_left -= bytes_just_read;
     (*position)        += bytes_just_read;
-    blk_cipher.rekey( _key_state, _tweak_state );
-    blk_cipher.cipher( _msg_state, _key_state );
+    _block_cipher.rekey( _key_state, _tweak_state );
+    _block_cipher.cipher( _msg_state, _key_state );
     _xor_block( _key_state, _msg_state );
   }
 
@@ -108,8 +109,8 @@ void UBI<Tweakable_Block_Cipher_t,State_Bits>::chain
   if( message_bytes_left > 0 ) {
     _set_tweak_last();
     (*position) += _read_msg_block( message_offset, message_bytes_left );
-    blk_cipher.rekey( _key_state, _tweak_state );
-    blk_cipher.cipher( _msg_state, _key_state );
+    _block_cipher.rekey( _key_state, _tweak_state );
+    _block_cipher.cipher( _msg_state, _key_state );
     _xor_block( _key_state, _msg_state );
   }
   

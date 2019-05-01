@@ -3,6 +3,7 @@
 #include <cstring>
 #include <memory>
 #include "skein.hpp"
+#include "operations.hpp"
 
 void SSPKDF(uint8_t * const derived_key,
             const uint8_t * const password,

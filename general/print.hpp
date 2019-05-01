@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <cstdio>
 
+void print_binary_buffer( const uint8_t * buffer, const size_t num_bytes );
+
 template< typename integral_t >
 void print_integral_buffer( void * const i_buf, const size_t num_elements )
 {
