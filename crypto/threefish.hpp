@@ -60,8 +60,6 @@ private:
   void     add_subkey           (const int round);
   void     subtract_subkey      (const int round);
   uint64_t get_rotate_constant  (const int round, const int index) const;
-  uint64_t permute_index        (const int i) const;
-  uint64_t inverse_permute_index(const int i) const;
   void     permute_state();
   void     inverse_permute_state();
 };
@@ -77,7 +75,7 @@ template< size_t Key_Bits >
 Threefish<Key_Bits>::~Threefish()
 {
   explicit_bzero( key_schedule, sizeof(key_schedule) );
-  explicit_bzero( state, sizeof(state) );
+  explicit_bzero( state       , sizeof(state) );
 }
 
 template< size_t Key_Bits >
@@ -144,9 +142,6 @@ uint64_t Threefish<Key_Bits>::get_rotate_constant(const int round, const int ind
 template <size_t Key_Bits >
 void Threefish<Key_Bits>::expand_key(const uint8_t *k, const uint8_t *tw)
 {
-  static constexpr bool Debug = true;
-  using std::memcpy;
-  
   // key / tweak setup
   uint64_t key  [ Number_Words + 1 ]; // Big enough for the parity word
   std::memcpy( key, k, sizeof(state) );
@@ -219,8 +214,8 @@ void Threefish<Key_Bits>::cipher(const uint8_t *in, uint8_t *out)
   std::memcpy( out, state, sizeof(state) );
 }
 
-template <size_t KEYSIZE>
-void Threefish<KEYSIZE>::inverse_cipher(const uint8_t *in, uint8_t *out)
+template <size_t Key_Bits>
+void Threefish<Key_Bits>::inverse_cipher(const uint8_t *in, uint8_t *out)
 {
   std::memcpy( state, in, sizeof(state) );
   subtract_subkey( Number_Rounds );
@@ -232,61 +227,6 @@ void Threefish<KEYSIZE>::inverse_cipher(const uint8_t *in, uint8_t *out)
       subtract_subkey( round );
   }
   std::memcpy( out, state, sizeof(state) );
-}
-
-template <size_t Key_Bits>
-uint64_t Threefish<Key_Bits>::permute_index(const int i) const
-{
-  if constexpr( Number_Words == 4 )
-  {
-    switch( i ) {
-      case 0: return 0;
-      case 1: return 3;
-      case 2: return 2;
-      case 3: return 1;
-    }
-  }
-  else if constexpr( Number_Words == 8 )
-  {
-    static constexpr const uint64_t perm[] = {
-/* i  0  1  2  3  4  5  6  7 */
-      2, 1, 4, 7, 6, 5, 0, 3
-    };
-    return perm[i];
-  }
-  else if constexpr( Number_Words == 16 )
-  {
-    static constexpr const uint64_t perm[] = {
-/* i  0  1  2   3  4   5  6   7   8  9  10 11  12 13 14 15 */
-      0, 9, 2, 13, 6, 11, 4, 15, 10, 7, 12, 3, 14, 5, 8, 1
-    };
-    return perm[i];
-  }
-}
-
-template <size_t Key_Bits>
-uint64_t Threefish<Key_Bits>::inverse_permute_index(const int i) const
-{
-  if constexpr( Number_Words == 4 ) {
-    switch( i ) {
-      case 0: return 0;
-      case 1: return 3;
-      case 2: return 2;
-      case 3: return 1;
-    }
-  } else if constexpr( Number_Words == 8 ) {
-    static constexpr const uint64_t perm[] = {
-/* i  0  1  2  3  4  5  6  7 */
-      6, 1, 0, 7, 2, 5, 4, 3
-    };
-    return perm[i];
-  } else if constexpr( Number_Words == 16 ) {
-    static constexpr const uint64_t perm[] = {
-/* i  0   1  2   3  4   5  6  7   8  9  10 11  12 13  14 15 */
-      0, 15, 2, 11, 6, 13, 4, 9, 14, 1,  8, 5, 10, 3, 12, 7
-    };
-    return perm[i];
-  }
 }
 
 template <size_t Key_Bits>
