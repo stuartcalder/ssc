@@ -28,27 +28,29 @@ public:
   Threefish(const uint8_t *k, const uint8_t *tw = nullptr) {
       expand_key( k, tw );
   }
-  Threefish(const uint64_t *k, const uint64_t *tw = nullptr) {
-      expand_key( reinterpret_cast<const uint8_t *>(k),
-                  reinterpret_cast<const uint8_t *>(tw) );
-  }
   ~Threefish(); // forward declared
   /* PUBLIC FUNCTIONS */
   void cipher(const uint8_t *in, uint8_t *out);
+#if 0
   void cipher(const uint64_t *in, uint64_t *out) {
       cipher( reinterpret_cast<const uint8_t *>(in),
               reinterpret_cast<uint8_t *>(out) );
   }
+#endif
   void inverse_cipher(const uint8_t *in, uint8_t *out);
+#if 0
   void inverse_cipher(const uint64_t *in, uint64_t *out) {
       inverse_cipher( reinterpret_cast<const uint8_t *>(in),
                       reinterpret_cast<uint8_t *>(out) );
   }
+#endif
   void rekey(const uint8_t *new_key, const uint8_t *new_tweak = nullptr);
+#if 0
   void rekey(const uint64_t *new_key, const uint64_t *new_tweak = nullptr) {
       rekey( reinterpret_cast<const uint8_t *>(new_key),
              reinterpret_cast<const uint8_t *>(new_tweak) );
   }
+#endif
 private:
   /* PRIVATE DATA */
   uint64_t state       [ Number_Words ];
@@ -209,8 +211,8 @@ void Threefish<Key_Bits>::cipher(const uint8_t *in, uint8_t *out)
       MIX( (state + (2 * j)), (state + (2 * j) + 1), round, j );
     // Permutations
     permute_state();
-    add_subkey( Number_Rounds );
   }
+  add_subkey( Number_Rounds );
   std::memcpy( out, state, sizeof(state) );
 }
 
