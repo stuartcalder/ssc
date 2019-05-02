@@ -223,7 +223,7 @@ void Threefish<Key_Bits>::inverse_cipher(const uint8_t *in, uint8_t *out)
   subtract_subkey( Number_Rounds );
   for( int round = Number_Rounds - 1; round >= 0; --round ) {
     inverse_permute_state();
-    for( int j = 0; j<= (Number_Words / 2) -1; ++j )
+    for( int j = 0; j <= (Number_Words / 2) - 1; ++j )
       inverse_MIX( (state + (2 * j)), (state + (2 * j) + 1), round, j );
     if( round % 4 == 0 )
       subtract_subkey( round );
