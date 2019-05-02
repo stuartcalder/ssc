@@ -179,14 +179,14 @@ uint64_t UBI<Tweakable_Block_Cipher_t,State_Bits>::_read_msg_block
    const uint64_t         bytes_left)
 {
   uint64_t bytes_read;
-  if( bytes_left < State_Bytes ) {
+  if( bytes_left >= State_Bytes ) {
+    std::memcpy( _msg_state, message_offset, State_Bytes );
+    bytes_read = State_Bytes;
+  }
+  else {
     _clear_msg();
     std::memcpy( _msg_state, message_offset, bytes_left );
     bytes_read = bytes_left;
-  }
-  else {
-    std::memcpy( _msg_state, message_offset, State_Bytes );
-    bytes_read = State_Bytes;
   }
   return bytes_read;
 }

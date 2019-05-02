@@ -51,7 +51,6 @@ public:
   }
 private:
   /* PRIVATE DATA */
-  uint64_t state_copy  [ Number_Words ];
   uint64_t state       [ Number_Words ];
   uint64_t key_schedule[ Number_Subkeys * Number_Words ];
   /* PRIVATE FUNCTIONS */
@@ -63,6 +62,8 @@ private:
   uint64_t get_rotate_constant  (const int round, const int index) const;
   uint64_t permute_index        (const int i) const;
   uint64_t inverse_permute_index(const int i) const;
+  void     permute_state();
+  void     inverse_permute_state();
 };
 
 template< size_t Key_Bits >
@@ -77,29 +78,21 @@ Threefish<Key_Bits>::~Threefish()
 {
   explicit_bzero( key_schedule, sizeof(key_schedule) );
   explicit_bzero( state, sizeof(state) );
-  explicit_bzero( state_copy, sizeof(state_copy) );
 }
 
 template< size_t Key_Bits >
 void Threefish<Key_Bits>::MIX(uint64_t *x0, uint64_t *x1, const int round, const int index) const
 {
-  uint64_t * const y0 = x0;
-  uint64_t * const y1 = x1;
-
-  (*y0) = ((*x0) + (*x1));
-  (*y1) = ( rotate_left<uint64_t>( (*x1), get_rotate_constant( round, index ) ) ^ (*y0) );
+  (*x0) = ((*x0) + (*x1));
+  (*x1) = ( rotate_left<uint64_t>( (*x1), get_rotate_constant( round, index ) ) ^ (*x0) );
 }
 
 template< size_t Key_Bits >
 void Threefish<Key_Bits>::inverse_MIX(uint64_t *x0, uint64_t *x1, const int round, const int index) const
 {
-  uint64_t * const y0 = x0;
-  uint64_t * const y1 = x1;
-
-  (*y1) = ((*x0) ^ (*x1));
-  (*y1) = rotate_right<uint64_t>( (*x1), get_rotate_constant( round, index ) ) ;
-  (*y0) = (*x0) - (*y1);
-
+  (*x1) = ((*x0) ^ (*x1));
+  (*x1) = rotate_right<uint64_t>( (*x1), get_rotate_constant( round, index ) ) ;
+  (*x0) = (*x0) - (*x1);
 }
 
 template< size_t Key_Bits >
@@ -194,7 +187,7 @@ void Threefish<Key_Bits>::add_subkey(const int round)
   const int subkey = round / 4;
   const int offset = subkey * Number_Words;
   for( int i = 0; i < Number_Words; ++i ) {
-    state[i] = (state[i] + key_schedule[ offset + i ]);
+    state[i] += key_schedule[ offset + i ];
   }
 }
 
@@ -204,7 +197,7 @@ void Threefish<Key_Bits>::subtract_subkey(const int round)
   const int subkey = round / 4;
   const int offset = subkey * Number_Words;
   for( int i = 0; i < Number_Words; ++i ) {
-    state[i] = (state[i] - key_schedule[ offset + i ]);
+    state[i] -= key_schedule[ offset + i ];
   }
 }
 
@@ -220,12 +213,9 @@ void Threefish<Key_Bits>::cipher(const uint8_t *in, uint8_t *out)
     for( int j = 0; j <= (Number_Words / 2) - 1; ++j )
       MIX( (state + (2 * j)), (state + (2 * j) + 1), round, j );
     // Permutations
-    std::memcpy( state_copy, state, sizeof(state_copy) );
-    for( int i = 0; i < Number_Words; ++i ) {
-      state[i] = state_copy[ permute_index( i ) ];
-    }
+    permute_state();
+    add_subkey( Number_Rounds );
   }
-  add_subkey( Number_Rounds );
   std::memcpy( out, state, sizeof(state) );
 }
 
@@ -235,10 +225,7 @@ void Threefish<KEYSIZE>::inverse_cipher(const uint8_t *in, uint8_t *out)
   std::memcpy( state, in, sizeof(state) );
   subtract_subkey( Number_Rounds );
   for( int round = Number_Rounds - 1; round >= 0; --round ) {
-    std::memcpy( state_copy, state, sizeof(state_copy) );
-    for( int i = 0; i < Number_Words; ++i ) {
-      state[i] = state_copy[ inverse_permute_index( i ) ];
-    }
+    inverse_permute_state();
     for( int j = 0; j<= (Number_Words / 2) -1; ++j )
       inverse_MIX( (state + (2 * j)), (state + (2 * j) + 1), round, j );
     if( round % 4 == 0 )
@@ -302,5 +289,161 @@ uint64_t Threefish<Key_Bits>::inverse_permute_index(const int i) const
   }
 }
 
+template <size_t Key_Bits>
+void Threefish<Key_Bits>::permute_state()
+{
+  if constexpr( Number_Words == 4 )
+  {
+    uint64_t w = state[1];
+    state[1] = state[3];
+    state[3] = w;
+  }
+  else if constexpr( Number_Words == 8 )
+  {
+    uint64_t w0, w1;
+  /* Start from the left. Shift words in and out as necessary
+     Starting with index 0 ...*/
+    // index 0 overwrites index 6
+    w0 = state[6];
+    state[6] = state[0];
+    // original index 6 (currently w0)
+    // overwrites index 4 (saved into w1)
+    w1 = state[4];
+    state[4] = w0;
+    // original index 4 (currently w1)
+    // overwrites index 2 (saved into w0)
+    w0 = state[2];
+    state[2] = w1;
+    // original index 2 (currently w0)
+    // overwrites index 0 (doesn't need to be saved, as it was already written into state[6]
+    state[0] = w0;
+
+  /* Index 1 and 5 don't move. All that's left is to swap index 3 and index 7 */
+    w0 = state[3];
+    state[3] = state[7];
+    state[7] = w0;
+  }
+  else if constexpr( Number_Words == 16 )
+  {
+    uint64_t w0, w1;
+    // 1 overwrites 15 (stored in w0)
+    w0 = state[15];
+    state[15] = state[1];
+    // 15 (in w0) overwrites 7 (stored in w1)
+    w1 = state[7];
+    state[7] = w0;
+    // 7 (in w1) overwrites 9 (stored in w0)
+    w0 = state[9];
+    state[9] = w1;
+    // 9 (in w0) overwrites 1
+    state[1] = w0;
+
+    // 3 overwrites 11 (stored in w0)
+    w0 = state[11];
+    state[11] = state[3];
+    // 11 (in w0) overwrites 5 (stored in w1)
+    w1 = state[5];
+    state[5] = w0;
+    // 5 (in w1) overwrites 13 (stored in w0)
+    w0 = state[13];
+    state[13] = w1;
+    // 13 (in w0) overwrites 3
+    state[3] = w0;
+
+    // 4 and 6 are swapped
+    w0 = state[4];
+    state[4] = state[6];
+    state[6] = w0;
+
+    // 8 overwrites 14 (stored in w0)
+    w0 = state[14];
+    state[14] = state[8];
+    // 14 (in w0) overwrites 12 (stored in w1)
+    w1 = state[12];
+    state[12] = w0;
+    // 12 (in w1) overwrites 10 (stored in w0)
+    w0 = state[10];
+    state[10] = w1;
+    // 10 (in w0) overwrites 8
+    state[8] = w0;
+  }
+}
+
+template <size_t Key_Bits>
+void Threefish<Key_Bits>::inverse_permute_state()
+{
+  if constexpr( Number_Words == 4 )
+  {
+    permute_state();  // here, permute_state() and inverse_permute_state() are the same operation
+  }
+  else if constexpr( Number_Words == 8 )
+  {
+    uint64_t w0, w1;
+  /* Starting from the left with index 0 */
+    // original index 0
+    // overwrites original index 2 (saved into w0)
+    w0 = state[2];
+    state[2] = state[0];
+    // original index 2 (currently in w0)
+    // overwrites original index 4 (saved into w1)
+    w1 = state[4];
+    state[4] = w0;
+    // original index 4 (currently in w1)
+    // overwrites original index 6 (saved into w0)
+    w0 = state[6];
+    state[6] = w1;
+    // original index 6 (currently in w0)
+    // overwrites original index 0 (doesnt need to be saved)
+    state[0] = w0;
+  /* Index 1 and 5 don't move. All that's left is to swap index 3 and index 7 */
+    w0 = state[3];
+    state[3] = state[7];
+    state[7] = w0;
+  }
+  else if constexpr( Number_Words == 16 )
+  {
+    uint64_t w0, w1;
+    // 1 overwrites 9 (stored in w0)
+    w0 = state[9];
+    state[9] = state[1];
+    // 9 (in w0) overwrites 7 (stored in w1)
+    w1 = state[7];
+    state[7] = w0;
+    // 7 (in w1) overwrites 15 (stored in w0)
+    w0 = state[15];
+    state[15] = w1;
+    // 15 (in w0) overwrites 1
+    state[1] = w0;
+
+    // 3 overwrites 13 (stored in w0)
+    w0 = state[13];
+    state[13] = state[3];
+    // 13 (in w0) overwrites 5 (stored in w1)
+    w1 = state[5];
+    state[5] = w0;
+    // 5 (in w1) overwrites 11 (stored in w0)
+    w0 = state[11];
+    state[11] = w1;
+    // 11 (in w0) overwrites 3
+    state[3] = w0;
+
+    // 4 and 6 are swapped
+    w0 = state[4];
+    state[4] = state[6];
+    state[6] = w0;
+
+    // 8 overwrites 10 (stored in w0)
+    w0 = state[10];
+    state[10] = state[8];
+    // 10 (in w0) overwrites 12 (stored in w1)
+    w1 = state[12];
+    state[12] = w0;
+    // 12 (in w1) overwrites 14 (stored in w0)
+    w0 = state[14];
+    state[14] = w1;
+    // 14 (in w0) overwrites 8
+    state[8] = w0;
+  }
+}
 
 #endif
