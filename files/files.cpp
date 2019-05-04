@@ -1,20 +1,37 @@
 #include "files.hpp"
 
-size_t get_file_size(std::FILE *stream)
+#ifdef  __gnu_linux__
+  #include <sys/types.h>
+  #include <sys/stat.h>
+  #include <unistd.h>
+#endif
+
+size_t get_file_size(const char * filename)
 {
+  using namespace std;
+#ifdef __gnu_linux__
+  struct stat s;
+  if( stat( filename, &s ) != 0 ) {
+    fprintf( stderr, "Failed to stat info about %s\n", filename );
+  }
+  return static_cast<size_t>(s.st_size);
+#else // All other platforms
   size_t num_bytes = 0;
-  while( std::fgetc( stream ) != EOF )
+  FILE stream = fopen( filename "rb" );
+  while( fgetc( stream ) != EOF )
     ++num_bytes;
-  std::rewind( stream );
+  rewind( stream );
   return num_bytes;
+#endif
 }
 
 bool file_exists(const char * filename)
 {
+  using namespace std;
   bool exists = false;
-  std::FILE * test = std::fopen( filename, "rb" );
+  FILE * test = fopen( filename, "rb" );
   if( test != nullptr ) {
-    std::fclose( test );
+    fclose( test );
     exists = true;
   }
   return exists;
