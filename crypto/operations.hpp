@@ -70,4 +70,4 @@ void xor_block(void * block, const void * add)
   }
 }
 
-void generate_random_bytes( void * const buffer, size_t num_bytes );
+void generate_random_bytes(uint8_t * const buffer, size_t num_bytes );

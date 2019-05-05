@@ -6,10 +6,10 @@
 #include <utility>
 
 /*
- * CBC < block_cipher_t, BLOCK_BITS >
+ * CBC < Block_Cipher_t, Block_Bits >
  *
  * This class implements The Cipher-Block-Chaining mode of operation for cryptographic block ciphers.
-    * block_cipher_t  =====> Some type that implements four specific methods:
+    * Block_Cipher_t  =====> Some type that implements four specific methods:
         size_t encrypt(const uint8_t *bytes_in, uint8_t *bytes_out, const size_t size_in, const uint8_t *iv);
                   If IV is nullptr, the "state" is assumed to be already seeded with past invocations
                   If IV is not nullptr, it is used to seed the state for encryption
@@ -18,24 +18,24 @@
                   If IV is not nullptr, it is used to seed the state for encryption
         void   encrypt_no_padding(const uint8_t *bytes_in, uint8_t *bytes_out, const size_t size_in, const uint8_t *iv);
                   Same IV conditions as above ; does not do any sort of padding ; must only be used with buffers
-                  perfectly divisible by BLOCK_BITS
+                  perfectly divisible by Block_Bits
         inline void   decrypt_no_padding(const uint8_t *bytes_in, uint8_t *bytes_out, const size_t size_in, const uint8_t *iv);
                   Same conditions as above.
-    * BLOCK_BITS      =====> a size_t unsigned integer describing the number of bits in 1 block of the block cipher.
+    * Block_Bits      =====> a size_t unsigned integer describing the number of bits in 1 block of the block cipher.
   */
-template< typename block_cipher_t, size_t BLOCK_BITS >
+template< typename Block_Cipher_t, size_t Block_Bits >
 class CBC
 {
 public:
   /* COMPILE TIME CHECKS */
-  static_assert( (BLOCK_BITS >= 128), "Modern block ciphers have at least 128-bit blocks!" );
-  static_assert( (BLOCK_BITS % 8 == 0 ), "Block size must be a multiple of 8! A 'byte' must be 8 bits here." );
+  static_assert( (Block_Bits >= 128), "Modern block ciphers have at least 128-bit blocks!" );
+  static_assert( (Block_Bits % 8 == 0 ), "Block size must be a multiple of 8! A 'byte' must be 8 bits here." );
   /* COMPILE TIME CONSTANTS */
-  static constexpr size_t BLOCK_BYTES = (BLOCK_BITS / 8);
+  static constexpr size_t Block_Bytes = (Block_Bits / 8);
   static constexpr bool Micro_Optimizations = true;
   /* PUBLIC INTERFACE */
   CBC() = delete;                           // disallow argument-less construction for now
-  CBC(block_cipher_t &&blk_c); // 
+  CBC(Block_Cipher_t &&blk_c); // 
   ~CBC();
   void   manually_set_state(const uint8_t * const state_bytes);
   void   encrypt_no_padding(const uint8_t *bytes_in, uint8_t *bytes_out, const size_t size_in, const uint8_t *iv = nullptr);
@@ -44,44 +44,44 @@ public:
   size_t encrypt(const uint8_t *bytes_in, uint8_t *bytes_out, const size_t size_in, const uint8_t *iv = nullptr);
 private:
   /* PRIVATE STATE */
-  block_cipher_t  blk_cipher;
-  uint8_t state[ BLOCK_BYTES ] = { 0 };
+  Block_Cipher_t  _blk_cipher;
+  uint8_t _state[ Block_Bytes ] = { 0 };
   /* PRIVATE INTERFACE */
-  size_t  apply_iso_iec_7816_padding      (uint8_t *bytes, const size_t prepadding_size) const;
-  size_t  count_iso_iec_7816_padding_bytes(const uint8_t * const bytes, const size_t padded_size) const;
-  bool    state_is_seeded() const;
-  static constexpr const auto & _xor_block = xor_block< BLOCK_BITS >;
+  size_t  _apply_iso_iec_7816_padding      (uint8_t *bytes, const size_t prepadding_size) const;
+  size_t  _count_iso_iec_7816_padding_bytes(const uint8_t * const bytes, const size_t padded_size) const;
+  bool    _state_is_seeded() const;
+  static constexpr const auto & _xor_block = xor_block< Block_Bits >;
 };
 
 // CONSTRUCTORS
-template< typename block_cipher_t, size_t BLOCK_BITS >
-CBC<block_cipher_t,BLOCK_BITS>::CBC(block_cipher_t&& blk_c) 
-  : blk_cipher{ blk_c }
+template< typename Block_Cipher_t, size_t Block_Bits >
+CBC<Block_Cipher_t,Block_Bits>::CBC(Block_Cipher_t&& blk_c) 
+  : _blk_cipher{ blk_c }
 {
 }
 // DESTRUCTORS
-template< typename block_cipher_t, size_t BLOCK_BITS >
-CBC<block_cipher_t,BLOCK_BITS>::~CBC()
+template< typename Block_Cipher_t, size_t Block_Bits >
+CBC<Block_Cipher_t,Block_Bits>::~CBC()
 {
-  explicit_bzero( state, sizeof(state) );
+  explicit_bzero( _state, sizeof(_state) );
 }
-template< typename block_cipher_t, size_t BLOCK_BITS >
-void CBC<block_cipher_t,BLOCK_BITS>::manually_set_state(const uint8_t * const state_bytes)
+template< typename Block_Cipher_t, size_t Block_Bits >
+void CBC<Block_Cipher_t,Block_Bits>::manually_set_state(const uint8_t * const state_bytes)
 {
-  std::memcpy( state, state_bytes, sizeof(state) );
+  std::memcpy( _state, state_bytes, sizeof(_state) );
 }
-template< typename block_cipher_t, size_t BLOCK_BITS >
-size_t CBC<block_cipher_t,BLOCK_BITS>::apply_iso_iec_7816_padding(uint8_t *bytes, const size_t prepadding_size) const
+template< typename Block_Cipher_t, size_t Block_Bits >
+size_t CBC<Block_Cipher_t,Block_Bits>::_apply_iso_iec_7816_padding(uint8_t *bytes, const size_t prepadding_size) const
 {
   /* Here, bytes_to_add is pre-emptively decremented by 1, as padding
    * at least one byte is necessary for this padding scheme. */
-  const size_t bytes_to_add = ( BLOCK_BYTES - (prepadding_size % BLOCK_BYTES) - 1 );
+  const size_t bytes_to_add = ( Block_Bytes - (prepadding_size % Block_Bytes) - 1 );
   bytes[ prepadding_size ] = 0x80u; // The byte 0x80 precedes any null bytes (if any) that make up the padding.
   std::memset( (bytes + prepadding_size + 1), 0x00u, bytes_to_add );
   return prepadding_size + 1 + bytes_to_add;
 }
-template< typename block_cipher_t, size_t BLOCK_BITS >
-size_t CBC<block_cipher_t,BLOCK_BITS>::count_iso_iec_7816_padding_bytes(const uint8_t * const bytes, const size_t padded_size) const
+template< typename Block_Cipher_t, size_t Block_Bits >
+size_t CBC<Block_Cipher_t,Block_Bits>::_count_iso_iec_7816_padding_bytes(const uint8_t * const bytes, const size_t padded_size) const
 {
   size_t count = 0;
   for( size_t i = padded_size - 1; padded_size > 0; --i ) {
@@ -92,104 +92,113 @@ size_t CBC<block_cipher_t,BLOCK_BITS>::count_iso_iec_7816_padding_bytes(const ui
   exit(3);
 }
 /*
-  bool CBC<block_cipher_t,BLOCK_BITS>::state_is_seeded()
+  bool CBC<Block_Cipher_t,Block_Bits>::_state_is_seeded()
   * The motive behind this: we zero the state when we're no longer going to use it.
   * if the state is all zeroes, the state is NOT seeded!
 */
-template< typename block_cipher_t, size_t BLOCK_BITS >
-bool CBC<block_cipher_t,BLOCK_BITS>::state_is_seeded() const
+template< typename Block_Cipher_t, size_t Block_Bits >
+bool CBC<Block_Cipher_t,Block_Bits>::_state_is_seeded() const
 {
-  if constexpr( Micro_Optimizations && BLOCK_BITS == 128 ) {
+  if constexpr( Micro_Optimizations && Block_Bits == 128 )
+	{
   /* 128-bit block case */
-    auto dword_ptr = reinterpret_cast<const uint64_t*>( state  );
+    auto dword_ptr = reinterpret_cast<const uint64_t*>( _state  );
     return static_cast<bool>( (*(dword_ptr)) | (*(dword_ptr + 1)) );
-  } else {
+  }
+	/* 256-bit block case */
+	else if constexpr( Micro_Optimizations && Block_Bits == 256 )
+	{
+		auto dword_ptr = reinterpret_cast<const uint64_t *>(_state);
+	}
+
+	else
+	{
   /* General block case */
     uint8_t ch = 0x00u;
-    for( int i = 0; i < BLOCK_BYTES; ++i )
-      ch |= state[i];
+    for( int i = 0; i < Block_Bytes; ++i )
+      ch |= _state[i];
     return static_cast<bool>( ch );
   }
 }
 
-template< typename block_cipher_t, size_t BLOCK_BITS >
-void CBC<block_cipher_t,BLOCK_BITS>::encrypt_no_padding(const uint8_t *bytes_in, uint8_t *bytes_out, const size_t size_in, const uint8_t *iv)
+template< typename Block_Cipher_t, size_t Block_Bits >
+void CBC<Block_Cipher_t,Block_Bits>::encrypt_no_padding(const uint8_t *bytes_in, uint8_t *bytes_out, const size_t size_in, const uint8_t *iv)
 {
   using std::memcpy;
 
   if( iv != nullptr )
-    memcpy( state, iv, sizeof(state) );
+    memcpy( _state, iv, sizeof(_state) );
   if( bytes_in != bytes_out )
     memcpy( bytes_out, bytes_in, size_in );
-  const size_t last_block_offset = size_in - BLOCK_BYTES;
-  for( size_t b_off = 0; b_off <= last_block_offset; b_off += BLOCK_BYTES ) {
+  const size_t last_block_offset = size_in - Block_Bytes;
+  for( size_t b_off = 0; b_off <= last_block_offset; b_off += Block_Bytes ) {
     uint8_t *current_block = bytes_out + b_off;
-    _xor_block( current_block, state );
-    blk_cipher.cipher( current_block, current_block );
-    memcpy( state, current_block, sizeof(state) );
+    _xor_block( current_block, _state );
+    _blk_cipher.cipher( current_block, current_block );
+    memcpy( _state, current_block, sizeof(_state) );
   }
 }
 
-template< typename block_cipher_t, size_t BLOCK_BITS >
-size_t CBC<block_cipher_t,BLOCK_BITS>::encrypt(const uint8_t *bytes_in, uint8_t *bytes_out, const size_t size_in, const uint8_t *iv)
+template< typename Block_Cipher_t, size_t Block_Bits >
+size_t CBC<Block_Cipher_t,Block_Bits>::encrypt(const uint8_t *bytes_in, uint8_t *bytes_out, const size_t size_in, const uint8_t *iv)
 {
   using std::memcpy;
 
   if( iv != nullptr )
-    memcpy( state, iv, sizeof(state) );
+    memcpy( _state, iv, sizeof(_state) );
   if( bytes_in != bytes_out )
     memcpy( bytes_out, bytes_in, size_in );
-  const size_t padded_size = apply_iso_iec_7816_padding( bytes_out, size_in );
-  const size_t last_block_offset = padded_size - BLOCK_BYTES;
-  for( size_t block_offset = 0; block_offset <= last_block_offset; block_offset += BLOCK_BYTES ) {
+  const size_t padded_size = _apply_iso_iec_7816_padding( bytes_out, size_in );
+  const size_t last_block_offset = padded_size - Block_Bytes;
+  for( size_t block_offset = 0; block_offset <= last_block_offset; block_offset += Block_Bytes ) {
     uint8_t *current_block = bytes_out + block_offset;
-    _xor_block( current_block, state );
-    blk_cipher.cipher( current_block, current_block );
-    memcpy( state, current_block, sizeof(state) );
+    _xor_block( current_block, _state );
+    _blk_cipher.cipher( current_block, current_block );
+    memcpy( _state, current_block, sizeof(_state) );
   }
   return padded_size;
 }
-template< typename block_cipher_t, size_t BLOCK_BITS >
-size_t CBC<block_cipher_t,BLOCK_BITS>::decrypt(const uint8_t *bytes_in, uint8_t *bytes_out, const size_t size_in, const uint8_t *iv)
+template< typename Block_Cipher_t, size_t Block_Bits >
+size_t CBC<Block_Cipher_t,Block_Bits>::decrypt(const uint8_t *bytes_in, uint8_t *bytes_out, const size_t size_in, const uint8_t *iv)
 {
   using std::memcpy;
 
   if( iv != nullptr )
-    memcpy( state, iv, sizeof(state) );
-  const size_t last_block_offset = (size_in >= BLOCK_BYTES) ? (size_in - BLOCK_BYTES) : 0;
-  uint8_t ciphertext[ BLOCK_BYTES ];
-  uint8_t buffer    [ BLOCK_BYTES ];
-  for( size_t b_off = 0; b_off <= last_block_offset; b_off += BLOCK_BYTES ) {
+    memcpy( _state, iv, sizeof(_state) );
+  const size_t last_block_offset = (size_in >= Block_Bytes) ? (size_in - Block_Bytes) : 0;
+  uint8_t ciphertext[ Block_Bytes ];
+  uint8_t buffer    [ Block_Bytes ];
+  for( size_t b_off = 0; b_off <= last_block_offset; b_off += Block_Bytes ) {
     const uint8_t *block_in  = bytes_in  + b_off;
     uint8_t       *block_out = bytes_out + b_off;
     memcpy( ciphertext, block_in, sizeof(ciphertext) );
-    blk_cipher.inverse_cipher( ciphertext, buffer );
-    _xor_block( buffer, state );
+    _blk_cipher.inverse_cipher( ciphertext, buffer );
+    _xor_block( buffer, _state );
     memcpy( block_out, buffer, sizeof(buffer) );
-    memcpy( state, ciphertext, sizeof(state) );
+    memcpy( _state, ciphertext, sizeof(_state) );
   }
-  explicit_bzero( buffer, sizeof(buffer) );
+  explicit_bzero( buffer    , sizeof(buffer) );
   explicit_bzero( ciphertext, sizeof(ciphertext) );
-  return size_in - count_iso_iec_7816_padding_bytes( bytes_out, size_in );
+  return size_in - _count_iso_iec_7816_padding_bytes( bytes_out, size_in );
 }
-template< typename block_cipher_t, size_t BLOCK_BITS >
-void CBC<block_cipher_t,BLOCK_BITS>::decrypt_no_padding(const uint8_t *bytes_in, uint8_t *bytes_out, const size_t size_in, const uint8_t *iv)
+template< typename Block_Cipher_t, size_t Block_Bits >
+void CBC<Block_Cipher_t,Block_Bits>::decrypt_no_padding(const uint8_t *bytes_in, uint8_t *bytes_out, const size_t size_in, const uint8_t *iv)
 {
   using std::memcpy;
 
   if( iv != nullptr )
-    memcpy( state, iv, sizeof(state) );
-  const size_t last_block_offset = size_in - BLOCK_BYTES;
-  uint8_t ciphertext[ BLOCK_BYTES ];
-  uint8_t buffer    [ BLOCK_BYTES ];
-  for( size_t b_off = 0; b_off <= last_block_offset; b_off += BLOCK_BYTES ) {
+    memcpy( _state, iv, sizeof(_state) );
+  const size_t last_block_offset = size_in - Block_Bytes;
+  uint8_t ciphertext[ Block_Bytes ];
+  uint8_t buffer    [ Block_Bytes ];
+  for( size_t b_off = 0; b_off <= last_block_offset; b_off += Block_Bytes ) {
     const uint8_t *block_in  = bytes_in  + b_off;
     uint8_t       *block_out = bytes_out + b_off;
     memcpy( ciphertext, block_in, sizeof(ciphertext) );
-    blk_cipher.inverse_cipher( ciphertext, buffer );
-    _xor_block( buffer, state );
+    _blk_cipher.inverse_cipher( ciphertext, buffer );
+    _xor_block( buffer, _state );
     memcpy( block_out, buffer, sizeof(buffer) );
-    memcpy( state, ciphertext, sizeof(state) );
+    memcpy( _state, ciphertext, sizeof(_state) );
   }
   explicit_bzero( buffer, sizeof(buffer) );
   explicit_bzero( ciphertext, sizeof(ciphertext) );
