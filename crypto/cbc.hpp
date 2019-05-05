@@ -49,7 +49,6 @@ private:
   /* PRIVATE INTERFACE */
   size_t  _apply_iso_iec_7816_padding      (uint8_t *bytes, const size_t prepadding_size) const;
   size_t  _count_iso_iec_7816_padding_bytes(const uint8_t * const bytes, const size_t padded_size) const;
-  bool    _state_is_seeded() const;
   static constexpr const auto & _xor_block = xor_block< Block_Bits >;
 };
 
@@ -89,36 +88,7 @@ size_t CBC<Block_Cipher_t,Block_Bits>::_count_iso_iec_7816_padding_bytes(const u
     if( bytes[i] == 0x80 )
       return count;
   }
-  exit(3);
-}
-/*
-  bool CBC<Block_Cipher_t,Block_Bits>::_state_is_seeded()
-  * The motive behind this: we zero the state when we're no longer going to use it.
-  * if the state is all zeroes, the state is NOT seeded!
-*/
-template< typename Block_Cipher_t, size_t Block_Bits >
-bool CBC<Block_Cipher_t,Block_Bits>::_state_is_seeded() const
-{
-  if constexpr( Micro_Optimizations && Block_Bits == 128 )
-	{
-  /* 128-bit block case */
-    auto dword_ptr = reinterpret_cast<const uint64_t*>( _state  );
-    return static_cast<bool>( (*(dword_ptr)) | (*(dword_ptr + 1)) );
-  }
-	/* 256-bit block case */
-	else if constexpr( Micro_Optimizations && Block_Bits == 256 )
-	{
-		auto dword_ptr = reinterpret_cast<const uint64_t *>(_state);
-	}
-
-	else
-	{
-  /* General block case */
-    uint8_t ch = 0x00u;
-    for( int i = 0; i < Block_Bytes; ++i )
-      ch |= _state[i];
-    return static_cast<bool>( ch );
-  }
+  std::exit( EXIT_FAILURE );
 }
 
 template< typename Block_Cipher_t, size_t Block_Bits >
