@@ -2,23 +2,23 @@ CC = g++
 CPPFLAGS = -std=c++17 -fPIC -O2 -march=native -pipe -fno-exceptions
 INSTALL_DIR = '/home/stuart/src/library/'
 
-aes.gch: aes.hpp
-	$(CC) $(CPPFLAGS) -c aes.hpp
+aes.gch: aes.hh
+	$(CC) $(CPPFLAGS) -c aes.hh
 
-cbc.gch: cbc.hpp
-	$(CC) $(CPPFLAGS) -c cbc.hpp
+cbc.gch: cbc.hh
+	$(CC) $(CPPFLAGS) -c cbc.hh
 	
-ctr.gch: ctr.hpp testing.hpp
-	$(CC) $(CPPFLAGS) -c ctr.hpp testing.hpp
+ctr.gch: ctr.hh testing.hh
+	$(CC) $(CPPFLAGS) -c ctr.hh testing.hh
 
-operations.gch: operations.hpp
-	$(CC) $(CPPFLAGS) -c operations.hpp
+operations.gch: operations.hh
+	$(CC) $(CPPFLAGS) -c operations.hh
 
-testing.gch: testing.hpp
-	$(CC) $(CPPFLAGS) -c testing.hpp
+testing.gch: testing.hh
+	$(CC) $(CPPFLAGS) -c testing.hh
 
-threefish.gch: threefish.hpp operations.hpp
-	$(CC) $(CPPFLAGS) -c threefish.hpp operations.hpp
+threefish.gch: threefish.hh operations.hh
+	$(CC) $(CPPFLAGS) -c threefish.hh operations.hh
 
 all: aes.gch cbc.gch ctr.gch operations.gch testing.gch threefish.gch
 

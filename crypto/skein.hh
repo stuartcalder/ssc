@@ -1,6 +1,6 @@
 #pragma once
-#include "threefish.hpp"
-#include "ubi.hpp"
+#include "threefish.hh"
+#include "ubi.hh"
 
 template< size_t State_Bits >
 class Skein

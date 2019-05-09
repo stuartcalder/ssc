@@ -1,4 +1,4 @@
-#include "files.hpp"
+#include "files.hh"
 
 #ifdef  __gnu_linux__
   #include <sys/types.h>

@@ -4,7 +4,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
-#include "operations.hpp"
+#include "operations.hh"
 
 template< size_t KEY_BITS=512 >
 class Threefish_Precomputed_Keyschedule

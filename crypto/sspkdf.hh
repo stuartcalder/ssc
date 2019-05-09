@@ -2,8 +2,8 @@
 #include <cstdint>
 #include <cstring>
 #include <memory>
-#include "skein.hpp"
-#include "operations.hpp"
+#include "skein.hh"
+#include "operations.hh"
 
 void SSPKDF(uint8_t * const derived_key,
             const uint8_t * const password,

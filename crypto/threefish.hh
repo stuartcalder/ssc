@@ -3,8 +3,8 @@
 #include <climits>
 #include <cstdlib>
 #include <cstring>
-#include "operations.hpp"
-#include "../general/print.hpp"
+#include "operations.hh"
+#include "../general/print.hh"
 
 template< size_t Key_Bits=512 >
 class Threefish
