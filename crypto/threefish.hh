@@ -152,7 +152,8 @@ void Threefish<Key_Bits>::expand_key(const uint8_t *k, const uint8_t *tw)
     std::memcpy( tweak, tw, sizeof(uint64_t) * 2 );
     // Tweak parity word
     tweak[2] = tweak[0] ^ tweak[1];
-  } else {              // If a valid tweak wasn't supplied
+  }
+  else {              // If a valid tweak wasn't supplied
     tweak[0] = 0;
     tweak[1] = 0;
     tweak[2] = 0;

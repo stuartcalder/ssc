@@ -6,6 +6,7 @@ template< size_t State_Bits >
 class Skein
 {
 public:
+/* PUBLIC CONSTANTS AND COMPILE-TIME CHECKS */
   static_assert( (State_Bits ==  256 ||
                   State_Bits ==  512 ||
                   State_Bits == 1024 ),
@@ -14,6 +15,7 @@ public:
   using Type_Mask_t = typename UBI_t::Type_Mask_t;
   static constexpr const size_t State_Bytes = State_Bits / 8;
 
+/* PUBLIC INTERFACE */
   void hash(uint8_t * const bytes_out,
             const uint8_t * const bytes_in,
             const uint64_t num_bytes_in,
@@ -26,15 +28,17 @@ public:
            const uint64_t num_key_bytes_in,
            const uint64_t num_bytes_out = State_Bytes);
 private:
+/* PRIVATE DATA */
   UBI_t _ubi;
-  void _process_config_block (const uint64_t num_output_bits);
-  void _process_key_block    (const uint8_t * const key_in,
+/* PRIVATE INTERFACE */
+  void  _process_config_block(const uint64_t num_output_bits);
+  void     _process_key_block(const uint8_t * const key_in,
                               const uint64_t key_size );
 
   void _process_message_block(const uint8_t * const message_in,
                               const uint64_t message_size);
 
-  void _output_transform     (uint8_t * const out,
+  void      _output_transform(uint8_t * const out,
                               const uint64_t num_output_bytes);
 };
 

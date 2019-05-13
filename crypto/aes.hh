@@ -3,7 +3,9 @@
 #include <cstdint>
 #include <cstring>
 #include <iostream>
-#include <endian.h>
+#ifdef __gnu_linux__
+  #include <endian.h>
+#endif
 
 template <size_t KEYBITS = 256>
 class AES

@@ -28,28 +28,27 @@ class CBC
 {
 public:
   /* COMPILE TIME CHECKS */
-  static_assert( (Block_Bits >= 128), "Modern block ciphers have at least 128-bit blocks!" );
+  static_assert( (Block_Bits >= 128)   , "Modern block ciphers have at least 128-bit blocks!"                );
   static_assert( (Block_Bits % 8 == 0 ), "Block size must be a multiple of 8! A 'byte' must be 8 bits here." );
   /* COMPILE TIME CONSTANTS */
   static constexpr size_t Block_Bytes = (Block_Bits / 8);
-  static constexpr bool Micro_Optimizations = true;
   /* PUBLIC INTERFACE */
-  CBC() = delete;                           // disallow argument-less construction for now
+  CBC() = delete;              // disallow argument-less construction for now
   CBC(Block_Cipher_t &&blk_c); // 
   ~CBC();
   void   manually_set_state(const uint8_t * const state_bytes);
   void   encrypt_no_padding(const uint8_t *bytes_in, uint8_t *bytes_out, const size_t size_in, const uint8_t *iv = nullptr);
   void   decrypt_no_padding(const uint8_t *bytes_in, uint8_t *bytes_out, const size_t size_in, const uint8_t *iv = nullptr);
-  size_t decrypt(const uint8_t *bytes_in, uint8_t *bytes_out, const size_t size_in, const uint8_t *iv = nullptr);
-  size_t encrypt(const uint8_t *bytes_in, uint8_t *bytes_out, const size_t size_in, const uint8_t *iv = nullptr);
+  size_t            decrypt(const uint8_t *bytes_in, uint8_t *bytes_out, const size_t size_in, const uint8_t *iv = nullptr);
+  size_t            encrypt(const uint8_t *bytes_in, uint8_t *bytes_out, const size_t size_in, const uint8_t *iv = nullptr);
 private:
   /* PRIVATE STATE */
   Block_Cipher_t  _blk_cipher;
   uint8_t _state[ Block_Bytes ] = { 0 };
   /* PRIVATE INTERFACE */
-  size_t  _apply_iso_iec_7816_padding      (uint8_t *bytes, const size_t prepadding_size) const;
+  size_t        _apply_iso_iec_7816_padding(uint8_t *bytes, const size_t prepadding_size)          const;
   size_t  _count_iso_iec_7816_padding_bytes(const uint8_t * const bytes, const size_t padded_size) const;
-  static constexpr const auto & _xor_block = xor_block< Block_Bits >;
+  static constexpr const auto &_xor_block = xor_block< Block_Bits >;
 };
 
 // CONSTRUCTORS
@@ -73,7 +72,7 @@ template< typename Block_Cipher_t, size_t Block_Bits >
 size_t CBC<Block_Cipher_t,Block_Bits>::_apply_iso_iec_7816_padding(uint8_t *bytes, const size_t prepadding_size) const
 {
   /* Here, bytes_to_add is pre-emptively decremented by 1, as padding
-   * at least one byte is necessary for this padding scheme. */
+     at least one byte is necessary for this padding scheme. */
   const size_t bytes_to_add = ( Block_Bytes - (prepadding_size % Block_Bytes) - 1 );
   bytes[ prepadding_size ] = 0x80u; // The byte 0x80 precedes any null bytes (if any) that make up the padding.
   std::memset( (bytes + prepadding_size + 1), 0x00u, bytes_to_add );
@@ -108,7 +107,6 @@ void CBC<Block_Cipher_t,Block_Bits>::encrypt_no_padding(const uint8_t *bytes_in,
     memcpy( _state, current_block, sizeof(_state) );
   }
 }
-
 template< typename Block_Cipher_t, size_t Block_Bits >
 size_t CBC<Block_Cipher_t,Block_Bits>::encrypt(const uint8_t *bytes_in, uint8_t *bytes_out, const size_t size_in, const uint8_t *iv)
 {

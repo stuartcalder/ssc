@@ -1,7 +1,12 @@
 #pragma once
 #include <cstdint>
+#include <cstdlib>
+#include <cstdio>
 #include <climits>
-#include <unistd.h>
+#include <cstring>
+#ifdef __gnu_linux__
+  #include <unistd.h>
+#endif
 
 template< typename uint_t >
 uint_t rotate_left( uint_t value, uint_t count )
@@ -70,4 +75,5 @@ void xor_block(void * block, const void * add)
   }
 }
 
-void generate_random_bytes(uint8_t * const buffer, size_t num_bytes );
+void generate_random_bytes(uint8_t * const buffer, size_t num_bytes);
+void zero_sensitive(uint8_t * const buffer, size_t num_bytes);
