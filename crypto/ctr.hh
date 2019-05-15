@@ -1,5 +1,4 @@
-#ifndef CTR_HPP
-#define CTR_HPP
+#pragma once
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
@@ -11,10 +10,10 @@ class CTR
 {
 public:
   static_assert( (BLOCK_BITS >= 128), "Modern block ciphers use block sizes >= 128 bits.");
-  static constexpr int BLOCK_BYTES = BLOCK_BITS / 8;
-  static constexpr int NONCE_BITS = BLOCK_BITS - 64; //64 bit counter
-  static constexpr int NONCE_BYTES = NONCE_BITS / 8;
-  static constexpr bool debug_print = false;
+  static constexpr const int BLOCK_BYTES = BLOCK_BITS / 8;
+  static constexpr const int NONCE_BITS = BLOCK_BITS - 64; //64 bit counter
+  static constexpr const int NONCE_BYTES = NONCE_BITS / 8;
+  static constexpr const bool debug_print = false;
   CTR() = delete;
   CTR(block_cipher_t &&bc, uint8_t *non);//->
   void set_nonce( uint8_t *n );//->
@@ -135,4 +134,3 @@ uint8_t* CTR<block_cipher_t,BLOCK_BITS>::generate_keystream(int *num_bytes, uint
   (*num_bytes) = needed_block_stream_bytes;
   return keystream;
 }
-#endif

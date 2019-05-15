@@ -1,5 +1,4 @@
-#ifndef AES_HPP
-#define AES_HPP
+#pragma once
 #include <cstdint>
 #include <cstring>
 #include <iostream>
@@ -358,4 +357,3 @@ void AES<KEYBITS>::AddRoundKey(int round)
     }
   }
 }
-#endif

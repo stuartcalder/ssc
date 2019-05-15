@@ -20,7 +20,7 @@ public:
   );
   /* PUBLIC CONSTANTS */
   static constexpr const int       Number_Words   = Key_Bits / 64;
-  static constexpr const int       Number_Rounds  = [](auto words){ if( words == 16 ) return 80; else return 72; }( Number_Words );
+  static constexpr const int       Number_Rounds  = [](int words){ if( words == 16 ) return 80; else return 72; }( Number_Words );
   static constexpr const int       Number_Subkeys = (Number_Rounds / 4) + 1;
   static constexpr const uint64_t  Constant_240   = 0x1bd1'1bda'a9fc'1a22;
   /* PUBLIC FUNCTIONS */

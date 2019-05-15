@@ -5,7 +5,7 @@
 #include <climits>
 #include <cstring>
 #ifdef __gnu_linux__
-  #include <unistd.h>
+    #include <unistd.h>
 #endif
 
 template< typename uint_t >
@@ -75,5 +75,7 @@ void xor_block(void * block, const void * add)
   }
 }
 
-void generate_random_bytes(uint8_t * const buffer, size_t num_bytes);
-void zero_sensitive(uint8_t * const buffer, size_t num_bytes);
+void generate_random_bytes(uint8_t * const buffer,
+                           size_t num_bytes);
+void zero_sensitive(uint8_t * const buffer,
+                    size_t num_bytes);
