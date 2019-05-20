@@ -12,17 +12,17 @@ print.o:
 	$(CC) $(CXXFLAGS) $(LIBPATH)/general/print.cc
 files.o:
 	$(CC) $(CXXFLAGS) $(LIBPATH)/files/files.cc
-interface.o:
+terminal.o:
 	$(CC) $(CXXFLAGS) -lncurses $(LIBPATH)/interface/terminal.cc
 operations.o: files.o
 	$(CC) $(CXXFLAGS) $(LIBPATH)/crypto/operations.cc
 sspkdf.o:
 	$(CC) $(CXXFLAGS) $(LIBPATH)/crypto/sspkdf.cc
-libssc.a:
+libssc.a: arg_mapping.o base64.o print.o files.o terminal.o operations.o sspkdf.o
+	strip -s *.o
 	ar rcs $@ $^
 
-all: arg_mapping.o base64.o print.o files.o interface.o operations.o sspkdf.o
-	strip -s *.o
+all: libssc.a
 install:
 
 
