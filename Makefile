@@ -1,27 +1,32 @@
 CC = g++
-CXXFLAGS = -c -O3 -fpipe -Wall -fPIC
+CXXFLAGS = -std=c++17 -c -O3 -pipe -Wall -fPIC
 LIBPATH = /usr/local/include/ssc
 
 clean:
-	$(RM) $(LIBPAH)/general/*.o
-	$(RM) $(LIBPAH)/files/*.o
-	$(RM) $(LIBPAH)/interface/*.o
-	$(RM) $(LIBPAH)/crypto/*.o
-general:
+	$(RM) *.o
+arg_mapping.o:
 	$(CC) $(CXXFLAGS) $(LIBPATH)/general/arg_mapping.cc
+base64.o:
 	$(CC) $(CXXFLAGS) $(LIBPATH)/general/base64.cc
+print.o:
 	$(CC) $(CXXFLAGS) $(LIBPATH)/general/print.cc
-files:
+files.o:
 	$(CC) $(CXXFLAGS) $(LIBPATH)/files/files.cc
-interface:
+interface.o:
 	$(CC) $(CXXFLAGS) -lncurses $(LIBPATH)/interface/terminal.cc
-crypto: files
+operations.o: files.o
 	$(CC) $(CXXFLAGS) $(LIBPATH)/crypto/operations.cc
+sspkdf.o:
 	$(CC) $(CXXFLAGS) $(LIBPATH)/crypto/sspkdf.cc
-all: general files interface crypto
-	
+libssc.a:
+	ar rcs $@ $^
+
+all: arg_mapping.o base64.o print.o files.o interface.o operations.o sspkdf.o
+	strip -s *.o
 install:
-	install -s -m 0755 \
+
+
+	#install -s -m 0755 \
 		$(LIBPATH)/crypto/*.o \
 		$(LIBPATH)/files/*.o \
 		$(LIBPATH)/general/*.o \

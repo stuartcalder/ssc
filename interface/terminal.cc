@@ -115,7 +115,7 @@ second_password:
             continue;
         }
         else {
-            strncpy( pw_buffer, first_buf, sizeof(first_buf) );
+            strncpy( pw_buffer, first_buf, password_size );
             zero_sensitive( first_buf, sizeof(first_buf) );
             zero_sensitive( second_buf, sizeof(second_buf) );
         }
