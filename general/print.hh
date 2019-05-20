@@ -1,5 +1,4 @@
-#ifndef PRINT_HPP
-#define PRINT_HPP
+#pragma once
 #include <cstdint>
 #include <cstdio>
 
@@ -32,5 +31,3 @@ void print_integral_buffer( void * const i_buf, const size_t num_elements )
   }
   printf( "\n" );
 }
-
-#endif

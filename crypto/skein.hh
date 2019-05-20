@@ -1,6 +1,6 @@
 #pragma once
-#include "threefish.hh"
-#include "ubi.hh"
+#include <ssc/crypto/threefish.hh>
+#include <ssc/crypto/ubi.hh>
 
 template< size_t State_Bits >
 class Skein

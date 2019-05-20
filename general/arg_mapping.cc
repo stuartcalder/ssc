@@ -1,4 +1,4 @@
-#include "arg_mapping.hh"
+#include <ssc/general/arg_mapping.hh>
 
 void Arg_Mapping::clear()
 {

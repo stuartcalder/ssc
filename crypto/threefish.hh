@@ -2,8 +2,8 @@
 #include <climits>
 #include <cstdlib>
 #include <cstring>
-#include "operations.hh"
-#include "../general/print.hh"
+#include <ssc/crypto/operations.hh>
+#include <ssc/general/print.hh>
 
 template< size_t Key_Bits=512 >
 class Threefish

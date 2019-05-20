@@ -1,10 +1,9 @@
-#ifndef THREEFISH_RUNTIME_KEYSCHEDULE_HPP
-#define THREEFISH_RUNTIME_KEYSCHEDULE_HPP
+#pragma once
 #include <climits>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
-#include "operations.hh"
+#include <ssc/crypto/operations.hh>
 
 template< size_t KEY_BITS=512 >
 class Threefish_Runtime_Keyschedule
@@ -289,6 +288,3 @@ uint64_t Threefish_Runtime_Keyschedule<KEY_BITS>::inverse_permute_index(const in
     return perm[i];
   }
 }
-
-
-#endif

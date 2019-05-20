@@ -1,8 +1,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <memory>
-#include "cbc.hh"
-#include "../files/files.hh"
+#include <ssc/crypto/cbc.hh>
+#include <ssc/files/files.hh>
 
 template< typename Block_Cipher_t, size_t Block_Bits >
 void cbc_encrypt_file(const char * const input_filename,

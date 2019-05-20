@@ -3,6 +3,8 @@
     #error "Only defined for Gnu/Linux!"
 #endif
 
+#include <ssc/crypto/operations.hh>
+
 #include <cstdint>
 #include <cstring>
 #include <ncurses.h>
@@ -15,7 +17,7 @@ public:
              bool echo_chars,
              bool special_chars);
     ~Terminal();
-    bool get_password(uint8_t * pw_buffer,
+    void get_password(char * pw_buffer,
                       const int max_pw_size);
 private:
     int __std_height;

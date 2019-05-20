@@ -1,4 +1,4 @@
-#include "operations.hh"
+#include <ssc/crypto/operations.hh>
 
 void generate_random_bytes(uint8_t * const buffer, size_t num_bytes)
 {

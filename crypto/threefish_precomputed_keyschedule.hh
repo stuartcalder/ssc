@@ -1,10 +1,9 @@
-#ifndef THREEFISH_PRECOMPUTED_KEYSCHEDULE_HPP
-#define THREEFISH_PRECOMPUTED_KEYSCHEDULE_HPP
+#pragma once
 #include <climits>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
-#include "operations.hh"
+#include <ssc/crytpo/operations.hh>
 
 template< size_t KEY_BITS=512 >
 class Threefish_Precomputed_Keyschedule
@@ -290,6 +289,3 @@ uint64_t Threefish_Precomputed_Keyschedule<KEY_BITS>::inverse_permute_index(cons
     return perm[i];
   }
 }
-
-
-#endif

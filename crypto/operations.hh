@@ -77,5 +77,5 @@ void xor_block(void * block, const void * add)
 
 void generate_random_bytes(uint8_t * const buffer,
                            size_t num_bytes);
-void zero_sensitive(uint8_t * const buffer,
+void zero_sensitive(void *buffer,
                     size_t num_bytes);

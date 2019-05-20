@@ -1,4 +1,4 @@
-#include "base64.hh"
+#include <ssc/general/base64.hh>
 
 
 static char b64_r648_encode_six_bits(const uint8_t a)

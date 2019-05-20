@@ -1,4 +1,4 @@
-#include "sspkdf.hh"
+#include <ssc/crypto/sspkdf.hh>
 
 void SSPKDF (uint8_t * const derived_key,
              const uint8_t * const password,

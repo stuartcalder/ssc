@@ -5,7 +5,7 @@
 #include <string>
 
 #ifdef __gnu_linux__
-  size_t get_file_size         (const int file_d);
+    size_t get_file_size         (const int file_d);
 #endif
 size_t get_file_size         (const char        * filename);
 size_t get_file_size         (const std::FILE   * const file);

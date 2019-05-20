@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdio>
 #include <cstdlib>
-#include "operations.hh"
+#include <ssc/crypto/operations.hh>
 
 template< typename Tweakable_Block_Cipher_t,
           size_t   State_Bits >

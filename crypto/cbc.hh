@@ -19,7 +19,7 @@
         void   encrypt_no_padding(const uint8_t *bytes_in, uint8_t *bytes_out, const size_t size_in, const uint8_t *iv);
                   Same IV conditions as above ; does not do any sort of padding ; must only be used with buffers
                   perfectly divisible by Block_Bits
-        inline void   decrypt_no_padding(const uint8_t *bytes_in, uint8_t *bytes_out, const size_t size_in, const uint8_t *iv);
+        void   decrypt_no_padding(const uint8_t *bytes_in, uint8_t *bytes_out, const size_t size_in, const uint8_t *iv);
                   Same conditions as above.
     * Block_Bits      =====> a size_t unsigned integer describing the number of bits in 1 block of the block cipher.
   */

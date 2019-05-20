@@ -1,4 +1,4 @@
-#include "print.hh"
+#include <ssc/general/print.hh>
 
 void print_binary_buffer( const uint8_t * buffer, const size_t num_bytes )
 {
