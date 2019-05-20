@@ -3,7 +3,7 @@ CXXFLAGS = -std=c++17 -c -O3 -pipe -Wall -fPIC
 LIBPATH = /usr/local/lib
 
 clean:
-	$(RM) *.o
+	$(RM) *.o *.so
 arg_mapping.o:
 	$(CC) $(CXXFLAGS) general/arg_mapping.cc
 base64.o:
@@ -13,7 +13,7 @@ print.o:
 files.o:
 	$(CC) $(CXXFLAGS) files/files.cc
 terminal.o:
-	$(CC) $(CXXFLAGS) -lncurses interface/terminal.cc
+	$(CC) $(CXXFLAGS) interface/terminal.cc -lncurses
 operations.o: files.o
 	$(CC) $(CXXFLAGS) crypto/operations.cc
 sspkdf.o:
@@ -26,7 +26,7 @@ libssc.so: arg_mapping.o base64.o print.o files.o terminal.o operations.o sspkdf
 		arg_mapping.o base64.o print.o files.o terminal.o operations.o sspkdf.o
 all: libssc.so
 install: all
-	install -m 0755 libssc.so $(LIBPATH)
+	install -s -m 0755 libssc.so $(LIBPATH)
 
 	#install -s -m 0755 \
 		#$(LIBPATH)/crypto/*.o \

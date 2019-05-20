@@ -27,7 +27,6 @@ void Terminal::get_password(char * const pw_buffer,
     char second_buf[ max_pw_size + 1 ];
     int index = 0;
     char mpl[ 3 ];
-    int password_size;
     snprintf( mpl, sizeof(mpl), "%d", max_pw_size );
     WINDOW * w = newwin( 5, max_pw_size, 0, 0 );
     keypad( w, TRUE );
@@ -58,7 +57,6 @@ void Terminal::get_password(char * const pw_buffer,
                     break;
                 case KEY_ENTER:
                 case '\n':
-                    password_size = index;
                     goto got_a_password;
                 default:
                     if (index <= max_pw_size - 1) {
@@ -92,7 +90,6 @@ got_a_password:
                     break;
                 case KEY_ENTER:
                 case '\n':
-                    password_size = index;
                     goto second_password;
                 default:
                     if (index <= max_pw_size - 1) {
@@ -105,7 +102,16 @@ got_a_password:
             }
         }
 second_password:
-        if ( memcmp( first_buf, second_buf, sizeof(first_buf) ) != 0 ) {
+        if ( index == 0 ) {
+            wclear( w );
+            wmove( w, 0, 0 );
+            waddstr( w, "0-Length passwords disallowed.\n" );
+            wrefresh( w );
+            wgetch( w );
+            index = 0;
+            continue;
+        }
+        else if ( memcmp( first_buf, second_buf, sizeof(first_buf) ) != 0 ) {
             wclear( w );
             wmove( w, 0, 0 );
             waddstr( w, "Input passwords do not seem to match...\n" );
@@ -115,7 +121,8 @@ second_password:
             continue;
         }
         else {
-            strncpy( pw_buffer, first_buf, password_size );
+            const int password_size = strlen( first_buf );
+            strncpy( pw_buffer, first_buf, password_size + 1 );
             zero_sensitive( first_buf, sizeof(first_buf) );
             zero_sensitive( second_buf, sizeof(second_buf) );
         }
