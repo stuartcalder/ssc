@@ -11,10 +11,10 @@ class Threefish
 public:
     /* STATIC CHECKS */
     static_assert ( 
-      (Key_Bits == 256 || Key_Bits == 512 || Key_Bits == 1024), "Invalid keysize" 
+        (Key_Bits == 256 || Key_Bits == 512 || Key_Bits == 1024), "Invalid keysize" 
     );
     static_assert (
-      (CHAR_BIT == 8), "This implementation needs 8-bit chars"
+        (CHAR_BIT == 8), "This implementation needs 8-bit chars"
     );
     /* PUBLIC CONSTANTS */
     static constexpr const int       Number_Words   = Key_Bits / 64;
@@ -25,7 +25,7 @@ public:
     Threefish() {
     }
     Threefish(const uint8_t *k, const uint8_t *tw = nullptr) {
-      expand_key( k, tw );
+        expand_key( k, tw );
     }
     ~Threefish(); // forward declared
     /* PUBLIC FUNCTIONS */
@@ -57,8 +57,8 @@ void Threefish<Key_Bits>::rekey(const uint8_t * new_key,
 template< size_t Key_Bits >
 Threefish<Key_Bits>::~Threefish()
 {
-    explicit_bzero( key_schedule, sizeof(key_schedule) );
-    explicit_bzero( state       , sizeof(state) );
+    zero_sensitive( key_schedule, sizeof(key_schedule) );
+    zero_sensitive( state       , sizeof(state) );
 }
 
 template< size_t Key_Bits >
@@ -161,8 +161,8 @@ void Threefish<Key_Bits>::expand_key(const uint8_t *k, const uint8_t *tw)
     }
 
   // clear sensitive memory
-    explicit_bzero( key  , sizeof(key)   );
-    explicit_bzero( tweak, sizeof(tweak) );
+    zero_sensitive( key  , sizeof(key)   );
+    zero_sensitive( tweak, sizeof(tweak) );
 }
 
 template <size_t Key_Bits>
@@ -210,7 +210,7 @@ void Threefish<Key_Bits>::inverse_cipher(const uint8_t *in, uint8_t *out)
         inverse_permute_state();
         for ( int j = 0; j <= (Number_Words / 2) - 1; ++j )
             inverse_MIX( (state + (2 * j)), (state + (2 * j) + 1), round, j );
-        if( round % 4 == 0 )
+        if ( round % 4 == 0 )
             subtract_subkey( round );
     }
     std::memcpy( out, state, sizeof(state) );
