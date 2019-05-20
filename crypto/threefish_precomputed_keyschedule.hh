@@ -3,7 +3,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
-#include <ssc/crytpo/operations.hh>
+#include <ssc/crypto/operations.hh>
 
 template< size_t KEY_BITS=512 >
 class Threefish_Precomputed_Keyschedule
