@@ -1,34 +1,36 @@
 CC = g++
 CXXFLAGS = -std=c++17 -c -O3 -pipe -Wall -fPIC
-LIBPATH = /usr/local/include/ssc
+LIBPATH = /usr/local/lib
 
 clean:
 	$(RM) *.o
 arg_mapping.o:
-	$(CC) $(CXXFLAGS) $(LIBPATH)/general/arg_mapping.cc
+	$(CC) $(CXXFLAGS) general/arg_mapping.cc
 base64.o:
-	$(CC) $(CXXFLAGS) $(LIBPATH)/general/base64.cc
+	$(CC) $(CXXFLAGS) general/base64.cc
 print.o:
-	$(CC) $(CXXFLAGS) $(LIBPATH)/general/print.cc
+	$(CC) $(CXXFLAGS) general/print.cc
 files.o:
-	$(CC) $(CXXFLAGS) $(LIBPATH)/files/files.cc
+	$(CC) $(CXXFLAGS) files/files.cc
 terminal.o:
-	$(CC) $(CXXFLAGS) -lncurses $(LIBPATH)/interface/terminal.cc
+	$(CC) $(CXXFLAGS) -lncurses interface/terminal.cc
 operations.o: files.o
-	$(CC) $(CXXFLAGS) $(LIBPATH)/crypto/operations.cc
+	$(CC) $(CXXFLAGS) crypto/operations.cc
 sspkdf.o:
-	$(CC) $(CXXFLAGS) $(LIBPATH)/crypto/sspkdf.cc
-libssc.a: arg_mapping.o base64.o print.o files.o terminal.o operations.o sspkdf.o
-	strip -s *.o
-	ar rcs $@ $^
-
-all: libssc.a
-install:
-
+	$(CC) $(CXXFLAGS) crypto/sspkdf.cc
+#libssc.a: arg_mapping.o base64.o print.o files.o terminal.o operations.o sspkdf.o \
+#	strip -s *.o \
+#	ar rcs $@ $^
+libssc.so: arg_mapping.o base64.o print.o files.o terminal.o operations.o sspkdf.o
+	$(CC) -fPIC -shared -o $@ \
+		arg_mapping.o base64.o print.o files.o terminal.o operations.o sspkdf.o
+all: libssc.so
+install: all
+	install -m 0755 libssc.so $(LIBPATH)
 
 	#install -s -m 0755 \
-		$(LIBPATH)/crypto/*.o \
-		$(LIBPATH)/files/*.o \
-		$(LIBPATH)/general/*.o \
-		$(LIBPATH)/interface/*.o \
-		$(LIBPATH)/obj/
+		#$(LIBPATH)/crypto/*.o \
+		#$(LIBPATH)/files/*.o \
+		#$(LIBPATH)/general/*.o \
+		#$(LIBPATH)/interface/*.o \
+		#$(LIBPATH)/obj/
