@@ -61,8 +61,8 @@ private:
 template< size_t KEY_BITS >
 Threefish_Precomputed_Keyschedule<KEY_BITS>::~Threefish_Precomputed_Keyschedule()
 {
-  explicit_bzero( key_schedule, sizeof(key_schedule) );
-  explicit_bzero( state, sizeof(state) );
+  zero_sensitive( key_schedule, sizeof(key_schedule) );
+  zero_sensitive( state, sizeof(state) );
 }
 
 template< size_t KEY_BITS >
@@ -171,8 +171,8 @@ void Threefish_Precomputed_Keyschedule<KEY_BITS>::expand_key(const uint64_t *k, 
   }
 
   // clear sensitive memory
-  explicit_bzero( key  , sizeof(key)   );
-  explicit_bzero( tweak, sizeof(tweak) );
+  zero_sensitive( key  , sizeof(key)   );
+  zero_sensitive( tweak, sizeof(tweak) );
 }
 
 template <size_t KEY_BITS>
@@ -212,7 +212,7 @@ void Threefish_Precomputed_Keyschedule<KEY_BITS>::cipher(const uint64_t *in, uin
       std::memcpy( state_copy, state, sizeof(state_copy) );
       for( int i = 0; i < Number_Words; ++i )
         state[i] = state_copy[ permute_index( i ) ];
-      explicit_bzero( state_copy, sizeof(state_copy) );
+      zero_sensitive( state_copy, sizeof(state_copy) );
     }//-
   }
   add_subkey( Number_Rounds );
@@ -230,7 +230,7 @@ void Threefish_Precomputed_Keyschedule<KEYSIZE>::inverse_cipher(const uint64_t *
       std::memcpy( state_copy, state, sizeof(state_copy) );
       for( int i = 0; i < Number_Words; ++i )
         state[i] = state_copy[ inverse_permute_index( i ) ];
-      explicit_bzero( state_copy, sizeof(state_copy) );
+      zero_sensitive( state_copy, sizeof(state_copy) );
     }//-
     for( int j = 0; j<= (Number_Words / 2) - 1; ++j )
       inverse_MIX( (state + (2 * j)), (state + (2 * j) + 1), round, j );

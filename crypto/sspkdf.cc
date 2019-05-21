@@ -42,8 +42,8 @@ void SSPKDF (uint8_t * const derived_key,
             xor_block<512>( key, buffer );
         }
         skein.hash( derived_key, buffer, sizeof(buffer), sizeof(buffer) );
-        explicit_bzero( key   , sizeof(key) );
-        explicit_bzero( buffer, sizeof(buffer) );
+        zero_sensitive( key   , sizeof(key) );
+        zero_sensitive( buffer, sizeof(buffer) );
     }
-    explicit_bzero( concat_buffer.get(), concat_size );
+    zero_sensitive( concat_buffer.get(), concat_size );
 }

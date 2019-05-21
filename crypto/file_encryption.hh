@@ -53,7 +53,7 @@ void cbc_encrypt_file(const char * const input_filename,
     fwrite( buffer.get(), 1, encrypted, output_file );
   } // -
   ////////////////Cleanup////////////////////////////////////////////////////////
-  explicit_bzero( buffer.get(), file_buffer_size );
+  zero_sensitive( buffer.get(), file_buffer_size );
   fclose( input_file );
   fclose( output_file );
 }
@@ -121,7 +121,8 @@ void cbc_decrypt_file(const char * const input_filename,
     fwrite( buffer.get(), 1, last, output_file );
   } // -
   ///////////////////////////////////////Cleanup/////////////////////////////////////
-  explicit_bzero( buffer.get(), file_buffer_size );
+  zero_sensitive( buffer.get(), file_buffer_size );
+  
   fclose( input_file );
   fclose( output_file );
 }

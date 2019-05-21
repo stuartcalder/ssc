@@ -4,6 +4,7 @@
 #include <cstring>
 #include <cstdio>
 #include <utility>
+#include <ssc/crypto/operations.hh>
 
 /*
  * CBC < Block_Cipher_t, Block_Bits >
@@ -61,7 +62,7 @@ CBC<Block_Cipher_t,Block_Bits>::CBC(Block_Cipher_t&& blk_c)
 template< typename Block_Cipher_t, size_t Block_Bits >
 CBC<Block_Cipher_t,Block_Bits>::~CBC()
 {
-    explicit_bzero( _state, sizeof(_state) );
+    zero_sensitive( _state, sizeof(_state) );
 }
 template< typename Block_Cipher_t, size_t Block_Bits >
 void CBC<Block_Cipher_t,Block_Bits>::manually_set_state(const uint8_t * const state_bytes)
@@ -145,8 +146,8 @@ size_t CBC<Block_Cipher_t,Block_Bits>::decrypt(const uint8_t *bytes_in, uint8_t 
         memcpy( block_out, buffer, sizeof(buffer) );
         memcpy( _state, ciphertext, sizeof(_state) );
     }
-    explicit_bzero( buffer    , sizeof(buffer) );
-    explicit_bzero( ciphertext, sizeof(ciphertext) );
+    zero_sensitive( buffer    , sizeof(buffer) );
+    zero_sensitive( ciphertext, sizeof(ciphertext) );
     return size_in - _count_iso_iec_7816_padding_bytes( bytes_out, size_in );
 }
 template< typename Block_Cipher_t, size_t Block_Bits >
@@ -168,6 +169,6 @@ void CBC<Block_Cipher_t,Block_Bits>::decrypt_no_padding(const uint8_t *bytes_in,
         memcpy( block_out, buffer, sizeof(buffer) );
         memcpy( _state, ciphertext, sizeof(_state) );
     }
-    explicit_bzero( buffer    , sizeof(buffer) );
-    explicit_bzero( ciphertext, sizeof(ciphertext) );
+    zero_sensitive( buffer    , sizeof(buffer) );
+    zero_sensitive( ciphertext, sizeof(ciphertext) );
 }

@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <cstring>
 #include <iostream>
+#include <ssc/crypto/operations.hh>
 #ifdef __gnu_linux__
   #include <endian.h>
 #endif
@@ -109,9 +110,9 @@ template <size_t KEYBITS>
 AES<KEYBITS>::~AES()
 {
   // Overwrite everything private and important.
-  explicit_bzero( state, sizeof(state) );
-  explicit_bzero( key, sizeof(key) );
-  explicit_bzero( key_schedule, sizeof(key_schedule) );
+  zero_sensitive( state       , sizeof(state) );
+  zero_sensitive( key         , sizeof(key) );
+  zero_sensitive( key_schedule, sizeof(key_schedule) );
 }
 template <size_t KEYBITS>
 void AES<KEYBITS>::cipher(const uint8_t in[], uint8_t out[])
