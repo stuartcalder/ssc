@@ -1,6 +1,6 @@
 CC = g++
 CXXFLAGS = -std=c++17 -c -O3 -pipe -Wall -fPIC
-LIBPATH = /usr/local/lib
+LIBPATH = /usr/lib
 
 clean:
 	$(RM) *.o *.so
