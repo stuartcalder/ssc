@@ -21,6 +21,6 @@ sspkdf.o:
 libssc.so: arg_mapping.o base64.o print.o files.o terminal.o operations.o sspkdf.o
 	$(CC) -fPIC -shared -o $@ \
 		arg_mapping.o base64.o print.o files.o terminal.o operations.o sspkdf.o
-all: libssc.so
-install: all
+install: libssc.so
 	install -s -m 0755 libssc.so $(LIBPATH)
+	ldconfig

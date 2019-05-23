@@ -131,5 +131,73 @@ second_password:
     delwin( w );
 }
 
+#if 0
+void Terminal::get_string(char * chr_buffer,
+                          const int buffer_size,
+                          const int min_input_size,
+                          const char * prompt,
+                          const bool censor_input)
+{
+    using namespace std;
 
-
+    int index = 0;
+    WINDOW * w = newwin( 5, buffer_size + 1, 0, 0 );
+    keypad( w, TRUE );
+    while ( true ) {
+        memset( chr_buffer, 0, buffer_size );
+        wclear( w );
+        wmove( w, 1, 0 );
+        waddstr( w, prompt );
+        while ( true ) {
+            int ch = wgetch( w );
+            switch ( ch ) {
+                case 127:
+                case KEY_DC:
+                case KEY_BACKSPACE:
+                    if ( index > 0 ) {
+                        int y, x;
+                        getyx( w, y, x );
+                        wdelch( w );
+                        wmove( w, y, x - 1 );
+                        wrefresh( w );
+                        --index;
+                        chr_buffer[ index ] = '\0';
+                    }
+                    break;
+                case KEY_ENTER:
+                case '\n':
+                    goto got_newline;
+                default:
+                    if ( index <= buffer_size ) {
+                        if ( censor_input )
+                            waddch( w, '*' );
+                        else
+                            waddch( w, static_cast<char>( ch ) );
+                        wrefresh( w );
+                        chr_buffer[ index ] = static_cast<char>( ch );
+                        ++index;
+                    }
+                    break;
+            }
+        }
+got_newline:
+        if ( index < min_input_size ) {
+            wclear( w );
+            wmove( w, 0, 0 );
+            char s[ 4 ];
+            snprintf( s, sizeof(s), "%d", min_input_size );
+            waddstr( w, "Minimum of " );
+            waddstr( w, s );
+            waddstr( w, " characters needed!\n" );
+            wrefresh( w );
+            wgetch( w );
+            index = 0;
+            continue;
+        }
+        else {
+            :
+        }
+        break;
+    }
+}
+#endif

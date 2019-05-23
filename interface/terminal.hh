@@ -19,6 +19,13 @@ public:
     ~Terminal();
     void get_password(char * pw_buffer,
                       const int max_pw_size);
+#if 0
+    void get_string(char * chr_buffer,
+                    const int buffer_size,
+                    const int min_input_size,
+                    const char *prompt,
+                    const bool censor_input = false);
+#endif
 private:
     int __std_height;
     int __std_width;
