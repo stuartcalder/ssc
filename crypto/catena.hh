@@ -8,7 +8,8 @@ class Catena
 public:
     /* PUBLIC CONSTANTS */
     /* CONSTRUCTORS */
-    Catena() = delete;
+    Catena(const char *password,
+           const int   password_size);
     /* PUBLIC INTERFACE */
 private:
     /* PRIVATE DATA */
@@ -18,7 +19,8 @@ private:
 
 template< typename Hash_Func_t,
           size_t   Hash_Bits >
-Catena<Hash_Func_t,Hash_Bits>::Catena()
+Catena<Hash_Func_t,Hash_Bits>::Catena(const char *password,
+                                      const int   password_size)
     : __hash_func{ key }
 {}
 
