@@ -59,11 +59,6 @@ void UBI<Tweakable_Block_Cipher_t,State_Bits>::chain(const Type_Mask_t      type
 {
     using namespace std;
     auto message_offset = message;
-    /* Ensure none of the input pointers are nullptr */
-    if ( message == nullptr ) {
-        fprintf( stderr, "Nullptr for message in UBI call.\n" );
-        exit( EXIT_FAILURE );
-    }
     /* Setup Tweak */
     _clear_tweak_all();
     _set_tweak_type( type_mask );
