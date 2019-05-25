@@ -34,15 +34,15 @@ private:
 /* PRIVATE DATA */
     UBI_t __ubi;
 /* PRIVATE INTERFACE */
-    void  _process_config_block(const uint64_t num_output_bits);
+    void  _process_config_block(const uint64_t        num_output_bits);
     void     _process_key_block(const uint8_t * const key_in,
-                                const uint64_t key_size );
+                                const uint64_t        key_size );
 
     void _process_message_block(const uint8_t * const message_in,
-                                const uint64_t message_size);
+                                const uint64_t        message_size);
 
-    void      _output_transform(uint8_t * const out,
-                                const uint64_t num_output_bytes);
+    void      _output_transform(uint8_t * const       out,
+                                const uint64_t        num_output_bytes);
 };
 
 template< size_t State_Bits >
@@ -71,21 +71,21 @@ void Skein<State_Bits>::_process_config_block(const uint64_t num_output_bits)
 
 template< size_t State_Bits >
 void Skein<State_Bits>::_process_key_block(const uint8_t * const key_in,
-                                           const uint64_t key_size)
+                                           const uint64_t        key_size)
 {
     __ubi.chain( Type_Mask_t::T_key, key_in, key_size );
 }
 
 template< size_t State_Bits >
 void Skein<State_Bits>::_process_message_block(const uint8_t * const message_in,
-                                               const uint64_t message_size)
+                                               const uint64_t        message_size)
 {
     __ubi.chain( Type_Mask_t::T_msg, message_in, message_size );
 }
 
 template< size_t State_Bits >
 void Skein<State_Bits>::_output_transform(uint8_t * const out,
-                                          const uint64_t num_output_bytes)
+                                          const uint64_t  num_output_bytes)
 {
     uint8_t * bytes_out = out;
     uint64_t number_iterations = num_output_bytes / State_Bytes;
@@ -110,10 +110,10 @@ void Skein<State_Bits>::_output_transform(uint8_t * const out,
 }
 
 template< size_t State_Bits >
-void Skein<State_Bits>::hash(uint8_t * const bytes_out,
+void Skein<State_Bits>::hash(uint8_t * const       bytes_out,
                              const uint8_t * const bytes_in,
-                             const uint64_t num_bytes_in,
-                             const uint64_t num_bytes_out)
+                             const uint64_t        num_bytes_in,
+                             const uint64_t        num_bytes_out)
 {
     __ubi.clear_key_state();
     _process_config_block( (num_bytes_out * 8) );
@@ -122,12 +122,12 @@ void Skein<State_Bits>::hash(uint8_t * const bytes_out,
 }
 
 template< size_t State_Bits >
-void Skein<State_Bits>::MAC(uint8_t * const bytes_out,
+void Skein<State_Bits>::MAC(uint8_t * const       bytes_out,
                             const uint8_t * const bytes_in,
                             const uint8_t * const key_in,
-                            const uint64_t num_bytes_in,
-                            const uint64_t num_key_bytes_in,
-                            const uint64_t num_bytes_out)
+                            const uint64_t        num_bytes_in,
+                            const uint64_t        num_key_bytes_in,
+                            const uint64_t        num_bytes_out)
 {
     __ubi.clear_key_state();
     _process_key_block( key_in, num_key_bytes_in );
@@ -137,9 +137,9 @@ void Skein<State_Bits>::MAC(uint8_t * const bytes_out,
 }
 
 template< size_t State_Bits >
-void Skein<State_Bits>::hash_native(uint8_t * const bytes_out,
+void Skein<State_Bits>::hash_native(uint8_t * const       bytes_out,
                                     const uint8_t * const bytes_in,
-                                    const uint64_t num_bytes_in)
+                                    const uint64_t        num_bytes_in)
 {
     static_assert( State_Bits == 256 ||
                    State_Bits == 512 ||
