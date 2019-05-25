@@ -32,7 +32,7 @@ public:
     static_assert( (Block_Bits >= 128)   , "Modern block ciphers have at least 128-bit blocks!"                );
     static_assert( (Block_Bits % 8 == 0 ), "Block size must be a multiple of 8! A 'byte' must be 8 bits here." );
     /* COMPILE TIME CONSTANTS */
-    static constexpr size_t Block_Bytes = (Block_Bits / 8);
+    static constexpr const size_t Block_Bytes = (Block_Bits / 8);
     /* PUBLIC INTERFACE */
     CBC() = delete;              // disallow argument-less construction for now
     CBC(Block_Cipher_t &&blk_c); // 
@@ -45,7 +45,7 @@ public:
 private:
     /* PRIVATE STATE */
     Block_Cipher_t  _blk_cipher;
-    uint8_t _state[ Block_Bytes ] = { 0 };
+    uint8_t         _state[ Block_Bytes ] = { 0 };
     /* PRIVATE INTERFACE */
     size_t        _apply_iso_iec_7816_padding(uint8_t *bytes, const size_t prepadding_size)          const;
     size_t  _count_iso_iec_7816_padding_bytes(const uint8_t * const bytes, const size_t padded_size) const;
@@ -85,9 +85,10 @@ size_t CBC<Block_Cipher_t,Block_Bits>::_count_iso_iec_7816_padding_bytes(const u
     size_t count = 0;
     for ( size_t i = padded_size - 1; padded_size > 0; --i ) {
         ++count;
-    if ( bytes[i] == 0x80 )
-        return count;
+        if ( bytes[i] == 0x80 )
+            return count;
     }
+    std::fprintf( stderr, "ERROR: Invalid CBC padding!\n" );
     std::exit( EXIT_FAILURE );
 }
 
@@ -112,7 +113,6 @@ template< typename Block_Cipher_t, size_t Block_Bits >
 size_t CBC<Block_Cipher_t,Block_Bits>::encrypt(const uint8_t *bytes_in, uint8_t *bytes_out, const size_t size_in, const uint8_t *iv)
 {
     using std::memcpy;
-
     if ( iv != nullptr )
         memcpy( _state, iv, sizeof(_state) );
     if ( bytes_in != bytes_out )
