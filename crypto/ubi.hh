@@ -26,10 +26,9 @@ public:
     };
 /* Constructor(s) */
 /* Public Interface */
-    void chain(const Type_Mask_t      type_mask,
-               const uint8_t * const       message,
-               const uint64_t      message_size,
-               const uint8_t * const in = nullptr);
+    void chain(const Type_Mask_t     type_mask,
+               const uint8_t * const message,
+               const uint64_t        message_size);
 
     uint8_t * get_key_state();
     void clear_key_state();
@@ -54,10 +53,9 @@ private:
 };
 
 template< typename Tweakable_Block_Cipher_t, size_t State_Bits >
-void UBI<Tweakable_Block_Cipher_t,State_Bits>::chain(const Type_Mask_t type_mask,
+void UBI<Tweakable_Block_Cipher_t,State_Bits>::chain(const Type_Mask_t      type_mask,
                                                      const uint8_t  * const message,
-                                                     const uint64_t message_size,
-                                                     const uint8_t  * const in)
+                                                     const uint64_t         message_size)
 {
     using namespace std;
     auto message_offset = message;
@@ -71,9 +69,6 @@ void UBI<Tweakable_Block_Cipher_t,State_Bits>::chain(const Type_Mask_t type_mask
     _set_tweak_type( type_mask );
     _set_tweak_first();
     /* Setup initial key and message state */
-    if ( in != nullptr ) {
-        memcpy( __key_state, in, sizeof(__key_state) );
-    }
     /* Get message */
     uint64_t message_bytes_left = message_size;
     uint64_t bytes_just_read    = _read_msg_block( message_offset, message_bytes_left );

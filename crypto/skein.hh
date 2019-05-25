@@ -16,20 +16,20 @@ public:
     static constexpr const size_t State_Bytes = State_Bits / 8;
 
 /* PUBLIC INTERFACE */
-    void hash(uint8_t * const bytes_out,
+    void hash(uint8_t * const       bytes_out,
               const uint8_t * const bytes_in,
-              const uint64_t num_bytes_in,
-              const uint64_t num_bytes_out = State_Bytes);
+              const uint64_t        num_bytes_in,
+              const uint64_t        num_bytes_out = State_Bytes);
     
-    void MAC(uint8_t * const bytes_out,
+    void MAC(uint8_t * const       bytes_out,
              const uint8_t * const bytes_in,
              const uint8_t * const key_in,
-             const uint64_t num_bytes_in,
-             const uint64_t num_key_bytes_in,
-             const uint64_t num_bytes_out = State_Bytes);
-    void hash_native(uint8_t * const bytes_out,
+             const uint64_t        num_bytes_in,
+             const uint64_t        num_key_bytes_in,
+             const uint64_t        num_bytes_out = State_Bytes);
+    void hash_native(uint8_t * const       bytes_out,
                      const uint8_t * const bytes_in,
-                     const uint64_t num_bytes_in);
+                     const uint64_t        num_bytes_in);
 private:
 /* PRIVATE DATA */
     UBI_t __ubi;
@@ -145,8 +145,9 @@ void Skein<State_Bits>::hash_native(uint8_t * const bytes_out,
                    State_Bits == 512 ||
                    State_Bits == 1024,
                    "Skein is only defined for 256, 512, 1024 bit-widths" );
-    if constexpr ( State_Bits == 256 ) {
-            static constexpr const uint64_t init_chain[ 4 ] = {
+    if constexpr ( State_Bits == 256 )
+    {
+        static constexpr const uint64_t init_chain[ 4 ] = {
             0xfc9d'a860'd048'b449,
             0x2fca'6647'9fa7'd833,
             0xb33b'c389'6656'840f,
