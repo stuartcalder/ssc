@@ -26,7 +26,12 @@ public:
                     const char *prompt,
                     const bool censor_input = false);
 #endif
+    void get_pw(char     *pw_buffer,
+                const int max_pw_size,
+                const int min_pw_size);
+    void notify(const char *notice);
 private:
     int __std_height;
     int __std_width;
 };
+
