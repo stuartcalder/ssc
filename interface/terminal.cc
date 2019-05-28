@@ -233,7 +233,7 @@ void Terminal::get_pw(char     *pw_buffer,
         wmove( w, 1, 0 );
         waddstr( w, "Please input a password (max length " );
         waddstr( w, mpl );
-        waddstr( w, " characters\n> " );
+        waddstr( w, " characters)\n> " );
         inner = true;
         while( inner ) {
             int ch = wgetch( w );
