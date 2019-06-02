@@ -47,8 +47,8 @@ private:
     Block_Cipher_t  _blk_cipher;
     uint8_t         _state[ Block_Bytes ] = { 0 };
     /* PRIVATE INTERFACE */
-    size_t        _apply_iso_iec_7816_padding(uint8_t *bytes, const size_t prepadding_size)          const;
-    size_t  _count_iso_iec_7816_padding_bytes(const uint8_t * const bytes, const size_t padded_size) const;
+    static size_t        _apply_iso_iec_7816_padding(uint8_t *bytes, const size_t prepadding_size);
+    static size_t  _count_iso_iec_7816_padding_bytes(const uint8_t * const bytes, const size_t padded_size);
     static constexpr const auto & _xor_block = xor_block< Block_Bits >;
 };
 
@@ -70,7 +70,7 @@ void CBC<Block_Cipher_t,Block_Bits>::manually_set_state(const uint8_t * const st
     std::memcpy( _state, state_bytes, sizeof(_state) );
 }
 template< typename Block_Cipher_t, size_t Block_Bits >
-size_t CBC<Block_Cipher_t,Block_Bits>::_apply_iso_iec_7816_padding(uint8_t *bytes, const size_t prepadding_size) const
+size_t CBC<Block_Cipher_t,Block_Bits>::_apply_iso_iec_7816_padding(uint8_t *bytes, const size_t prepadding_size)
 {
     /* Here, bytes_to_add is pre-emptively decremented by 1, as padding
      at least one byte is necessary for this padding scheme. */
@@ -80,7 +80,7 @@ size_t CBC<Block_Cipher_t,Block_Bits>::_apply_iso_iec_7816_padding(uint8_t *byte
     return prepadding_size + 1 + bytes_to_add;
 }
 template< typename Block_Cipher_t, size_t Block_Bits >
-size_t CBC<Block_Cipher_t,Block_Bits>::_count_iso_iec_7816_padding_bytes(const uint8_t * const bytes, const size_t padded_size) const
+size_t CBC<Block_Cipher_t,Block_Bits>::_count_iso_iec_7816_padding_bytes(const uint8_t * const bytes, const size_t padded_size)
 {
     size_t count = 0;
     for ( size_t i = padded_size - 1; padded_size > 0; --i ) {
