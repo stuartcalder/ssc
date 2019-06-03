@@ -19,7 +19,7 @@ operations.o: files.o
 sspkdf.o:
 	$(CC) $(CXXFLAGS) crypto/sspkdf.cc
 libssc.so: arg_mapping.o base64.o print.o files.o terminal.o operations.o sspkdf.o
-	$(CC) -fPIC -shared -o $@ \
+	$(CC) -pipe -fPIC -shared -o $@ \
 		arg_mapping.o base64.o print.o files.o terminal.o operations.o sspkdf.o
 install: libssc.so
 	install -s -m 0755 libssc.so $(LIBPATH)

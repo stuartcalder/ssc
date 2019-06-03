@@ -3,7 +3,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <ssc/crypto/operations.hh>
-#include <ssc/general/print.hh>
 
 template< size_t Key_Bits=512 >
 class Threefish
@@ -114,14 +113,14 @@ uint64_t Threefish<Key_Bits>::get_rotate_constant(const int round, const int ind
     else if constexpr ( Number_Words == 16 )
     {
         static constexpr const uint64_t rc[8][8] = {
-        { 24, 13,  8, 47,  8, 17, 22, 37 },
-        { 38, 19, 10, 55, 49, 18, 23, 52 },
-        { 33,  4, 51, 13, 34, 41, 59, 17 },
-        {  5, 20, 48, 41, 47, 28, 16, 25 },
-        { 41,  9, 37, 31, 12, 47, 44, 30 },
-        { 16, 34, 56, 51,  4, 53, 42, 41 },
-        { 31, 44, 47, 46, 19, 42, 44, 25 },
-        {  9, 48, 35, 52, 23, 31, 37, 20 }
+            { 24, 13,  8, 47,  8, 17, 22, 37 },
+            { 38, 19, 10, 55, 49, 18, 23, 52 },
+            { 33,  4, 51, 13, 34, 41, 59, 17 },
+            {  5, 20, 48, 41, 47, 28, 16, 25 },
+            { 41,  9, 37, 31, 12, 47, 44, 30 },
+            { 16, 34, 56, 51,  4, 53, 42, 41 },
+            { 31, 44, 47, 46, 19, 42, 44, 25 },
+            {  9, 48, 35, 52, 23, 31, 37, 20 }
         };
         return rc[ (round % 8) ][ index ];
     }
