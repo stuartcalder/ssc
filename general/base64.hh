@@ -12,7 +12,10 @@
     |         2nd octet
     first octet
 
- */
-constexpr size_t calculate_b64_r648_size( size_t size_in );
-void b64_r648_encode(const uint8_t * const in, char * const out, const size_t size_in);
-void b64_r648_decode(const char * const in, uint8_t * const out, const size_t size_in);
+*/
+namespace ssc
+{
+    constexpr size_t calculate_b64_r648_size( size_t size_in );
+    void b64_r648_encode(const uint8_t * const in, char * const out, const size_t size_in);
+    void b64_r648_decode(const char * const in, uint8_t * const out, const size_t size_in);
+}
