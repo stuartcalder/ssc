@@ -1,38 +1,38 @@
 #pragma once
-#include <cstdint>
 #include <cstring>
 #include <iostream>
 #include <ssc/crypto/operations.hh>
+#include <ssc/general/integers.hh>
 #ifdef __gnu_linux__
 #include <endian.h>
 #endif
 
 namespace ssc
 {
-    template <size_t KEYBITS = 256>
+    template <std::size_t KEYBITS = 256>
     class AES
     {  /* AES<int> Begin ------------------------------------------------------------------- */
     public:
         /************************** PUBLIC CONSTANTS ****************************************/
         static_assert( (KEYBITS == 128 || KEYBITS == 192 || KEYBITS == 256),
                        "KEYBITS for AES must be 128, 192, or 256 bits" );       // Disallow invalid KEYBITSs
-        static constexpr size_t Nb = 4;                                            // Number of columns (32-bit words) comprising the state
-        static constexpr size_t Nk = KEYBITS / 32;                                 // Number of 32-bit words comprising the cipher key
-        static constexpr size_t Nr = Nk + 6;
+        static constexpr std::size_t Nb = 4;                                            // Number of columns (32-bit words) comprising the state
+        static constexpr std::size_t Nk = KEYBITS / 32;                                 // Number of 32-bit words comprising the cipher key
+        static constexpr std::size_t Nr = Nk + 6;
         /************************** PUBLIC FUNCTIONS ****************************************/
         //Constructors
         AES() = delete;           // Disallow construction without argument
-        AES(const uint8_t key[]); // Allow construction WITH a key only
+        AES(const u8 key[]); // Allow construction WITH a key only
         //Destructor
         ~AES();
-        void cipher(const uint8_t  in[],         // sizeof = 4 * Nb = 128 bits, 16 bytes
-                    uint8_t out[]);        // sizeof = 4 * Nb = 128 bits, 16 bytes
-        void inverse_cipher(const uint8_t  in[], // sizeof = 4 * Nb = 128 bits, 16 bytes
-                            uint8_t out[]);// sizeof = 4 * Nb = 128 bits, 16 bytes
+        void cipher(const u8  in[],         // sizeof = 4 * Nb = 128 bits, 16 bytes
+                          u8 out[]);        // sizeof = 4 * Nb = 128 bits, 16 bytes
+        void inverse_cipher(const u8 in[], // sizeof = 4 * Nb = 128 bits, 16 bytes
+                                  u8 out[]);// sizeof = 4 * Nb = 128 bits, 16 bytes
         void debug();
     private:
         /************************** INTERNAL CONSTANTS ****************************************/
-        static constexpr uint8_t s_box[16][16] = {
+        static constexpr u8 s_box[16][16] = {
             0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76,
             0xca, 0x82, 0xc9, 0x7d, 0xfa, 0x59, 0x47, 0xf0, 0xad, 0xd4, 0xa2, 0xaf, 0x9c, 0xa4, 0x72, 0xc0,
             0xb7, 0xfd, 0x93, 0x26, 0x36, 0x3f, 0xf7, 0xcc, 0x34, 0xa5, 0xe5, 0xf1, 0x71, 0xd8, 0x31, 0x15,
@@ -50,7 +50,7 @@ namespace ssc
             0xe1, 0xf8, 0x98, 0x11, 0x69, 0xd9, 0x8e, 0x94, 0x9b, 0x1e, 0x87, 0xe9, 0xce, 0x55, 0x28, 0xdf,
             0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68, 0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16
         };
-        static constexpr uint8_t inv_s_box[16][16] = {
+        static constexpr u8 inv_s_box[16][16] = {
             0x52, 0x09, 0x6a, 0xd5, 0x30, 0x36, 0xa5, 0x38, 0xbf, 0x40, 0xa3, 0x9e, 0x81, 0xf3, 0xd7, 0xfb,
             0x7c, 0xe3, 0x39, 0x82, 0x9b, 0x2f, 0xff, 0x87, 0x34, 0x8e, 0x43, 0x44, 0xc4, 0xde, 0xe9, 0xcb,
             0x54, 0x7b, 0x94, 0x32, 0xa6, 0xc2, 0x23, 0x3d, 0xee, 0x4c, 0x95, 0x0b, 0x42, 0xfa, 0xc3, 0x4e,
@@ -68,7 +68,7 @@ namespace ssc
             0xa0, 0xe0, 0x3b, 0x4d, 0xae, 0x2a, 0xf5, 0xb0, 0xc8, 0xeb, 0xbb, 0x3c, 0x83, 0x53, 0x99, 0x61,
             0x17, 0x2b, 0x04, 0x7e, 0xba, 0x77, 0xd6, 0x26, 0xe1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0c, 0x7d
         };
-        static constexpr uint32_t Rcon[] = {
+        static constexpr u32 Rcon[] = {
             0x00'00'00'00,
             0x01'00'00'00,
             0x02'00'00'00,
@@ -82,9 +82,9 @@ namespace ssc
             0x36'00'00'00,
         };
         /************************** INTERNAL STATE ****************************************/
-        uint8_t  key[Nk * 4];
-        uint8_t  state[4][Nb];
-        uint32_t key_schedule[Nb * (Nr + 1)] = { 0 };
+        u8  key[Nk * 4];
+        u8  state[4][Nb];
+        u32 key_schedule[Nb * (Nr + 1)] = { 0 };
         /************************** INTERNAL FUNCTIONS ****************************************/
         void KeyExpansion();
         void SubBytes();
@@ -93,22 +93,22 @@ namespace ssc
         void InvShiftRows();
         void MixColumns();
         void InvMixColumns();
-        uint32_t SubWord(uint32_t word);
-        uint32_t RotWord(uint32_t word);
-        uint8_t xtime(uint8_t byte);
+        u32  SubWord(u32 word);
+        u32  RotWord(u32 word);
+        u8   xtime(u8 byte);
         void AddRoundKey(int round);
         
     }; /* AES<int> End ------------------------------------------------------------------ */
     
     // Constructor
-    template <size_t KEYBITS>
-    AES<KEYBITS>::AES(const uint8_t k[])
+    template <std::size_t KEYBITS>
+    AES<KEYBITS>::AES(const u8 k[])
     {
         std::memcpy( key, k, sizeof(key) );
         KeyExpansion();
     }
     // Destructor
-    template <size_t KEYBITS>
+    template <std::size_t KEYBITS>
     AES<KEYBITS>::~AES()
     {
         // Overwrite everything private and important.
@@ -116,8 +116,8 @@ namespace ssc
         zero_sensitive( key         , sizeof(key) );
         zero_sensitive( key_schedule, sizeof(key_schedule) );
     }
-    template <size_t KEYBITS>
-    void AES<KEYBITS>::cipher(const uint8_t in[], uint8_t out[])
+    template <std::size_t KEYBITS>
+    void AES<KEYBITS>::cipher(const u8 in[], u8 out[])
     {
         std::memcpy( state, in, sizeof(state) );
         AddRoundKey(0);
@@ -132,8 +132,8 @@ namespace ssc
         AddRoundKey(Nr);
         std::memcpy( out, state, sizeof(state) );
     }
-    template <size_t KEYBITS>
-    void AES<KEYBITS>::inverse_cipher(const uint8_t in[], uint8_t out[])
+    template <std::size_t KEYBITS>
+    void AES<KEYBITS>::inverse_cipher(const u8 in[], u8 out[])
     {
         std::memcpy( state, in, sizeof(state) );
         AddRoundKey(Nr);
@@ -148,7 +148,7 @@ namespace ssc
         AddRoundKey(0);
         std::memcpy( out, state, sizeof(state) );
     }
-    template <size_t KEYBITS>
+    template <std::size_t KEYBITS>
     void AES<KEYBITS>::debug()
     {
         auto cmp = [](auto a, auto b){
@@ -160,7 +160,7 @@ namespace ssc
                                    return;
                                }
                    };
-        uint8_t buffer[4][4];
+        u8 buffer[4][4];
         std::memcpy( buffer, state, sizeof(buffer) );
         std::cout << "Doing SubBytes\n";
         SubBytes();
@@ -182,20 +182,20 @@ namespace ssc
         std::memcpy( buffer, state, sizeof(buffer) );
         
     }
-    template <size_t KEYBITS>
+    template <std::size_t KEYBITS>
     void AES<KEYBITS>::KeyExpansion()
     {
-        uint32_t temp;
+        u32 temp;
         int i = 0;
         while( i < Nk ) {
 #if 0 // ORIGINAL IMPLEMENTATION
             key_schedule[i] = 0;
             for( int j = 0; j < 4; ++j ) {
-                key_schedule[i] |= ( static_cast<uint32_t>( key[(4*i) + j] ) << (24 - j*8) );
+                key_schedule[i] |= ( static_cast<u32>( key[(4*i) + j] ) << (24 - j*8) );
             }
 #endif
 #if 1 // CURRENT IMPLEMENTATION
-            key_schedule[i] = htobe32( *(reinterpret_cast<uint32_t*>( key + (4*i) )) );
+            key_schedule[i] = htobe32( *(reinterpret_cast<u32*>( key + (4*i) )) );
 #endif
             ++i;
         }
@@ -205,16 +205,17 @@ namespace ssc
             if( i % Nk == 0 ) {
                 temp = SubWord( RotWord(temp) ) ^ Rcon[i/Nk];
             }
-            else if constexpr( Nk > 6 ) {
-                    if( i % Nk == 4 )
-                        temp = SubWord(temp);
-                }
+            else if constexpr( Nk > 6 )
+                                 {
+                                     if( i % Nk == 4 )
+                                         temp = SubWord(temp);
+                                 }
             key_schedule[i] = key_schedule[i-Nk] ^ temp;
             ++i;
         }
     }
     
-    template <size_t KEYBITS>
+    template <std::size_t KEYBITS>
     void AES<KEYBITS>::SubBytes()
     {
         for( int col = 0; col < Nb; ++col ) {
@@ -223,7 +224,7 @@ namespace ssc
             }
         }
     }
-    template <size_t KEYBITS>
+    template <std::size_t KEYBITS>
     void AES<KEYBITS>::InvSubBytes()
     {
         for( int col = 0; col < Nb; ++col ) {
@@ -232,14 +233,14 @@ namespace ssc
             }
         }
     }
-    template <size_t KEYBITS>
+    template <std::size_t KEYBITS>
     void AES<KEYBITS>::ShiftRows()
     {
         // This is pretty nasty looking.
         for( int row = 1; row < 4; ++row ) {          // For each shifted row...
             int num_shifts = row;                       // We will shift i times on the i'th row.
             while( num_shifts > 0 ) {                   // Perform all the shifts in here
-                const uint8_t first = state[0][row];      // copy first byte into a temporary buffer
+                const u8 first = state[0][row];      // copy first byte into a temporary buffer
                 for( int col = 0; col <= 2; ++col ) {
                     state[col][row] = state[col+1][row];      // copy rightmost bytes over to the left
                 }
@@ -248,13 +249,13 @@ namespace ssc
             }/*while(num_shifts>0)*/
         }/*for*/
     }
-    template <size_t KEYBITS>
+    template <std::size_t KEYBITS>
     void AES<KEYBITS>::InvShiftRows()
     {
         for( int row = 1; row < 4; ++row ) {
             int num_shifts = row;
             while( num_shifts > 0 ) {
-                const uint8_t last = state[3][row];
+                const u8 last = state[3][row];
                 for( int col = 3; col >= 1; --col ) {
                     state[col][row] = state[col-1][row];
                 }
@@ -263,12 +264,12 @@ namespace ssc
             }/*while(num_shifts>0)*/
         }/*for*/
     }
-    template <size_t KEYBITS>
+    template <std::size_t KEYBITS>
     void AES<KEYBITS>::MixColumns()
     {
         for( int col = 0; col < Nb; ++col ) {// For each column of state
-            uint8_t original[Nb];              // Initially, just a copy of the state of 1 column
-            uint8_t two[Nb];             //
+            u8 original[Nb];              // Initially, just a copy of the state of 1 column
+            u8 two[Nb];             //
             /* Enumerate the xtime(origina[i]) for all elements */
             for( int i = 0; i < Nb; ++i ) {
                 original[i] = state[col][i];     // Copy over the state column into `original`
@@ -280,22 +281,22 @@ namespace ssc
             state[col][3] = two[3] ^ original[2] ^ original[1] ^ two[0] ^ original[0];
         }/*for(int col=0;col<Nb;++col)*/
     }
-    template <size_t KEYBITS>
+    template <std::size_t KEYBITS>
     void AES<KEYBITS>::InvMixColumns()
     {
         for( int col = 0; col < Nb; ++col ) {
-            uint8_t original[Nb];
-            uint8_t nine[Nb];
-            uint8_t eleven[Nb];
-            uint8_t thirteen[Nb];
-            uint8_t fourteen[Nb];
+            u8 original[Nb];
+            u8 nine[Nb];
+            u8 eleven[Nb];
+            u8 thirteen[Nb];
+            u8 fourteen[Nb];
             
             /* Enumerate nine, eleven, thirteen, fourteen */
             for( int i = 0; i < Nb; ++i ) {
                 original[i] = state[col][i];
-                const uint8_t two = xtime(original[i]);
-                const uint8_t four = xtime(two);
-                const uint8_t eight = xtime(four);
+                const u8 two = xtime(original[i]);
+                const u8 four = xtime(two);
+                const u8 eight = xtime(four);
                 
                 nine[i]     = eight ^ original[i];
                 eleven[i]   = eight ^ two ^ original[i];
@@ -309,54 +310,52 @@ namespace ssc
             state[col][3] = (fourteen[3]) ^ (eleven[0]) ^ (thirteen[1]) ^ (nine[2]);
         }/*for(*int col=0;col<Nb;++col)*/
     }
-    template <size_t KEYBITS>
-    uint32_t AES<KEYBITS>::SubWord(uint32_t word)
+    template <std::size_t KEYBITS>
+    u32 AES<KEYBITS>::SubWord(u32 word)
     {
 #if 0 // ORIGINAL IMPLEMENTATION
-        uint8_t bytes[4];
+        u8 bytes[4];
         for( int i = 0; i < 4; ++i ) {
-            const uint8_t b = static_cast<uint8_t>( word >> (24 - (i*8)) );
+            const u8 b = static_cast<u8>( word >> (24 - (i*8)) );
             bytes[i] = s_box[ b >> 4 ][ b & 0x0f ];
         }
 #endif
 #if 1 // CURRENT IMPLEMENTATION
-        uint8_t bytes[4];
-        (*(reinterpret_cast<uint32_t*>( bytes ))) = htobe32( word );
+        u8 bytes[4];
+        (*(reinterpret_cast<u32*>( bytes ))) = htobe32( word );
         for( int i = 0; i < 4; ++i )
             bytes[i] = s_box[ bytes[i] >> 4 ][ bytes[i] & 0x0f ];
 #endif
 #if 0 // ORIGINAL IMPLEMENTATION
         return (
-                (static_cast<uint32_t>( bytes[0] ) << 24 ) |
-                (static_cast<uint32_t>( bytes[1] ) << 16 ) |
-                (static_cast<uint32_t>( bytes[2] ) << 8  ) |
-                (static_cast<uint32_t>( bytes[3] ))
+                (static_cast<u32>( bytes[0] ) << 24 ) |
+                (static_cast<u32>( bytes[1] ) << 16 ) |
+                (static_cast<u32>( bytes[2] ) << 8  ) |
+                (static_cast<u32>( bytes[3] ))
                 );
 #endif
 #if 1 // CURRENT IMPLEMENTATION
-        return htobe32( *(reinterpret_cast<uint32_t*>( bytes )) );
+        return htobe32( *(reinterpret_cast<u32*>( bytes )) );
 #endif
     }
-    template <size_t KEYBITS>
-    uint32_t AES<KEYBITS>::RotWord(uint32_t word)
+    template <std::size_t KEYBITS>
+    u32 AES<KEYBITS>::RotWord(u32 word)
     {
         return (word >> 24) | (word << 8);
     }
-    template <size_t KEYBITS>
-    uint8_t AES<KEYBITS>::xtime(uint8_t byte)
+    template <std::size_t KEYBITS>
+    u8 AES<KEYBITS>::xtime(u8 byte)
     {
-        const uint8_t high = static_cast<uint8_t> (
-                                                   static_cast<int8_t>( byte ) >> 7
-                                                   );
+        const u8 high = static_cast<u8>( static_cast<i8>( byte ) >> 7 );
         return (byte << 1) ^ (0x1b & high);
     }
-    template <size_t KEYBITS>
+    template <std::size_t KEYBITS>
     void AES<KEYBITS>::AddRoundKey(int round)
     {
         for( int col = 0; col < 4; ++col ) {
             const int ks_index = (round*Nb) + col;
             for( int i = 0; i < 4; ++i ) {
-                state[col][i] ^= static_cast<uint8_t>( key_schedule[ks_index] >> (24 - (i*8)) );
+                state[col][i] ^= static_cast<u8>( key_schedule[ks_index] >> (24 - (i*8)) );
             }
         }
     }
