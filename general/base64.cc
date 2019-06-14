@@ -119,10 +119,10 @@ namespace ssc
         switch( bytes_left ) {
         default:
             break;
-        case(1):
+        case( 1 ):
             final_b64_r648_encode_eight_bits( in[input_offset], out + output_offset );
             break;
-        case(2):
+        case( 2 ):
             final_b64_r648_encode_sixteen_bits( in + input_offset, out + output_offset );
             break;
         }
@@ -137,7 +137,7 @@ namespace ssc
             output_offset = 0;
         for( ; input_offset < last_input_quantum_offset;
              input_offset  += Input_Quantum_Size,
-                 output_offset += Output_Quantum_Size )
+             output_offset += Output_Quantum_Size )
             {
                 b64_r648_decode_twentyfour_bits( in + input_offset, out + output_offset );
             }
@@ -145,10 +145,10 @@ namespace ssc
         default:
             b64_r648_decode_twentyfour_bits( in + input_offset, out + output_offset );
             break;
-        case(1):
+        case( 1 ):
             final_b64_r648_decode_sixteen_bits( in + input_offset, out + output_offset );
             break;
-        case(2):
+        case( 2 ):
             final_b64_r648_decode_eight_bits( in + input_offset, out + output_offset );
             break;
         }

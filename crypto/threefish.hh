@@ -7,7 +7,7 @@
 
 namespace ssc
 {
-    template <std::size_t Key_Bits=512>
+    template <std::size_t Key_Bits>
     class Threefish
     {
     public:

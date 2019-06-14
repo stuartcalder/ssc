@@ -1,5 +1,5 @@
 CC = g++
-CXXFLAGS = -std=c++17 -c -O3 -pipe -Wall -fPIC
+CXXFLAGS = -std=c++17 -c -O3 -pipe -Wall -fPIC -fno-exceptions
 LIBPATH = /usr/lib
 
 clean:
