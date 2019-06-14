@@ -1,11 +1,12 @@
 #include <ssc/crypto/sspkdf.hh>
+#include <ssc/general/integers.hh>
 
 namespace ssc
 {
-    void SSPKDF (uint8_t * const derived_key,
-                 const uint8_t * const password,
+    void SSPKDF (u8_t * const derived_key,
+                 const u8_t * const password,
                  const int password_length,
-                 const uint8_t * const salt,
+                 const u8_t * const salt,
                  const int number_iterations,
                  const int number_concatenations)
     {
@@ -15,9 +16,9 @@ namespace ssc
         constexpr const int    Salt_Bits = 128;
         constexpr const int    Salt_Bytes = Salt_Bits / 8;
         Skein<State_Bits> skein;
-        using Index_t = uint32_t;
-        const uint64_t concat_size = (static_cast<uint64_t>(password_length) + Salt_Bytes + sizeof(Index_t)) * number_concatenations;
-        auto concat_buffer = std::make_unique<uint8_t[]>( concat_size );
+        using Index_t = u32_t;
+        const u64_t concat_size = (static_cast<u64_t>(password_length) + Salt_Bytes + sizeof(Index_t)) * number_concatenations;
+        auto concat_buffer = std::make_unique<u8_t[]>( concat_size );
         
         {
             Index_t index = 0;
@@ -34,8 +35,8 @@ namespace ssc
             }
         }
         {
-            uint8_t key   [ State_Bytes ];
-            uint8_t buffer[ State_Bytes ];
+            u8_t key   [State_Bytes];
+            u8_t buffer[State_Bytes];
             skein.hash( key, concat_buffer.get(), concat_size, sizeof(key) );
             skein.MAC ( buffer, concat_buffer.get(), key, concat_size, sizeof(key), sizeof(buffer) );
             xor_block<512>( key, buffer );

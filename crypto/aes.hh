@@ -3,8 +3,10 @@
 #include <iostream>
 #include <ssc/crypto/operations.hh>
 #include <ssc/general/integers.hh>
-#ifdef __gnu_linux__
+#if defined(__gnu_linux__)
 #include <endian.h>
+#else
+#error "Unimplemented on anything but Gnu/Linux"
 #endif
 
 namespace ssc

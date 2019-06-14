@@ -4,8 +4,12 @@
 #include <cstdio>
 #include <climits>
 #include <cstring>
-#ifdef __gnu_linux__
-    #include <unistd.h>
+#include <ssc/general/integers.hh>
+
+#if defined(__gnu_linux__)
+#include <unistd.h>
+#else
+#error "Only implemented for Gnu/Linux"
 #endif
 
 namespace ssc
@@ -24,32 +28,32 @@ namespace ssc
         count &= mask;
         return ( value >> count ) | ( value << (-count & mask));
     }
-    template< size_t Block_Bits >
-    void xor_block(void * block, const void * add)
+    template< std::size_t Block_Bits >
+    void xor_block(void * __restrict__ block, const void * __restrict__ add)
     {
         static_assert( (Block_Bits % 8 == 0), "Bits must be a multiple of bytes" );
-        static constexpr const size_t Block_Bytes = Block_Bits / 8;
-        if constexpr( Block_Bits == 128 )
-                        {
-                            auto first_dword = reinterpret_cast<uint64_t*>( block );
-                            auto second_dword = reinterpret_cast<const uint64_t*>( add );
-                            
-                            (*first_dword) ^= (*second_dword);
-                            (*(first_dword + 1)) ^= (*(second_dword + 1));
-                        }
-        else if constexpr( Block_Bits == 256 )
+        static constexpr const std::size_t Block_Bytes = Block_Bits / 8;
+        if      constexpr(Block_Bits == 128)
                              {
-                                 auto first_dword = reinterpret_cast<uint64_t*>( block );
-                                 auto second_dword = reinterpret_cast<const uint64_t*>( add );
+                                 auto first_dword = reinterpret_cast<u64_t*>(block);
+                                 auto second_dword = reinterpret_cast<const u64_t*>(add);
+                                 
+                                 (*first_dword) ^= (*second_dword);
+                                 (*(first_dword + 1)) ^= (*(second_dword + 1));
+                             }
+        else if constexpr(Block_Bits == 256)
+                             {
+                                 auto first_dword = reinterpret_cast<u64_t*>(block);
+                                 auto second_dword = reinterpret_cast<const u64_t*>(add);
                                  (*(first_dword)) ^= (*(second_dword));
                                  (*(first_dword + 1)) ^= (*(second_dword + 1));
                                  (*(first_dword + 2)) ^= (*(second_dword + 2));
                                  (*(first_dword + 3)) ^= (*(second_dword + 3));
                              }
-        else if constexpr( Block_Bits == 512 )
+        else if constexpr(Block_Bits == 512)
                              {
-                                 auto first_dword  = reinterpret_cast<uint64_t*>( block );
-                                 auto second_dword = reinterpret_cast<const uint64_t*>( add );
+                                 auto first_dword  = reinterpret_cast<u64_t*>(block);
+                                 auto second_dword = reinterpret_cast<const u64_t*>(add);
                                  (*(first_dword))     ^= (*(second_dword));
                                  (*(first_dword + 1)) ^= (*(second_dword + 1));
                                  (*(first_dword + 2)) ^= (*(second_dword + 2));
@@ -59,24 +63,24 @@ namespace ssc
                                  (*(first_dword + 6)) ^= (*(second_dword + 6));
                                  (*(first_dword + 7)) ^= (*(second_dword + 7));
                              }
-        else if constexpr( (Block_Bits > 512) && (Block_Bits % 64 == 0 ) )
+        else if constexpr((Block_Bits > 512) && (Block_Bits % 64 == 0))
                              {
-                                 auto first_dword  = reinterpret_cast<uint64_t*>( block );
-                                 auto second_dword = reinterpret_cast<const uint64_t*>( add );
-                                 for ( size_t i = 0; i < (Block_Bits / 64); ++i )
+                                 auto first_dword  = reinterpret_cast<u64_t*>(block);
+                                 auto second_dword = reinterpret_cast<const u64_t*>(add);
+                                 for ( std::size_t i = 0; i < (Block_Bits / 64); ++i )
                                      (*(first_dword + i)) ^= (*(second_dword + i));
                              }
         else
             {
-                auto first_byte = reinterpret_cast<uint8_t*>( block );
-                auto second_byte = reinterpret_cast<const uint8_t*>( add );
-                for ( size_t i = 0; i < Block_Bytes; ++i )
+                auto first_byte = reinterpret_cast<u8_t*>(block);
+                auto second_byte = reinterpret_cast<const u8_t*>(add);
+                for ( std::size_t i = 0; i < Block_Bytes; ++i )
                     (*(first_byte + i)) ^= (*(second_byte + i));
             }
     }
     
-    void generate_random_bytes(uint8_t * const buffer,
-                               size_t num_bytes);
+    void generate_random_bytes(u8_t * const buffer,
+                               std::size_t num_bytes);
     void zero_sensitive(void *buffer,
-                        size_t num_bytes);
+                        std::size_t num_bytes);
 }

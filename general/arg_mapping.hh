@@ -10,7 +10,7 @@ namespace ssc
     {
     public:
         /* PUBLIC CONSTANTS & ALIASES */
-        using Arg_Map_t = std::vector< std::pair< std::string, std::string > >;
+        using Arg_Map_t = std::vector< std::pair<std::string, std::string> >;
         /* PUBLIC INTERFACE */
         void          print_mapping() const;
         void          parse_c_args(const int argc, const char * argv[]);
