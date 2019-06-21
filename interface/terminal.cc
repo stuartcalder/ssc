@@ -95,4 +95,15 @@ namespace ssc
         zero_sensitive( buffer, sizeof(buffer) );
         delwin( w );
     }
+    void Terminal::notify(char const *notice)
+    {
+        using namespace std;
+        WINDOW * w = newwin( 1, strlen(notice) + 1, 0, 0 );
+        wclear( w );
+        wmove( w, 0, 0 );
+        waddstr( w, notice );
+        wrefresh( w );
+        wgetch( w );
+        delwin( w );
+    }
 }

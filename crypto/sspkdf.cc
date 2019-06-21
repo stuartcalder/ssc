@@ -1,14 +1,16 @@
 #include <ssc/crypto/sspkdf.hh>
+#include <ssc/crypto/skein.hh>
+#include <ssc/crypto/operations.hh>
 #include <ssc/general/integers.hh>
 
 namespace ssc
 {
-    void SSPKDF (u8_t * const derived_key,
-                 const u8_t * const password,
-                 const int password_length,
-                 const u8_t * const salt,
-                 const int number_iterations,
-                 const int number_concatenations)
+    void SSPKDF(u8_t * const derived_key,
+                const char * const password,
+                const int password_length,
+                const u8_t * const salt,
+                const int number_iterations,
+                const int number_concatenations)
     {
         using std::memcpy;
         constexpr const int    State_Bits = 512;
@@ -39,12 +41,12 @@ namespace ssc
             u8_t buffer[State_Bytes];
             skein.hash( key, concat_buffer.get(), concat_size, sizeof(key) );
             skein.MAC ( buffer, concat_buffer.get(), key, concat_size, sizeof(key), sizeof(buffer) );
-            xor_block<512>( key, buffer );
+            xor_block<State_Bits>( key, buffer );
             for ( int i = 1; i < number_iterations; ++i ) {
                 skein.MAC( buffer, buffer, key, sizeof(buffer), sizeof(key), sizeof(buffer) );
-                xor_block<512>( key, buffer );
+                xor_block<State_Bits>( key, buffer );
             }
-            skein.hash( derived_key, buffer, sizeof(buffer), sizeof(buffer) );
+            skein.hash( derived_key, buffer, sizeof(buffer), State_Bytes );
             zero_sensitive( key   , sizeof(key) );
             zero_sensitive( buffer, sizeof(buffer) );
         }

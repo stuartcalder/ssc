@@ -5,7 +5,7 @@
 
 namespace ssc
 {
-    template<std::size_t State_Bits>
+    template <std::size_t State_Bits>
     class Skein
     {
     public:
@@ -45,7 +45,7 @@ namespace ssc
                                     u64_t const num_output_bytes);
     };
     
-    template<std::size_t State_Bits>
+    template <std::size_t State_Bits>
     void Skein<State_Bits>::_process_config_block(u64_t const num_output_bits)
     {
         /* Setup configuration string */
@@ -69,23 +69,23 @@ namespace ssc
         __ubi.chain( Type_Mask_t::T_cfg, config, sizeof(config) );
     }
     
-    template<std::size_t State_Bits>
-    void Skein<State_Bits>::_process_key_block(const u8_t * const key_in,
-                                               const u64_t        key_size)
+    template <std::size_t State_Bits>
+    void Skein<State_Bits>::_process_key_block(u8_t const * const key_in,
+                                               u64_t const        key_size)
     {
         __ubi.chain( Type_Mask_t::T_key, key_in, key_size );
     }
     
-    template<std::size_t State_Bits>
-    void Skein<State_Bits>::_process_message_block(const u8_t * const message_in,
-                                                   const u64_t        message_size)
+    template <std::size_t State_Bits>
+    void Skein<State_Bits>::_process_message_block(u8_t const * const message_in,
+                                                   u64_t const        message_size)
     {
         __ubi.chain( Type_Mask_t::T_msg, message_in, message_size );
     }
     
-    template<std::size_t State_Bits>
+    template <std::size_t State_Bits>
     void Skein<State_Bits>::_output_transform(u8_t * const out,
-                                              const u64_t  num_output_bytes)
+                                              u64_t const  num_output_bytes)
     {
         u8_t * bytes_out = out;
         u64_t number_iterations = num_output_bytes / State_Bytes;
@@ -95,7 +95,7 @@ namespace ssc
         u64_t bytes_left = num_output_bytes;
         for ( u64_t i = 0; i < number_iterations; ++i ) {
             __ubi.chain( Type_Mask_t::T_out,
-                         reinterpret_cast<u8_t *>(&i),
+                         reinterpret_cast<u8_t*>(&i),
                          sizeof(i) );
             if ( bytes_left >= State_Bytes ) {
                 std::memcpy( bytes_out, __ubi.get_key_state(), State_Bytes );
@@ -109,45 +109,47 @@ namespace ssc
         }
     }
     
-    template<std::size_t State_Bits>
+    template <std::size_t State_Bits>
     void Skein<State_Bits>::hash(u8_t * const       bytes_out,
-                                 const u8_t * const bytes_in,
-                                 const u64_t        num_bytes_in,
-                                 const u64_t        num_bytes_out)
+                                 u8_t const * const bytes_in,
+                                 u64_t const        num_bytes_in,
+                                 u64_t const        num_bytes_out)
     {
         __ubi.clear_key_state();
-        _process_config_block( (num_bytes_out * 8) );
+        static_assert(CHAR_BIT == 8);
+        _process_config_block( num_bytes_out * 8 );
         _process_message_block( bytes_in, num_bytes_in );
         _output_transform( bytes_out, num_bytes_out );
     }
     
-    template<std::size_t State_Bits>
+    template <std::size_t State_Bits>
     void Skein<State_Bits>::MAC(u8_t * const       bytes_out,
-                                const u8_t * const bytes_in,
-                                const u8_t * const key_in,
-                                const u64_t        num_bytes_in,
-                                const u64_t        num_key_bytes_in,
-                                const u64_t        num_bytes_out)
+                                u8_t const * const bytes_in,
+                                u8_t const * const key_in,
+                                u64_t const        num_bytes_in,
+                                u64_t const        num_key_bytes_in,
+                                u64_t const        num_bytes_out)
     {
         __ubi.clear_key_state();
         _process_key_block( key_in, num_key_bytes_in );
-        _process_config_block( (num_bytes_out * 8) );
+        static_assert(CHAR_BIT == 8);
+        _process_config_block( num_bytes_out * 8 );
         _process_message_block( bytes_in, num_bytes_in );
         _output_transform( bytes_out, num_bytes_out );
     }
     
-    template<std::size_t State_Bits>
+    template <std::size_t State_Bits>
     void Skein<State_Bits>::hash_native(u8_t * const       bytes_out,
-                                        const u8_t * const bytes_in,
-                                        const u64_t        num_bytes_in)
+                                        u8_t const * const bytes_in,
+                                        u64_t const        num_bytes_in)
     {
         static_assert(State_Bits == 256 ||
                       State_Bits == 512 ||
-                      State_Bits == 1024,
+-                     State_Bits == 1024,
                       "Skein is only defined for 256, 512, 1024 bit-widths");
         if      constexpr(State_Bits == 256)
                              {
-                                 static constexpr const u64_t init_chain[4] = {
+                                 static constexpr u64_t const init_chain[4] = {
                                      0xfc9d'a860'd048'b449,
                                      0x2fca'6647'9fa7'd833,
                                      0xb33b'c389'6656'840f,
@@ -157,7 +159,7 @@ namespace ssc
                              }
         else if constexpr(State_Bits == 512)
                              {
-                                 static constexpr const u64_t init_chain[8] = {
+                                 static constexpr u64_t const init_chain[8] = {
                                      0x4903'adff'749c'51ce,
                                      0x0d95'de39'9746'df03,
                                      0x8fd1'9341'27c7'9bce,
@@ -171,7 +173,7 @@ namespace ssc
                              }
         else if constexpr(State_Bits == 1024)
                              {
-                                 static constexpr const u64_t init_chain[16] = {
+                                 static constexpr u64_t const init_chain[16] = {
                                      0xd593'da07'41e7'2355, // 0
                                      0x15b5'e511'ac73'e00c, // 1
                                      0x5180'e5ae'baf2'c4f0, // 2

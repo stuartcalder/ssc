@@ -88,10 +88,44 @@ namespace ssc
     void check_file_name_sanity(const std::string & str,
                                 const std::size_t min_size)
     {
-        if( str.size() < min_size ) {
+        if ( str.size() < min_size ) {
             std::fprintf( stderr, "Error: Filename %s must have at least %zu character(s)\n",
                           str.c_str(), min_size );
             std::exit( EXIT_FAILURE );
         }
+    }
+
+    void enforce_file_existence(char const * const filename,
+                                bool const         force_to_exist,
+                                char const * const opt_error_msg)
+    {
+        bool exists = file_exists( filename );
+        bool exit_failure = false;
+        if ( exists ) {
+            if ( force_to_exist )
+                return;
+            else {
+                if ( opt_error_msg == nullptr ) {
+                    std::fprintf( stderr, "Error: The file '%s' seems to already exist.\n", filename );
+                }
+                else {
+                    std::fprintf( stderr, "%s", opt_error_msg );
+                }
+                exit_failure = true;
+            }
+        }
+        else { // doesn't exist
+            if ( force_to_exist ) {
+                if ( opt_error_msg == nullptr ) {
+                    std::fprintf( stderr, "Error: The file '%s' doesn't seem to exist.\n", filename );
+                }
+                else {
+                    std::fprintf( stderr, "%s", opt_error_msg );
+                }
+                exit_failure = true;
+            }
+        }
+        if ( exit_failure )
+            std::exit( EXIT_FAILURE );
     }
 }
