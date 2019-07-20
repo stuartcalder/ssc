@@ -37,21 +37,21 @@ namespace ssc
         void clear_key_state();
     private:
         /* Private Compile-Time constants */
-        static constexpr const auto & _xor_block = xor_block<State_Bits>;
+        static constexpr const auto & xor_block_ = xor_block<State_Bits>;
         /* Private Data */
-        Tweakable_Block_Cipher_t __block_cipher;
-        u8_t                     __tweak_state[Tweak_Bytes];
-        u8_t                     __key_state  [State_Bytes];
-        u8_t                     __msg_state  [State_Bytes];
+        Tweakable_Block_Cipher_t block_cipher;
+        u8_t                     tweak_state[Tweak_Bytes];
+        u8_t                     key_state  [State_Bytes];
+        u8_t                     msg_state  [State_Bytes];
         /* Private Interface */
-        void       _set_tweak_first();
-        void       _set_tweak_last();
-        void       _clear_tweak_first();
-        void       _clear_tweak_last();
-        void       _clear_tweak_all();
-        void       _set_tweak_type(const Type_Mask_t t_mask);
-        void       _clear_msg();
-        u64_t      _read_msg_block(const u8_t * const message_offset,
+        void       set_tweak_first_();
+        void       set_tweak_last_();
+        void       clear_tweak_first_();
+        void       clear_tweak_last_();
+        void       clear_tweak_all_();
+        void       set_tweak_type_(const Type_Mask_t t_mask);
+        void       clear_msg_();
+        u64_t      read_msg_block_(const u8_t * const message_offset,
                                    const u64_t        bytes_left);
     };
     
@@ -64,105 +64,105 @@ namespace ssc
         using namespace std;
         auto message_offset = message;
         /* Setup Tweak */
-        _clear_tweak_all();
-        _set_tweak_type( type_mask );
-        _set_tweak_first();
+        clear_tweak_all_();
+        set_tweak_type_( type_mask );
+        set_tweak_first_();
         /* Setup initial key and message state */
         /* Get message */
         u64_t message_bytes_left = message_size;
-        u64_t bytes_just_read    = _read_msg_block( message_offset, message_bytes_left );
+        u64_t bytes_just_read    = read_msg_block_( message_offset, message_bytes_left );
         message_offset     += bytes_just_read;
         message_bytes_left -= bytes_just_read;
         if ( message_bytes_left == 0 ) {
-            _set_tweak_last();
+            set_tweak_last_();
         }
         /* Set the position, and get a pointer to it for use later */
-        u64_t * const position = reinterpret_cast<u64_t*>(__tweak_state);
+        u64_t * const position = reinterpret_cast<u64_t*>(tweak_state);
         (*position) = bytes_just_read;
         // First block Setup
-        __block_cipher.rekey( __key_state, __tweak_state );
+        block_cipher.rekey( key_state, tweak_state );
         // First block
-        __block_cipher.cipher( __msg_state, __key_state );
-        _xor_block( __key_state, __msg_state );
-        _clear_tweak_first();
+        block_cipher.cipher( msg_state, key_state );
+        xor_block_( key_state, msg_state );
+        clear_tweak_first_();
         
         // Intermediate blocks (assuming first block wasn't also the last block)
         while ( message_bytes_left > State_Bytes ) {
-            bytes_just_read = _read_msg_block( message_offset, message_bytes_left );
+            bytes_just_read = read_msg_block_( message_offset, message_bytes_left );
             message_offset     += bytes_just_read;
             message_bytes_left -= bytes_just_read;
             (*position)        += bytes_just_read;
-            __block_cipher.rekey( __key_state, __tweak_state );
-            __block_cipher.cipher( __msg_state, __key_state );
-            _xor_block( __key_state, __msg_state );
+            block_cipher.rekey( key_state, tweak_state );
+            block_cipher.cipher( msg_state, key_state );
+            xor_block_( key_state, msg_state );
         }
         
         // Last block (assuming first block wasn't also the last block)
         if ( message_bytes_left > 0 ) {
-            _set_tweak_last();
-            (*position) += _read_msg_block( message_offset, message_bytes_left );
-            __block_cipher.rekey( __key_state, __tweak_state );
-            __block_cipher.cipher( __msg_state, __key_state );
-            _xor_block( __key_state, __msg_state );
+            set_tweak_last_();
+            (*position) += read_msg_block_( message_offset, message_bytes_left );
+            block_cipher.rekey( key_state, tweak_state );
+            block_cipher.cipher( msg_state, key_state );
+            xor_block_( key_state, msg_state );
         }
         
     }
     
     template <typename Tweakable_Block_Cipher_t,
               std::size_t State_Bits>
-    void UBI<Tweakable_Block_Cipher_t,State_Bits>::_set_tweak_first()
+    void UBI<Tweakable_Block_Cipher_t,State_Bits>::set_tweak_first_()
     {
-        __tweak_state[ sizeof(__tweak_state) - 1 ] |= 0b0100'0000;
+        tweak_state[ sizeof(tweak_state) - 1 ] |= 0b0100'0000;
     }
     template <typename Tweakable_Block_Cipher_t,
               std::size_t State_Bits>
-    void UBI<Tweakable_Block_Cipher_t,State_Bits>::_set_tweak_last()
+    void UBI<Tweakable_Block_Cipher_t,State_Bits>::set_tweak_last_()
     {
-        __tweak_state[ sizeof(__tweak_state) - 1 ] |= 0b1000'0000;
+        tweak_state[ sizeof(tweak_state) - 1 ] |= 0b1000'0000;
     }
     template <typename Tweakable_Block_Cipher_t,
               std::size_t State_Bits>
-    void UBI<Tweakable_Block_Cipher_t,State_Bits>::_clear_tweak_first()
+    void UBI<Tweakable_Block_Cipher_t,State_Bits>::clear_tweak_first_()
     {
-        __tweak_state[ sizeof(__tweak_state) - 1 ] &= 0b1011'1111;
+        tweak_state[ sizeof(tweak_state) - 1 ] &= 0b1011'1111;
     }
     template <typename Tweakable_Block_Cipher_t,
               std::size_t State_Bits>
-    void UBI<Tweakable_Block_Cipher_t,State_Bits>::_clear_tweak_last()
+    void UBI<Tweakable_Block_Cipher_t,State_Bits>::clear_tweak_last_()
     {
-        __tweak_state[ sizeof(__tweak_state) - 1 ] &= 0b0111'1111;
+        tweak_state[ sizeof(tweak_state) - 1 ] &= 0b0111'1111;
     }
     template <typename Tweakable_Block_Cipher_t,
               std::size_t State_Bits>
-    void UBI<Tweakable_Block_Cipher_t,State_Bits>::_clear_tweak_all()
+    void UBI<Tweakable_Block_Cipher_t,State_Bits>::clear_tweak_all_()
     {
-        std::memset( __tweak_state, 0, sizeof(__tweak_state) );
+        std::memset( tweak_state, 0, sizeof(tweak_state) );
     }
     template <typename Tweakable_Block_Cipher_t,
               std::size_t State_Bits>
-    void UBI<Tweakable_Block_Cipher_t,State_Bits>::_set_tweak_type(const Type_Mask_t type_mask)
+    void UBI<Tweakable_Block_Cipher_t,State_Bits>::set_tweak_type_(const Type_Mask_t type_mask)
     {
-        __tweak_state[ sizeof(__tweak_state) - 1 ] |= static_cast<u8_t>(type_mask);
+        tweak_state[ sizeof(tweak_state) - 1 ] |= static_cast<u8_t>(type_mask);
     }
     template <typename Tweakable_Block_Cipher_t,
               std::size_t State_Bits>
-    void UBI<Tweakable_Block_Cipher_t,State_Bits>::_clear_msg()
+    void UBI<Tweakable_Block_Cipher_t,State_Bits>::clear_msg_()
     {
-        std::memset( __msg_state, 0, sizeof(__msg_state) );
+        std::memset( msg_state, 0, sizeof(msg_state) );
     }
     template <typename Tweakable_Block_Cipher_t,
               std::size_t State_Bits>
-    u64_t UBI<Tweakable_Block_Cipher_t,State_Bits>::_read_msg_block(const u8_t * const message_offset,
+    u64_t UBI<Tweakable_Block_Cipher_t,State_Bits>::read_msg_block_(const u8_t * const message_offset,
                                                                     const u64_t        bytes_left)
     {
         u64_t bytes_read;
         if ( bytes_left >= State_Bytes ) {
-            std::memcpy( __msg_state, message_offset, State_Bytes );
+            std::memcpy( msg_state, message_offset, State_Bytes );
             bytes_read = State_Bytes;
         }
         else {
-            _clear_msg();
-            std::memcpy( __msg_state, message_offset, bytes_left );
+            clear_msg_();
+            std::memcpy( msg_state, message_offset, bytes_left );
             bytes_read = bytes_left;
         }
         return bytes_read;
@@ -171,12 +171,12 @@ namespace ssc
               std::size_t State_Bits>
     u8_t * UBI<Tweakable_Block_Cipher_t,State_Bits>::get_key_state()
     {
-        return __key_state;
+        return key_state;
     }
     template <typename Tweakable_Block_Cipher_t,
               std::size_t State_Bits>
     void UBI<Tweakable_Block_Cipher_t,State_Bits>::clear_key_state()
     {
-        std::memset( __key_state, 0, sizeof(__key_state) );
+        std::memset( key_state, 0, sizeof(key_state) );
     }
 }

@@ -21,7 +21,7 @@ sspkdf.o: operations.o
 	$(CC) $(CXXFLAGS) crypto/sspkdf.cc
 libssc.so: arg_mapping.o base64.o print.o files.o terminal.o operations.o sspkdf.o
 	$(CC) $(LINKOPTS) -std=c++17 -pipe -fPIC -O3 -fno-exceptions -shared -o $@ \
-		arg_mapping.o base64.o print.o files.o terminal.o sspkdf.o operations.o -lncurses
+		arg_mapping.o base64.o print.o files.o terminal.o sspkdf.o operations.o -lncurses -ltinfo
 install: libssc.so
 	install -m 0755 libssc.so $(LIBPATH)
 	ldconfig

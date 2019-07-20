@@ -14,6 +14,7 @@
 
 namespace ssc
 {
+    static_assert(CHAR_BIT == 8);
     template< typename uint_t >
     uint_t rotate_left( uint_t value, uint_t count )
     {
@@ -29,8 +30,9 @@ namespace ssc
         return ( value >> count ) | ( value << (-count & mask));
     }
     template< std::size_t Block_Bits >
-    void xor_block(void * __restrict__ block, const void * __restrict__ add)
+    void xor_block(void * __restrict block, const void * __restrict add)
     {
+        static_assert( CHAR_BIT == 8 );
         static_assert( (Block_Bits % 8 == 0), "Bits must be a multiple of bytes" );
         static constexpr const std::size_t Block_Bytes = Block_Bits / 8;
         if      constexpr(Block_Bits == 128)

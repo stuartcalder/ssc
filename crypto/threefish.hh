@@ -26,22 +26,22 @@ namespace ssc
         /* CONSTRUCTORS / DESTRUCTORS */
         Threefish() {
         }
-        Threefish(const u8_t *k, const u8_t *tw = nullptr) {
+        Threefish(const u8_t __restrict *k, const u8_t __restrict *tw = nullptr) {
             expand_key( k, tw );
         }
         ~Threefish(); // forward declared
         /* PUBLIC FUNCTIONS */
         void cipher(const u8_t *in, u8_t *out);
         void inverse_cipher(const u8_t *in, u8_t *out);
-        void rekey(const u8_t *new_key, const u8_t *new_tweak = nullptr);
+        void rekey(const u8_t __restrict * new_key, const u8_t __restrict * new_tweak = nullptr);
     private:
         /* PRIVATE DATA */
-        u64_t __state       [Number_Words];
-        u64_t __key_schedule[Number_Subkeys * Number_Words];
+        u64_t state       [Number_Words];
+        u64_t key_schedule[Number_Subkeys * Number_Words];
         /* PRIVATE FUNCTIONS */
-        void         MIX                  (u64_t *x0, u64_t *x1, const int round, const int index) const;
-        void         inverse_MIX          (u64_t *x0, u64_t *x1, const int round, const int index) const;
-        void         expand_key           (const u8_t *key, const u8_t *tweak);
+        void         MIX                  (u64_t * __restrict x0, u64_t * __restrict x1, const int round, const int index) const;
+        void         inverse_MIX          (u64_t * __restrict x0, u64_t * __restrict x1, const int round, const int index) const;
+        void         expand_key           (const u8_t * __restrict key, const u8_t * __restrict tweak);
         void         add_subkey           (const int round);
         void         subtract_subkey      (const int round);
         static u64_t get_rotate_constant  (const int round, const int index);
@@ -59,8 +59,8 @@ namespace ssc
     template <std::size_t Key_Bits>
     Threefish<Key_Bits>::~Threefish()
     {
-        zero_sensitive( __key_schedule, sizeof(__key_schedule) );
-        zero_sensitive( __state       , sizeof(__state) );
+        zero_sensitive( key_schedule, sizeof(key_schedule) );
+        zero_sensitive( state       , sizeof(state) );
     }
     
     template <std::size_t Key_Bits>
@@ -131,7 +131,7 @@ namespace ssc
     {
         // key / tweak setup
         u64_t key[Number_Words + 1]; // Big enough for the parity word
-        std::memcpy( key, k, sizeof(__state) );
+        std::memcpy( key, k, sizeof(state) );
         u64_t tweak[3];
         if ( tw != nullptr ) { // If a valid tweak was supplied
             std::memcpy( tweak, tw, sizeof(u64_t) * 2 );
@@ -153,10 +153,10 @@ namespace ssc
         for ( int subkey = 0; subkey < Number_Subkeys; ++subkey ) {// for each subkey
             const int subkey_index = subkey * Number_Words;
             for ( int i = 0; i <= Number_Words - 4; ++i )// each word of the subkey
-                __key_schedule[ subkey_index + i ] = key[ (subkey + i) % (Number_Words + 1) ];
-            __key_schedule[ subkey_index + (Number_Words - 3) ] =  key[ (subkey + (Number_Words - 3)) % (Number_Words + 1) ] + tweak[ subkey % 3 ];
-            __key_schedule[ subkey_index + (Number_Words - 2) ] =  key[ (subkey + (Number_Words - 2)) % (Number_Words + 1) ] + tweak[ (subkey + 1) % 3 ];
-            __key_schedule[ subkey_index + (Number_Words - 1) ] =  key[ (subkey + (Number_Words - 1)) % (Number_Words + 1) ] + static_cast<u64_t>(subkey);
+                key_schedule[ subkey_index + i ] = key[ (subkey + i) % (Number_Words + 1) ];
+            key_schedule[ subkey_index + (Number_Words - 3) ] =  key[ (subkey + (Number_Words - 3)) % (Number_Words + 1) ] + tweak[ subkey % 3 ];
+            key_schedule[ subkey_index + (Number_Words - 2) ] =  key[ (subkey + (Number_Words - 2)) % (Number_Words + 1) ] + tweak[ (subkey + 1) % 3 ];
+            key_schedule[ subkey_index + (Number_Words - 1) ] =  key[ (subkey + (Number_Words - 1)) % (Number_Words + 1) ] + static_cast<u64_t>(subkey);
         }
         
         // clear sensitive memory
@@ -170,7 +170,7 @@ namespace ssc
         const int subkey = round / 4;
         const int offset = subkey * Number_Words;
         for ( int i = 0; i < Number_Words; ++i )
-            __state[ i ] += __key_schedule[ offset + i ];
+            state[ i ] += key_schedule[ offset + i ];
     }
     
     template <std::size_t Key_Bits>
@@ -179,40 +179,40 @@ namespace ssc
         const int subkey = round / 4;
         const int offset = subkey * Number_Words;
         for ( int i = 0; i < Number_Words; ++i )
-            __state[ i ] -= __key_schedule[ offset + i ];
+            state[ i ] -= key_schedule[ offset + i ];
     }
     
     template <std::size_t Key_Bits>
     void Threefish<Key_Bits>::cipher(const u8_t *in, u8_t *out)
     {
-        std::memcpy( __state, in, sizeof(__state) );
+        std::memcpy( state, in, sizeof(state) );
         for ( int round = 0; round < Number_Rounds; ++round ) {
             // Adding subkeys
             if ( round % 4 == 0 )
                 add_subkey( round );
             // MIXing
             for ( int j = 0; j <= (Number_Words / 2) - 1; ++j )
-                MIX( (__state + (2 * j)), (__state + (2 * j) + 1), round, j );
+                MIX( (state + (2 * j)), (state + (2 * j) + 1), round, j );
             // Permutations
             permute_state();
         }
         add_subkey( Number_Rounds );
-        std::memcpy( out, __state, sizeof(__state) );
+        std::memcpy( out, state, sizeof(state) );
     }
     
     template <std::size_t Key_Bits>
     void Threefish<Key_Bits>::inverse_cipher(const u8_t *in, u8_t *out)
     {
-        std::memcpy( __state, in, sizeof(__state) );
+        std::memcpy( state, in, sizeof(state) );
         subtract_subkey( Number_Rounds );
         for ( int round = Number_Rounds - 1; round >= 0; --round ) {
             inverse_permute_state();
             for ( int j = 0; j <= (Number_Words / 2) - 1; ++j )
-                inverse_MIX( (__state + (2 * j)), (__state + (2 * j) + 1), round, j );
+                inverse_MIX( (state + (2 * j)), (state + (2 * j) + 1), round, j );
             if ( round % 4 == 0 )
                 subtract_subkey( round );
         }
-        std::memcpy( out, __state, sizeof(__state) );
+        std::memcpy( out, state, sizeof(state) );
     }
     
     template <std::size_t Key_Bits>
@@ -220,9 +220,9 @@ namespace ssc
     {
         if      constexpr(Number_Words == 4)
                              {
-                                 u64_t w = __state[ 1 ];
-                                 __state[ 1 ] = __state[ 3 ];
-                                 __state[ 3 ] = w;
+                                 u64_t w = state[ 1 ];
+                                 state[ 1 ] = state[ 3 ];
+                                 state[ 3 ] = w;
                              }
         else if constexpr(Number_Words == 8)
                              {
@@ -230,68 +230,68 @@ namespace ssc
                                  /* Start from the left. Shift words in and out as necessary
                                     Starting with index 0 ...*/
                                  // index 0 overwrites index 6
-                                 w0 = __state[ 6 ];
-                                 __state[ 6 ] = __state[ 0 ];
+                                 w0 = state[ 6 ];
+                                 state[ 6 ] = state[ 0 ];
                                  // original index 6 (currently w0)
                                  // overwrites index 4 (saved into w1)
-                                 w1 = __state[ 4 ];
-                                 __state[ 4 ] = w0;
+                                 w1 = state[ 4 ];
+                                 state[ 4 ] = w0;
                                  // original index 4 (currently w1)
                                  // overwrites index 2 (saved into w0)
-                                 w0 = __state[ 2 ];
-                                 __state[ 2 ] = w1;
+                                 w0 = state[ 2 ];
+                                 state[ 2 ] = w1;
                                  // original index 2 (currently w0)
-                                 // overwrites index 0 (doesn't need to be saved, as it was already written into __state[6]
-                                 __state[ 0 ] = w0;
+                                 // overwrites index 0 (doesn't need to be saved, as it was already written into state[6]
+                                 state[ 0 ] = w0;
                                  
                                  /* Index 1 and 5 don't move. All that's left is to swap index 3 and index 7 */
-                                 w0 = __state[ 3 ];
-                                 __state[ 3 ] = __state[ 7 ];
-                                 __state[ 7 ] = w0;
+                                 w0 = state[ 3 ];
+                                 state[ 3 ] = state[ 7 ];
+                                 state[ 7 ] = w0;
                              }
         else if constexpr(Number_Words == 16)
                              {
                                  u64_t w0, w1;
                                  // 1 overwrites 15 (stored in w0)
-                                 w0 = __state[ 15 ];
-                                 __state[ 15 ] = __state[ 1 ];
+                                 w0 = state[ 15 ];
+                                 state[ 15 ] = state[ 1 ];
                                  // 15 (in w0) overwrites 7 (stored in w1)
-                                 w1 = __state[ 7 ];
-                                 __state[ 7 ] = w0;
+                                 w1 = state[ 7 ];
+                                 state[ 7 ] = w0;
                                  // 7 (in w1) overwrites 9 (stored in w0)
-                                 w0 = __state[ 9 ];
-                                 __state[ 9 ] = w1;
+                                 w0 = state[ 9 ];
+                                 state[ 9 ] = w1;
                                  // 9 (in w0) overwrites 1
-                                 __state[ 1 ] = w0;
+                                 state[ 1 ] = w0;
                                  
                                  // 3 overwrites 11 (stored in w0)
-                                 w0 = __state[ 11 ];
-                                 __state[ 11 ] = __state[ 3 ];
+                                 w0 = state[ 11 ];
+                                 state[ 11 ] = state[ 3 ];
                                  // 11 (in w0) overwrites 5 (stored in w1)
-                                 w1 = __state[ 5 ];
-                                 __state[ 5 ] = w0;
+                                 w1 = state[ 5 ];
+                                 state[ 5 ] = w0;
                                  // 5 (in w1) overwrites 13 (stored in w0)
-                                 w0 = __state[ 13 ];
-                                 __state[ 13 ] = w1;
+                                 w0 = state[ 13 ];
+                                 state[ 13 ] = w1;
                                  // 13 (in w0) overwrites 3
-                                 __state[ 3 ] = w0;
+                                 state[ 3 ] = w0;
                                  
                                  // 4 and 6 are swapped
-                                 w0 = __state[ 4 ];
-                                 __state[ 4 ] = __state[ 6 ];
-                                 __state[ 6 ] = w0;
+                                 w0 = state[ 4 ];
+                                 state[ 4 ] = state[ 6 ];
+                                 state[ 6 ] = w0;
                                  
                                  // 8 overwrites 14 (stored in w0)
-                                 w0 = __state[ 14 ];
-                                 __state[ 14 ] = __state[ 8 ];
+                                 w0 = state[ 14 ];
+                                 state[ 14 ] = state[ 8 ];
                                  // 14 (in w0) overwrites 12 (stored in w1)
-                                 w1 = __state[ 12 ];
-                                 __state[ 12 ] = w0;
+                                 w1 = state[ 12 ];
+                                 state[ 12 ] = w0;
                                  // 12 (in w1) overwrites 10 (stored in w0)
-                                 w0 = __state[ 10 ];
-                                 __state[ 10 ] = w1;
+                                 w0 = state[ 10 ];
+                                 state[ 10 ] = w1;
                                  // 10 (in w0) overwrites 8
-                                 __state[ 8 ] = w0;
+                                 state[ 8 ] = w0;
                              }
     }
     
@@ -308,67 +308,67 @@ namespace ssc
                                  /* Starting from the left with index 0 */
                                  // original index 0
                                  // overwrites original index 2 (saved into w0)
-                                 w0 = __state[ 2 ];
-                                 __state[ 2 ] = __state[ 0 ];
+                                 w0 = state[ 2 ];
+                                 state[ 2 ] = state[ 0 ];
                                  // original index 2 (currently in w0)
                                  // overwrites original index 4 (saved into w1)
-                                 w1 = __state[ 4 ];
-                                 __state[ 4 ] = w0;
+                                 w1 = state[ 4 ];
+                                 state[ 4 ] = w0;
                                  // original index 4 (currently in w1)
                                  // overwrites original index 6 (saved into w0)
-                                 w0 = __state[ 6 ];
-                                 __state[ 6 ] = w1;
+                                 w0 = state[ 6 ];
+                                 state[ 6 ] = w1;
                                  // original index 6 (currently in w0)
                                  // overwrites original index 0 (doesnt need to be saved)
-                                 __state[ 0 ] = w0;
+                                 state[ 0 ] = w0;
                                  /* Index 1 and 5 don't move. All that's left is to swap index 3 and index 7 */
-                                 w0 = __state[ 3 ];
-                                 __state[ 3 ] = __state[ 7 ];
-                                 __state[ 7 ] = w0;
+                                 w0 = state[ 3 ];
+                                 state[ 3 ] = state[ 7 ];
+                                 state[ 7 ] = w0;
                              }
         else if constexpr(Number_Words == 16)
                              {
                                  u64_t w0, w1;
                                  // 1 overwrites 9 (stored in w0)
-                                 w0 = __state[ 9 ];
-                                 __state[ 9 ] = __state[ 1 ];
+                                 w0 = state[ 9 ];
+                                 state[ 9 ] = state[ 1 ];
                                  // 9 (in w0) overwrites 7 (stored in w1)
-                                 w1 = __state[ 7 ];
-                                 __state[ 7 ] = w0;
+                                 w1 = state[ 7 ];
+                                 state[ 7 ] = w0;
                                  // 7 (in w1) overwrites 15 (stored in w0)
-                                 w0 = __state[ 15 ];
-                                 __state[ 15 ] = w1;
+                                 w0 = state[ 15 ];
+                                 state[ 15 ] = w1;
                                  // 15 (in w0) overwrites 1
-                                 __state[ 1 ] = w0;
+                                 state[ 1 ] = w0;
                                  
                                  // 3 overwrites 13 (stored in w0)
-                                 w0 = __state[ 13 ];
-                                 __state[ 13 ] = __state[ 3 ];
+                                 w0 = state[ 13 ];
+                                 state[ 13 ] = state[ 3 ];
                                  // 13 (in w0) overwrites 5 (stored in w1)
-                                 w1 = __state[ 5 ];
-                                 __state[ 5 ] = w0;
+                                 w1 = state[ 5 ];
+                                 state[ 5 ] = w0;
                                  // 5 (in w1) overwrites 11 (stored in w0)
-                                 w0 = __state[ 11 ];
-                                 __state[ 11 ] = w1;
+                                 w0 = state[ 11 ];
+                                 state[ 11 ] = w1;
                                  // 11 (in w0) overwrites 3
-                                 __state[ 3 ] = w0;
+                                 state[ 3 ] = w0;
                                  
                                  // 4 and 6 are swapped
-                                 w0 = __state[ 4 ];
-                                 __state[ 4 ] = __state[ 6 ];
-                                 __state[ 6 ] = w0;
+                                 w0 = state[ 4 ];
+                                 state[ 4 ] = state[ 6 ];
+                                 state[ 6 ] = w0;
                                  
                                  // 8 overwrites 10 (stored in w0)
-                                 w0 = __state[ 10 ];
-                                 __state[ 10 ] = __state[ 8 ];
+                                 w0 = state[ 10 ];
+                                 state[ 10 ] = state[ 8 ];
                                  // 10 (in w0) overwrites 12 (stored in w1)
-                                 w1 = __state[ 12 ];
-                                 __state[ 12 ] = w0;
+                                 w1 = state[ 12 ];
+                                 state[ 12 ] = w0;
                                  // 12 (in w1) overwrites 14 (stored in w0)
-                                 w0 = __state[ 14 ];
-                                 __state[ 14 ] = w1;
+                                 w0 = state[ 14 ];
+                                 state[ 14 ] = w1;
                                  // 14 (in w0) overwrites 8
-                                 __state[ 8 ] = w0;
+                                 state[ 8 ] = w0;
                              }
     }
 } /* ! namespace ssc */

@@ -2,8 +2,8 @@
 #include <cstdint>
 #include <cstdlib>
 #include <cstdio>
-#ifdef __gnu_linux__
-#include <endian.h>
+#if defined(__gnu_linux__)
+    #include <endian.h>
 #endif
 
 namespace ssc
@@ -28,8 +28,8 @@ namespace ssc
     template< typename uint_t >
     uint_t Endian::host_to_le<uint_t>(const uint_t h) const
     {
-#ifndef __gnu_linux__
-#error "host_to_le() only defined for gnu/linux!"
+#if ! defined(__gnu_linux__)
+    #error "host_to_le() only defined for gnu/linux!"
 #endif
         if      constexpr ( sizeof(uint_t) == 1 )
                               return h;
@@ -48,8 +48,8 @@ namespace ssc
     template< typename uint_t >
     uint_t Endian::host_to_be<uint_t>(const uint_t h) const
     {
-#ifndef __gnu_linux__
-#error "host_to_be() only defined for gnu/linux!"
+#if ! defined(__gnu_linux__)
+    #error "host_to_be() only defined for gnu/linux!"
 #endif
         if      constexpr ( sizeof(uint_t) == 1 )
                               return h;
@@ -68,8 +68,8 @@ namespace ssc
     template< typename uint_t >
     uint_t Endian::be_to_host<uint_t>(const uint_t b) const
     {
-#ifndef __gnu_linux__
-#error "be_to_host() only defined for gnu/linux!"
+#if ! defined(__gnu_linux__)
+    #error "be_to_host() only defined for gnu/linux!"
 #endif
         if      constexpr ( sizeof(uint_t) == 1 )
                               return b;
@@ -88,8 +88,8 @@ namespace ssc
     template< typename uint_t >
     uint_t Endian::le_to_host<uint_t>(const uint_t l) const
     {
-#ifndef __gnu_linux__
-#error "le_to_host() only defined for gnu/linux!"
+#if ! defined(__gnu_linux__)
+    #error "le_to_host() only defined for gnu/linux!"
 #endif
         if      constexpr ( sizeof(uint_t) == 1 )
                               return l;

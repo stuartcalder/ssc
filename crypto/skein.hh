@@ -34,19 +34,19 @@ namespace ssc
                          u64_t const num_bytes_in);
     private:
         /* PRIVATE DATA */
-        UBI_t __ubi;
+        UBI_t ubi;
         /* PRIVATE INTERFACE */
-        void _process_config_block (u64_t const num_output_bits);
-        void _process_key_block    (u8_t const * const key_in,
+        void process_config_block_ (u64_t const num_output_bits);
+        void process_key_block_    (u8_t const * const key_in,
                                     u64_t const key_size);
-        void _process_message_block(u8_t const * const message_in,
+        void process_message_block_(u8_t const * const message_in,
                                     u64_t const message_size);
-        void _output_transform     (u8_t * const out,
+        void output_transform_     (u8_t * const out,
                                     u64_t const num_output_bytes);
     };
     
     template <std::size_t State_Bits>
-    void Skein<State_Bits>::_process_config_block(u64_t const num_output_bits)
+    void Skein<State_Bits>::process_config_block_(u64_t const num_output_bits)
     {
         /* Setup configuration string */
         u8_t config[32] = {
@@ -66,25 +66,25 @@ namespace ssc
             0x00, 0x00, 0x00, 0x00
         };
         *reinterpret_cast<u64_t*>(config + 8) = num_output_bits;
-        __ubi.chain( Type_Mask_t::T_cfg, config, sizeof(config) );
+        ubi.chain( Type_Mask_t::T_cfg, config, sizeof(config) );
     }
     
     template <std::size_t State_Bits>
-    void Skein<State_Bits>::_process_key_block(u8_t const * const key_in,
+    void Skein<State_Bits>::process_key_block_(u8_t const * const key_in,
                                                u64_t const        key_size)
     {
-        __ubi.chain( Type_Mask_t::T_key, key_in, key_size );
+        ubi.chain( Type_Mask_t::T_key, key_in, key_size );
     }
     
     template <std::size_t State_Bits>
-    void Skein<State_Bits>::_process_message_block(u8_t const * const message_in,
+    void Skein<State_Bits>::process_message_block_(u8_t const * const message_in,
                                                    u64_t const        message_size)
     {
-        __ubi.chain( Type_Mask_t::T_msg, message_in, message_size );
+        ubi.chain( Type_Mask_t::T_msg, message_in, message_size );
     }
     
     template <std::size_t State_Bits>
-    void Skein<State_Bits>::_output_transform(u8_t * const out,
+    void Skein<State_Bits>::output_transform_(u8_t * const out,
                                               u64_t const  num_output_bytes)
     {
         u8_t * bytes_out = out;
@@ -94,16 +94,16 @@ namespace ssc
         }
         u64_t bytes_left = num_output_bytes;
         for ( u64_t i = 0; i < number_iterations; ++i ) {
-            __ubi.chain( Type_Mask_t::T_out,
+            ubi.chain( Type_Mask_t::T_out,
                          reinterpret_cast<u8_t*>(&i),
                          sizeof(i) );
             if ( bytes_left >= State_Bytes ) {
-                std::memcpy( bytes_out, __ubi.get_key_state(), State_Bytes );
+                std::memcpy( bytes_out, ubi.get_key_state(), State_Bytes );
                 bytes_out  += State_Bytes;
                 bytes_left -= State_Bytes;
             }
             else {
-                std::memcpy( bytes_out, __ubi.get_key_state(), bytes_left );
+                std::memcpy( bytes_out, ubi.get_key_state(), bytes_left );
                 break;
             }
         }
@@ -115,11 +115,11 @@ namespace ssc
                                  u64_t const        num_bytes_in,
                                  u64_t const        num_bytes_out)
     {
-        __ubi.clear_key_state();
+        ubi.clear_key_state();
         static_assert(CHAR_BIT == 8);
-        _process_config_block( num_bytes_out * 8 );
-        _process_message_block( bytes_in, num_bytes_in );
-        _output_transform( bytes_out, num_bytes_out );
+        process_config_block_( num_bytes_out * CHAR_BIT );
+        process_message_block_( bytes_in, num_bytes_in );
+        output_transform_( bytes_out, num_bytes_out );
     }
     
     template <std::size_t State_Bits>
@@ -130,12 +130,12 @@ namespace ssc
                                 u64_t const        num_key_bytes_in,
                                 u64_t const        num_bytes_out)
     {
-        __ubi.clear_key_state();
-        _process_key_block( key_in, num_key_bytes_in );
+        ubi.clear_key_state();
+        process_key_block_( key_in, num_key_bytes_in );
         static_assert(CHAR_BIT == 8);
-        _process_config_block( num_bytes_out * 8 );
-        _process_message_block( bytes_in, num_bytes_in );
-        _output_transform( bytes_out, num_bytes_out );
+        process_config_block_( num_bytes_out * CHAR_BIT );
+        process_message_block_( bytes_in, num_bytes_in );
+        output_transform_( bytes_out, num_bytes_out );
     }
     
     template <std::size_t State_Bits>
@@ -155,7 +155,7 @@ namespace ssc
                                      0xb33b'c389'6656'840f,
                                      0x6a54'e920'fde8'da69
                                  };
-                                 std::memcpy( __ubi.get_key_state(), init_chain, sizeof(init_chain) );
+                                 std::memcpy( ubi.get_key_state(), init_chain, sizeof(init_chain) );
                              }
         else if constexpr(State_Bits == 512)
                              {
@@ -169,7 +169,7 @@ namespace ssc
                                      0x9911'12c7'1a75'b523,
                                      0xae18'a40b'660f'cc33
                                  };
-                                 std::memcpy( __ubi.get_key_state(), init_chain, sizeof(init_chain) );
+                                 std::memcpy( ubi.get_key_state(), init_chain, sizeof(init_chain) );
                              }
         else if constexpr(State_Bits == 1024)
                              {
@@ -191,10 +191,10 @@ namespace ssc
                                      0x61fd'3062'd00a'579a, //14
                                      0x1de0'536e'8682'e539  //15
                                  };
-                                 std::memcpy( __ubi.get_key_state(), init_chain, sizeof(init_chain) );
+                                 std::memcpy( ubi.get_key_state(), init_chain, sizeof(init_chain) );
                              }
-        _process_message_block( bytes_in, num_bytes_in );
-        _output_transform( bytes_out, State_Bytes );
+        process_message_block_( bytes_in, num_bytes_in );
+        output_transform_( bytes_out, State_Bytes );
     }
 }
     

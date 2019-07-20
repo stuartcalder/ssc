@@ -2,18 +2,10 @@
 
 namespace ssc
 {
-    Terminal::Terminal(bool buffer_chars,
-                       bool echo_chars,
-                       bool special_chars)
+    Terminal::Terminal()
     {
         initscr();
-        if ( ! buffer_chars )
-            cbreak();
-        if ( ! echo_chars )
-            noecho();
-        if ( special_chars )
-            keypad( stdscr, TRUE );
-        getmaxyx( stdscr, __std_height, __std_width );
+        getmaxyx( stdscr, std_height, std_width );
         clear();
     }
     Terminal::~Terminal()
@@ -25,6 +17,9 @@ namespace ssc
                           const int min_pw_size)
     {
         using namespace std;
+        cbreak();
+        noecho();
+        keypad( stdscr, TRUE );
         char buffer[ max_pw_size + 1 ];
         int index = 0;
         char mpl[ 3 ];
@@ -44,30 +39,30 @@ namespace ssc
             while( inner ) {
                 int ch = wgetch( w );
                 switch ( ch ) {
-                case ( 127 ):
-                case ( KEY_DC ):
-                case ( KEY_LEFT ):
-                case ( KEY_BACKSPACE ):
-                    if ( index > 0 ) {
-                        int y, x;
-                        getyx( w, y, x );
-                        wdelch( w );
-                        wmove( w, y, x - 1 );
-                        wrefresh( w );
-                        buffer[ --index ] = '\0';
-                    }
-                break;
-                case ( '\n' ):
-                case ( KEY_ENTER ):
-                    inner = false;
-                break;
-                default:
-                    if ( index <= max_pw_size - 1 ) {
-                        waddch( w, '*' );
-                        wrefresh( w );
-                        buffer[ index ] = static_cast<char>( ch );
-                        ++index;
-                    }
+                    case ( 127 ):
+                    case ( KEY_DC ):
+                    case ( KEY_LEFT ):
+                    case ( KEY_BACKSPACE ):
+                        if ( index > 0 ) {
+                            int y, x;
+                            getyx( w, y, x );
+                            wdelch( w );
+                            wmove( w, y, x - 1 );
+                            wrefresh( w );
+                            buffer[ --index ] = '\0';
+                        }
+                        break;
+                    case ( '\n' ):
+                    case ( KEY_ENTER ):
+                        inner = false;
+                        break;
+                    default:
+                        if ( index <= max_pw_size - 1 ) {
+                            waddch( w, '*' );
+                            wrefresh( w );
+                            buffer[ index ] = static_cast<char>( ch );
+                            ++index;
+                        }
                 }
             }
             if ( index < min_pw_size ) {

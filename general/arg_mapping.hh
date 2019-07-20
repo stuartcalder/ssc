@@ -12,11 +12,11 @@ namespace ssc
         /* PUBLIC CONSTANTS & ALIASES */
         using Arg_Map_t = std::vector< std::pair<std::string, std::string> >;
         /* PUBLIC INTERFACE */
-        void          print_mapping() const;
-        void          parse_c_args(const int argc, const char * argv[]);
-        void   clear();
-        auto get() const -> const Arg_Map_t &;
-        auto consume() -> Arg_Map_t;
+        void print_mapping() const;
+        void parse_c_args(const int argc, const char * argv[]);
+        void clear();
+        Arg_Map_t const & get() const;
+        Arg_Map_t         consume();
         /* CONSTRUCTOR(S) */
         Arg_Mapping(const int argc, const char * argv[]);
     private:

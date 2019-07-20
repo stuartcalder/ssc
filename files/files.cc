@@ -2,11 +2,11 @@
 #include <ssc/general/integers.hh>
 
 #if defined(__gnu_linux__)
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
+    #include <sys/types.h>
+    #include <sys/stat.h>
+    #include <unistd.h>
 #else
-#error "Only defined for Gnu/Linux"
+    #error "Only defined for Gnu/Linux"
 #endif
 
 namespace ssc
@@ -21,7 +21,7 @@ namespace ssc
             fprintf( stderr, "Unable to fstat file descriptor #%d\n", file_d );
             exit( EXIT_FAILURE );
         }
-        return static_cast<size_t>(s.st_size);
+        return static_cast<std::size_t>(s.st_size);
     }
 #endif
     
@@ -99,8 +99,7 @@ namespace ssc
                                 bool const         force_to_exist,
                                 char const * const opt_error_msg)
     {
-        bool exists = file_exists( filename );
-        bool exit_failure = false;
+        bool const exists = file_exists( filename );
         if ( exists ) {
             if ( force_to_exist )
                 return;
@@ -109,9 +108,8 @@ namespace ssc
                     std::fprintf( stderr, "Error: The file '%s' seems to already exist.\n", filename );
                 }
                 else {
-                    std::fprintf( stderr, "%s", opt_error_msg );
+                    std::fputs( opt_error_msg, stderr );
                 }
-                exit_failure = true;
             }
         }
         else { // doesn't exist
@@ -120,12 +118,12 @@ namespace ssc
                     std::fprintf( stderr, "Error: The file '%s' doesn't seem to exist.\n", filename );
                 }
                 else {
-                    std::fprintf( stderr, "%s", opt_error_msg );
+                    std::fputs( opt_error_msg, stderr );
                 }
-                exit_failure = true;
             }
+            else
+                return;
         }
-        if ( exit_failure )
-            std::exit( EXIT_FAILURE );
+        std::exit( EXIT_FAILURE );
     }
 }

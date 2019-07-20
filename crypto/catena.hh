@@ -15,7 +15,7 @@ namespace ssc
         /* PUBLIC INTERFACE */
     private:
         /* PRIVATE DATA */
-        Hash_Func_t __hash_func;
+        Hash_Func_t hash_func;
         /* PRIVATE INTERFACE */
     };
     
