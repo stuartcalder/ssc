@@ -6,12 +6,6 @@
 #include <cstring>
 #include <ssc/general/integers.hh>
 
-#if defined(__gnu_linux__)
-#include <unistd.h>
-#else
-#error "Only implemented for Gnu/Linux"
-#endif
-
 namespace ssc
 {
     static_assert(CHAR_BIT == 8);
@@ -40,6 +34,7 @@ namespace ssc
                                  auto first_dword = reinterpret_cast<u64_t*>(block);
                                  auto second_dword = reinterpret_cast<const u64_t*>(add);
                                  
+                                 static_assert(Block_Bits / 64 == 2);
                                  (*first_dword) ^= (*second_dword);
                                  (*(first_dword + 1)) ^= (*(second_dword + 1));
                              }
@@ -47,6 +42,8 @@ namespace ssc
                              {
                                  auto first_dword = reinterpret_cast<u64_t*>(block);
                                  auto second_dword = reinterpret_cast<const u64_t*>(add);
+
+                                 static_assert(Block_Bits / 64 == 4);
                                  (*(first_dword)) ^= (*(second_dword));
                                  (*(first_dword + 1)) ^= (*(second_dword + 1));
                                  (*(first_dword + 2)) ^= (*(second_dword + 2));
@@ -56,6 +53,8 @@ namespace ssc
                              {
                                  auto first_dword  = reinterpret_cast<u64_t*>(block);
                                  auto second_dword = reinterpret_cast<const u64_t*>(add);
+
+                                 static_assert(Block_Bits / 64 == 8);
                                  (*(first_dword))     ^= (*(second_dword));
                                  (*(first_dword + 1)) ^= (*(second_dword + 1));
                                  (*(first_dword + 2)) ^= (*(second_dword + 2));

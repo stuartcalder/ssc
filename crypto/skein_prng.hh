@@ -9,7 +9,7 @@
 
 namespace ssc
 {
-    template<std::size_t State_Bits>
+    template <std::size_t State_Bits>
     class Skein_PRNG
     {
     public:
@@ -29,24 +29,24 @@ namespace ssc
         void get(u8_t * const output_buffer,
                  const u64_t  requested_bytes);
     private:
-        u8_t    state[State_Bytes];
+        u8_t    state [State_Bytes];
         Skein_t skein;
     };
     
-    template<std::size_t State_Bits>
+    template <std::size_t State_Bits>
     Skein_PRNG<State_Bits>::Skein_PRNG(const u8_t * const seed,
                                        const u64_t        seed_bytes)
     {
         this->reseed( seed, seed_bytes );
     }
     
-    template<std::size_t State_Bits>
+    template <std::size_t State_Bits>
     Skein_PRNG<State_Bits>::~Skein_PRNG()
     {
         zero_sensitive( state, sizeof(state) );
     }
     
-    template<std::size_t State_Bits>
+    template <std::size_t State_Bits>
     void Skein_PRNG<State_Bits>::reseed(const u8_t * const seed,
                                         const u64_t        seed_bytes)
     {
@@ -60,7 +60,7 @@ namespace ssc
         zero_sensitive( buffer.get(), buffer_size );
     }
     
-    template<std::size_t State_Bits>
+    template <std::size_t State_Bits>
     void Skein_PRNG<State_Bits>::get(u8_t * const output_buffer,
                                      const u64_t  requested_bytes)
     {
