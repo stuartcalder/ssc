@@ -135,8 +135,8 @@ namespace ssc
             memcpy( buffer, in, Block_Bytes );
             xor_block<Block_Bits>( buffer, state );
             blk_cipher.cipher( buffer, buffer );
-            memcpy( state  , buffer, Block_Bytes );
-            memcpy( out    , buffer, Block_Bytes );
+            memcpy( state, buffer, Block_Bytes );
+            memcpy( out  , buffer, Block_Bytes );
 
             in         += Block_Bytes;
             out        += Block_Bytes;
@@ -150,7 +150,7 @@ namespace ssc
         xor_block<Block_Bits>( buffer, state );
         blk_cipher.cipher( buffer, buffer );
         memcpy( state, buffer, Block_Bytes );
-        memcpy( out    , buffer, Block_Bytes );
+        memcpy( out  , buffer, Block_Bytes );
         zero_sensitive( buffer, Block_Bytes );
         return calculate_padded_ciphertext_size_( size_in );
     }

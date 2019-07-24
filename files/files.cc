@@ -1,17 +1,21 @@
 #include <ssc/files/files.hh>
 #include <ssc/general/integers.hh>
 
-#if defined(__gnu_linux__)
+#if   defined(__gnu_linux__)
     #include <sys/types.h>
     #include <sys/stat.h>
     #include <unistd.h>
+#elif defined(_WIN64)
+    #include <windows.h>
+    #include <fileapi.h>
+    #include <winbase.h>
 #else
     #error "Only defined for Gnu/Linux"
 #endif
 
 namespace ssc
 {
-#if defined(__gnu_linux__)
+#if   defined(__gnu_linux__)
     std::size_t get_file_size(const int file_d)
     {
         using namespace std;
@@ -23,6 +27,8 @@ namespace ssc
         }
         return static_cast<std::size_t>(s.st_size);
     }
+#elif defined(_WIN64)
+    std::size_t get_file_size ();//TODO
 #endif
     
     std::size_t get_file_size(std::FILE * const file)
