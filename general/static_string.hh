@@ -7,4 +7,15 @@ namespace ssc
     {
         return Array_Size - 1;
     }
+    template <std::size_t Array_Size>
+    constexpr bool static_strcmp(const char (&s0)[Array_Size],
+                                 const char (&s1)[Array_Size])
+    {
+        for ( std::size_t i = 0; i < Array_Size; ++i )
+        {
+            if ( s0[ i ] != s1[ i ] )
+                return false;
+        }
+        return true;
+    }
 }

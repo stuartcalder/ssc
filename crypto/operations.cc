@@ -6,7 +6,7 @@
     #include <unistd.h>
 #elif defined(_WIN64)
     // Include as the base for win32 crap
-    #include <Windows.h>
+    #include <windows.h>
     // Include for definitions of NTSUCCESS
     #include <ntdef.h>
     // Include bcrypt.h for BCryptGenRandom()
@@ -24,32 +24,38 @@ namespace ssc
 #if   defined(__gnu_linux__)
         static constexpr auto const & Fail_String = "Failed to getentropy()\n";
         size_t offset = 0;
-        while ( num_bytes >= 256 ) {
-            if ( getentropy( (buffer + offset), 256 ) != 0 ) {
+        while ( num_bytes >= 256 )
+        {
+            if ( getentropy( (buffer + offset), 256 ) != 0 )
+            {
                 fputs( Fail_String, stderr );
                 exit   ( EXIT_FAILURE );
             }
             num_bytes -= 256;
             offset    += 256;
         }
-        if ( getentropy( (buffer + offset), num_bytes ) != 0 ) {
+        if ( getentropy( (buffer + offset), num_bytes ) != 0 )
+        {
             fputs( Fail_String, stderr );
             exit( EXIT_FAILURE );
         }
 #elif defined(_WIN64)
         BCRYPT_ALG_HANDLE cng_provider_handle;
         // Open algorithm provider
-        if ( BCryptOpenAlgorithmProvider( &cng_provider_handle, L"RNG", NULL, 0 ) != STATUS_SUCCESS ) {
+        if ( BCryptOpenAlgorithmProvider( &cng_provider_handle, L"RNG", NULL, 0 ) != STATUS_SUCCESS )
+        {
             fputs( "BCryptOpenAlgorithmProvider() failed\n", stderr );
             exit( EXIT_FAILURE );
         }
         // Generate randomness
-        if ( BCryptGenRandom( cng_provider_handle, buffer, num_bytes, 0 ) != STATUS_SUCCESS ) {
+        if ( BCryptGenRandom( cng_provider_handle, buffer, num_bytes, 0 ) != STATUS_SUCCESS )
+        {
             fputs( "BCryptGenRandom() failed\n", stderr );
             exit( EXIT_FAILURE );
         }
         // Close algorithm provider
-        if ( BCryptCloseAlgorithmProvider( cng_provider_handle, 0 ) != STATUS_SUCCESS ) {
+        if ( BCryptCloseAlgorithmProvider( cng_provider_handle, 0 ) != STATUS_SUCCESS )
+        {
             fputs( "BCryptCloseAlgorithmProvider() failed\n", stderr );
             exit( EXIT_FAILURE );
         }
@@ -68,5 +74,5 @@ namespace ssc
 #else
     #error "ssc::zero_sensitive defined for Gnu/Linux and MS Windows"
 #endif
-    }
+    } /* ! zero_sensitive */
 } /* ! namespace ssc */
