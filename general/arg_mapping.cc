@@ -15,19 +15,23 @@ namespace ssc
             vec.push_back( argv[i] );
         /* Iterate through */
         std::pair< std::string, std::string > temp_pair;
-        for( int i = 0; i < vec.size(); ++i ) {
+        for( decltype(vec.size()) i = 0; i < vec.size(); ++i )
+        {
             // is this string an option?
-            if( is_option( vec[i] ) ) {
+            if( is_option( vec[i] ) )
+            {
                 // it is an option, put it in the `first` of the temp_pair
                 temp_pair.first = vec[i];
                 // is the next string (if there is one) an option, or an argument to this option?
-                if( (i + 1) < vec.size() && (! is_option( vec[i + 1] )) ) {
+                if( (i + 1) < vec.size() && (! is_option( vec[i + 1] )) )
+                {
                     temp_pair.second = vec[i + 1];
                     ++i; // we consumed one more string than we would have otherwise, so increment.
                 }
             }
             // the string from vec[] wasn't an option, therefore it is a floating argument.
-            else {
+            else
+            {
                 temp_pair.second = vec[i];
             }
             // Commit what was just iterated over into the `mapping` private variable of the class.
@@ -35,7 +39,7 @@ namespace ssc
             // Clear whatever was or wasn't in the temp_pair and continue on through the arguments.
             temp_pair.first.clear();
             temp_pair.second.clear();
-        }/* end for( int i = 0; i < vec.size(); ++i ) */
+        }/* end for( decltype(vec.size()) i = 0; i < vec.size(); ++i ) */
     }
     
     bool Arg_Mapping::is_option(const std::string & str) const
@@ -52,18 +56,20 @@ namespace ssc
     {
         /* Determine longest string length out of all of them
            to use as the minimum field width */
-        int min_field_size = 0;
-        for( const auto & pair : mapping ) {
+        decltype(mapping)::size_type min_field_size = 0;
+        for( const auto & pair : mapping )
+        {
             if( pair.first.size() > min_field_size )
                 min_field_size = pair.first.size();
             if( pair.second.size() > min_field_size )
                 min_field_size = pair.second.size();
         }
         /* Print out everything */
-        for( const auto & pair : mapping ) {
+        for( const auto & pair : mapping )
+        {
             std::printf( "{ %*s, %*s }\n",
-                         min_field_size, pair.first.c_str(),
-                         min_field_size, pair.second.c_str() );
+                         static_cast<int>(min_field_size), pair.first.c_str(),
+                         static_cast<int>(min_field_size), pair.second.c_str() );
         }
     }
     

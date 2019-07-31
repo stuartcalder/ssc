@@ -42,7 +42,7 @@ namespace ssc
             skein.hash( key, concat_buffer.get(), concat_size, sizeof(key) );
             skein.MAC ( buffer, concat_buffer.get(), key, concat_size, sizeof(key), sizeof(buffer) );
             xor_block<State_Bits>( key, buffer );
-            for ( int i = 1; i < number_iterations; ++i ) {
+            for ( u32_t i = 1; i < number_iterations; ++i ) {
                 skein.MAC( buffer, buffer, key, sizeof(buffer), sizeof(key), sizeof(buffer) );
                 xor_block<State_Bits>( key, buffer );
             }

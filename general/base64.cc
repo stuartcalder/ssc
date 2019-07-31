@@ -88,7 +88,7 @@ namespace ssc
     static void b64_r648_decode_twentyfour_bits(const char * const in, uint8_t * const out)
     {
         uint8_t encoded[4];
-        for( int i = 0; i < sizeof(encoded); ++i )
+        for( int i = 0; i < static_cast<int>(sizeof(encoded)); ++i )
             encoded[i] = b64_r648_decode_six_bits( in[i] );
         
         out[0] = (encoded[0] << 2) | (encoded[1] >> 4);
