@@ -33,5 +33,5 @@ libssc.so: arg_mapping.o base64.o print.o files.o terminal.o operations.o sspkdf
 		arg_mapping.o base64.o print.o files.o terminal.o sspkdf.o operations.o \
 		$(LINKFLAGS)
 install: libssc.so
-	install -m 0755 libssc.so $(LIBPATH)
+	install -s -m 0755 libssc.so $(LIBPATH)
 	ldconfig
