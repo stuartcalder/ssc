@@ -16,6 +16,7 @@ namespace ssc
         clear();
 #elif defined(_WIN64)
         //TODO
+        #error "Not implemented yet"
 #else
     #error "ssc::Terminal() only defined for Gnu/Linux and MS Windows"
 #endif
@@ -26,6 +27,7 @@ namespace ssc
         endwin();
 #elif defined(_WIN64)
         //TODO
+        #error "Not implemented yet"
 #else
     #error "ssc::~Terminal() only defined for Gnu/Linux and MS Windows"
 #endif
@@ -110,6 +112,7 @@ namespace ssc
         delwin( w );
 #elif defined(_WIN64)
         //TODO
+        #error "Not implemented yet"
 #else
     #error "ssc::Terminal::get_pw(...) defined for Gnu/Linux and MS Windows"
 #endif
@@ -127,6 +130,7 @@ namespace ssc
         delwin( w );
 #elif defined(_WIN64)
         //TODO
+        #error "Not implemented yet"
 #else
     #error "ssc::Terminal::notify(...) defined for Gnu/Linux and MS Windows"
 #endif

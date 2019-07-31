@@ -83,48 +83,48 @@ namespace ssc
     {
         static_assert(Number_Words == 4 || Number_Words == 8 || Number_Words == 16, "Invalid Number_Words. 4, 8, 16 only.");
         if constexpr(Number_Words == 4)
-                        {
-                            static constexpr const u64_t rc[8][2] = {
-                                { 14, 16 }, //d = 0
-                                { 52, 57 }, //d = 1
-                                { 23, 40 }, //d = 2
-                                {  5, 37 }, //d = 3
-                                { 25, 33 }, //d = 4
-                                { 46, 12 }, //d = 5
-                                { 58, 22 }, //d = 6
-                                { 32, 32 }  //d = 7
-                            };
-                            return rc[ (round % 8) ][ index ] ;
-                        }
+        {
+            static constexpr const u64_t rc[8][2] = {
+                { 14, 16 }, //d = 0
+                { 52, 57 }, //d = 1
+                { 23, 40 }, //d = 2
+                {  5, 37 }, //d = 3
+                { 25, 33 }, //d = 4
+                { 46, 12 }, //d = 5
+                { 58, 22 }, //d = 6
+                { 32, 32 }  //d = 7
+            };
+            return rc[ (round % 8) ][ index ] ;
+        }
         else if constexpr( Number_Words == 8)
-                             {
-                                 static constexpr const u64_t rc[8][4] = {
-                                     { 46, 36, 19, 37 },
-                                     { 33, 27, 14, 42 },
-                                     { 17, 49, 36, 39 },
-                                     { 44,  9, 54, 56 },
-                                     { 39, 30, 34, 24 },
-                                     { 13, 50, 10, 17 },
-                                     { 25, 29, 39, 43 },
-                                     {  8, 35, 56, 22 }
-                                 };
-                                 return rc[ (round % 8) ][ index ];
-                             }
+        {
+            static constexpr const u64_t rc[8][4] = {
+                { 46, 36, 19, 37 },
+                { 33, 27, 14, 42 },
+                { 17, 49, 36, 39 },
+                { 44,  9, 54, 56 },
+                { 39, 30, 34, 24 },
+                { 13, 50, 10, 17 },
+                { 25, 29, 39, 43 },
+                {  8, 35, 56, 22 }
+            };
+            return rc[ (round % 8) ][ index ];
+        }
         else if constexpr(Number_Words == 16)
-                             {
-                                 static constexpr const u64_t rc[8][8] = {
-                                     { 24, 13,  8, 47,  8, 17, 22, 37 },
-                                     { 38, 19, 10, 55, 49, 18, 23, 52 },
-                                     { 33,  4, 51, 13, 34, 41, 59, 17 },
-                                     {  5, 20, 48, 41, 47, 28, 16, 25 },
-                                     { 41,  9, 37, 31, 12, 47, 44, 30 },
-                                     { 16, 34, 56, 51,  4, 53, 42, 41 },
-                                     { 31, 44, 47, 46, 19, 42, 44, 25 },
-                                     {  9, 48, 35, 52, 23, 31, 37, 20 }
-                                 };
-                                 return rc[ (round % 8) ][ index ];
-                             }
-    }
+        {
+            static constexpr const u64_t rc[8][8] = {
+                { 24, 13,  8, 47,  8, 17, 22, 37 },
+                { 38, 19, 10, 55, 49, 18, 23, 52 },
+                { 33,  4, 51, 13, 34, 41, 59, 17 },
+                {  5, 20, 48, 41, 47, 28, 16, 25 },
+                { 41,  9, 37, 31, 12, 47, 44, 30 },
+                { 16, 34, 56, 51,  4, 53, 42, 41 },
+                { 31, 44, 47, 46, 19, 42, 44, 25 },
+                {  9, 48, 35, 52, 23, 31, 37, 20 }
+            };
+            return rc[ (round % 8) ][ index ];
+        }
+    }/* ! get_rotate_constant */
     
     template <std::size_t Key_Bits >
     void Threefish<Key_Bits>::expand_key(const u8_t *k, const u8_t *tw)
