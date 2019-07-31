@@ -15,7 +15,7 @@ print.o:
 files.o:
 	$(CC) $(CXXFLAGS) files/files.cc
 terminal.o:
-	$(CC) $(CXXFLAGS) $(LINKOPTS) interface/terminal.cc -lncurses
+	$(CC) $(CXXFLAGS) $(LINKOPTS) interface/terminal.cc
 operations.o: files.o
 	$(CC) $(CXXFLAGS) crypto/operations.cc
 sspkdf.o: operations.o
