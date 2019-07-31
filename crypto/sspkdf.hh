@@ -8,10 +8,10 @@
 namespace ssc
 {
     static_assert(sizeof(int) >= sizeof(u32_t));
-    void SSPKDF(u8_t * const __restrict derived_key,
-                const char * __restrict const password,
-                const int password_length,
-                const u8_t * __restrict const salt,
-                const int number_iterations,
-                const int number_concatenations);
+    void SSPKDF(u8_t * const       __restrict derived_key,
+                char const * const __restrict password,
+                int const                     password_length,
+                u8_t const * const __restrict salt,
+                u32_t const                   number_iterations,
+                u32_t const                   number_concatenations);
 }
