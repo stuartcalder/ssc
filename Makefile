@@ -2,6 +2,7 @@ CC = g++
 CXXFLAGS = -std=c++17 -c -O3 -pipe -Wall -fPIC -fno-exceptions
 LINKOPTS = -Wl,--no-undefined
 LIBPATH = /usr/lib
+LINKFLAGS = -lncurses -ltinfo
 
 clean:
 	$(RM) *.o *.so
@@ -21,7 +22,7 @@ sspkdf.o: operations.o
 	$(CC) $(CXXFLAGS) crypto/sspkdf.cc
 libssc.so: arg_mapping.o base64.o print.o files.o terminal.o operations.o sspkdf.o
 	$(CC) $(LINKOPTS) -std=c++17 -pipe -fPIC -O3 -fno-exceptions -shared -o $@ \
-		arg_mapping.o base64.o print.o files.o terminal.o sspkdf.o operations.o -lncurses -ltinfo
+		arg_mapping.o base64.o print.o files.o terminal.o sspkdf.o operations.o $(LINKFLAGS)
 install: libssc.so
 	install -m 0755 libssc.so $(LIBPATH)
 	ldconfig

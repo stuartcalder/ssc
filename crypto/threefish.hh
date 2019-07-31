@@ -26,7 +26,7 @@ namespace ssc
         /* CONSTRUCTORS / DESTRUCTORS */
         Threefish() {
         }
-        Threefish(const u8_t __restrict *k, const u8_t __restrict *tw = nullptr) {
+        Threefish(const u8_t * __restrict k, const u8_t * __restrict tw = nullptr) {
             expand_key( k, tw );
         }
         ~Threefish(); // forward declared

@@ -1,13 +1,9 @@
 #pragma once
-#if ! defined(__gnu_linux__)
-    #error "Only defined for Gnu/Linux!"
-#endif
 
 #include <ssc/crypto/operations.hh>
 
 #include <cstdint>
 #include <cstring>
-#include <ncurses.h>
 
 namespace ssc
 {

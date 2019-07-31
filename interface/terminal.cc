@@ -1,22 +1,41 @@
 #include <ssc/interface/terminal.hh>
 
+#if   defined(__gnu_linux__)
+    #include <ncurses.h>
+#elif defined(_WIN64)
+    #include <windows.h>
+#endif
+
 namespace ssc
 {
     Terminal::Terminal()
     {
+#if   defined(__gnu_linux__)
         initscr();
         getmaxyx( stdscr, std_height, std_width );
         clear();
-    }
+#elif defined(_WIN64)
+        //TODO
+#else
+    #error "ssc::Terminal() only defined for Gnu/Linux and MS Windows"
+#endif
+    }/* ! ssc::Terminal::Terminal() */
     Terminal::~Terminal()
     {
+#if   defined(__gnu_linux__)
         endwin();
-    }
+#elif defined(_WIN64)
+        //TODO
+#else
+    #error "ssc::~Terminal() only defined for Gnu/Linux and MS Windows"
+#endif
+    }/* ! ssc::Terminal::~Terminal() */
     void Terminal::get_pw(char     *pw_buffer,
                           const int max_pw_size,
                           const int min_pw_size)
     {
         using namespace std;
+#if   defined(__gnu_linux__)
         cbreak();
         noecho();
         keypad( stdscr, TRUE );
@@ -89,10 +108,16 @@ namespace ssc
         strncpy( pw_buffer, buffer, password_size + 1 );
         zero_sensitive( buffer, sizeof(buffer) );
         delwin( w );
-    }
+#elif defined(_WIN64)
+        //TODO
+#else
+    #error "ssc::Terminal::get_pw(...) defined for Gnu/Linux and MS Windows"
+#endif
+    }/* ! ssc::Terminal::get_pw */
     void Terminal::notify(char const *notice)
     {
         using namespace std;
+#if   defined(__gnu_linux__)
         WINDOW * w = newwin( 1, strlen(notice) + 1, 0, 0 );
         wclear( w );
         wmove( w, 0, 0 );
@@ -100,5 +125,10 @@ namespace ssc
         wrefresh( w );
         wgetch( w );
         delwin( w );
-    }
+#elif defined(_WIN64)
+        //TODO
+#else
+    #error "ssc::Terminal::notify(...) defined for Gnu/Linux and MS Windows"
+#endif
+    }/* ! ssc::Terminal::notify */
 }
