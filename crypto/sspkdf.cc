@@ -26,17 +26,13 @@ namespace ssc
             Index_t index = 0;
             auto buf_ptr = concat_buffer.get();
             const auto buf_end = buf_ptr + concat_size;
-            while ( buf_ptr < buf_end )
-            {
+            while ( buf_ptr < buf_end ) {
                 memcpy( buf_ptr, password, password_length );
                 buf_ptr += password_length;
-
                 memcpy( buf_ptr, salt, Salt_Bytes );
                 buf_ptr += Salt_Bytes;
-
-                *reinterpret_cast<Index_t *>(buf_ptr) = index;
+                memcpy( buf_ptr, &index, sizeof(index) );
                 buf_ptr += sizeof(index);
-
                 ++index;
             }
         }
@@ -46,8 +42,7 @@ namespace ssc
             skein.hash( key, concat_buffer.get(), concat_size, sizeof(key) );
             skein.MAC ( buffer, concat_buffer.get(), key, concat_size, sizeof(key), sizeof(buffer) );
             xor_block<State_Bits>( key, buffer );
-            for ( u32_t i = 1; i < number_iterations; ++i )
-            {
+            for ( u32_t i = 1; i < number_iterations; ++i ) {
                 skein.MAC( buffer, buffer, key, sizeof(buffer), sizeof(key), sizeof(buffer) );
                 xor_block<State_Bits>( key, buffer );
             }
