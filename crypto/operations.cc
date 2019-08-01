@@ -29,7 +29,7 @@ namespace ssc
             if ( getentropy( (buffer + offset), 256 ) != 0 )
             {
                 fputs( Fail_String, stderr );
-                exit   ( EXIT_FAILURE );
+                exit( EXIT_FAILURE );
             }
             num_bytes -= 256;
             offset    += 256;
