@@ -22,10 +22,10 @@ files.o:
 terminal.o:
 	$(CC) $(CXXFLAGS) $(LINKOPTS) $(OBJFLAGS) \
 		interface/terminal.cc
-operations.o: files.o
+operations.o:
 	$(CC) $(CXXFLAGS) $(OBJFLAGS) \
 		crypto/operations.cc
-sspkdf.o: operations.o
+sspkdf.o: 
 	$(CC) $(CXXFLAGS) $(OBJFLAGS) \
 		crypto/sspkdf.cc
 libssc.so: arg_mapping.o base64.o print.o files.o terminal.o operations.o sspkdf.o

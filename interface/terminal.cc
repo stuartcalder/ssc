@@ -1,3 +1,5 @@
+#include <cstdio>
+
 #include <ssc/interface/terminal.hh>
 
 #if   defined(__gnu_linux__)
@@ -15,8 +17,23 @@ namespace ssc
         getmaxyx( stdscr, std_height, std_width );
         clear();
 #elif defined(_WIN64)
-        //TODO
-        #error "Not implemented yet"
+        std_input_handle = GetStdHandle( STD_INPUT_HANDLE );
+        // Get standard input handle
+        if ( std_input_handle == INVALID_HANDLE_VALUE )
+        {
+            ErrorExit( "GetStdHandle" );
+        }
+        // Save the original mode
+        if ( ! GetConsoleMode( std_input_handle, &original_console_mode ) )
+        {
+            ErrorExit( "GetConsoleMode" );
+        }
+        // Set the new mode
+        DWORD new_mode = ENABLE_INSERT_MODE | ENABLE_PROCESSED_INPUT; 
+        if ( ! SetConsoleMode( std_input_handle, new_mode ) )
+        {
+            ErrorExit( "SetConsoleMode" );
+        }
 #else
     #error "ssc::Terminal() only defined for Gnu/Linux and MS Windows"
 #endif
@@ -26,30 +43,35 @@ namespace ssc
 #if   defined(__gnu_linux__)
         endwin();
 #elif defined(_WIN64)
+        if ( ! SetConsoleMode( std_input_handle, original_console_mode ) )
+        {
+            ErrorExit( "SetConsoleMode" );
+        }
         //TODO
         #error "Not implemented yet"
 #else
     #error "ssc::~Terminal() only defined for Gnu/Linux and MS Windows"
 #endif
     }/* ! ssc::Terminal::~Terminal() */
-    void Terminal::get_pw(char     *pw_buffer,
-                          const int max_pw_size,
-                          const int min_pw_size)
+    void Terminal::get_pw(char    * pw_buffer,
+                          int const max_pw_size,
+                          int const min_pw_size)
     {
         using namespace std;
 #if   defined(__gnu_linux__)
-        cbreak();
-        noecho();
-        keypad( stdscr, TRUE );
-        char buffer[ max_pw_size + 1 ];
-        int index = 0;
-        char mpl[ 3 ];
+        cbreak();               // Disable line buffering
+        noecho();               // Disable echoing
+        keypad( stdscr, TRUE ); // Enable special characters
+        char buffer[ max_pw_size + 1 ]; // Prepare to store `max_pw_size` chars
+        int index = 0;                  // Start from the beginning
+        char mpl[4] = { 0 };            // max password length c-string
         snprintf( mpl, sizeof(mpl), "%d", max_pw_size );
         WINDOW *w = newwin( 5, max_pw_size, 0, 0 );
         keypad( w, TRUE );
         bool outer, inner;
         outer = true;
-        while ( outer ) {
+        while ( outer )
+        {
             memset( buffer, 0, sizeof(buffer) );
             wclear( w );
             wmove( w, 1, 0 );
@@ -57,9 +79,11 @@ namespace ssc
             waddstr( w, mpl );
             waddstr( w, " characters)\n> " );
             inner = true;
-            while( inner ) {
+            while( inner )
+            {
                 int ch = wgetch( w );
-                switch ( ch ) {
+                switch ( ch )
+                {
                     case ( 127 ):
                     case ( KEY_DC ):
                     case ( KEY_LEFT ):
@@ -85,34 +109,39 @@ namespace ssc
                             ++index;
                         }
                 }
-            }
-            if ( index < min_pw_size ) {
-                constexpr auto char_arr_size = [](const auto &s)
+            }/* ! while( inner ) */
+            if ( index < min_pw_size )
+            {
+                constexpr auto char_arr_size = [](auto const &s)
                                                {
                                                    return sizeof(s) - 1;
                                                };
-                constexpr const auto &first  = "Minimum of ";
-                constexpr const auto &second = " chracters needed!\n";
-                char prompt[ char_arr_size( first )  +    // all the chars of first
-                             char_arr_size( second ) +   // all the chars of second
-                             2 +                         // 2 chars for min pw length
-                             1 ] = { 0 };                // 0 null char
+                constexpr auto const & first  = "Minimum of ";
+                constexpr auto const & second = " chracters needed!\n";
+                char prompt[ char_arr_size( first )  + // all the chars of first
+                             char_arr_size( second ) + // all the chars of second
+                             2 +                       // 2 chars for min pw length
+                             1 ] = { 0 };              // 0 null char
                 snprintf( prompt,
                           sizeof(prompt),
                           "Minimum of %d characters needed!\n",
                           min_pw_size );
                 notify( prompt );
                 continue;
-            }
+            }/* ! if ( index < min_pw_size ) */
             outer = false;
-        }
-        const int password_size = strlen( buffer );
+        }/* ! while ( outer ) */
+        int const password_size = strlen( buffer );
         strncpy( pw_buffer, buffer, password_size + 1 );
         zero_sensitive( buffer, sizeof(buffer) );
         delwin( w );
 #elif defined(_WIN64)
+        char buffer [max_pw_size + 1];
+        int index = 0;
+        char mpl [4] = { 0 };
+        snprintf( mpl, sizeof(mpl), "%d", max_pw_size );
         //TODO
-        #error "Not implemented yet"
+        #error "Not totally implemented yet"
 #else
     #error "ssc::Terminal::get_pw(...) defined for Gnu/Linux and MS Windows"
 #endif

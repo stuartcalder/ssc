@@ -57,7 +57,7 @@ namespace ssc
     // CONSTRUCTORS
     template<typename Block_Cipher_t, std::size_t Block_Bits>
     CBC<Block_Cipher_t,Block_Bits>::CBC(Block_Cipher_t &&blk_c) 
-        : blk_cipher{ blk_c }
+        : blk_cipher{ std::move( blk_c ) }
     {
     }
     // DESTRUCTORS
