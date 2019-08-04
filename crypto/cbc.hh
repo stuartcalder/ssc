@@ -7,15 +7,6 @@
 #include <ssc/crypto/operations.hh>
 #include <ssc/general/integers.hh>
 
-#define MS_API
-#ifdef _WIN64
-    #if defined( SSC_EXPORTS )
-        #define MS_API __declspec(dllexport)
-    #else
-        #define MS_API __declspec(dllimport)
-    #endif
-#endif
-
 /* 
   CBC < Block_Cipher_t, Block_Bits >
   This class implements The Cipher-Block-Chaining mode of operation for cryptographic block ciphers.
@@ -36,7 +27,7 @@
 namespace ssc
 {
     template<typename Block_Cipher_t, std::size_t Block_Bits>
-    class MS_API CBC
+    class CBC
     {
     public:
         /* COMPILE TIME CHECKS */
@@ -76,7 +67,7 @@ namespace ssc
         zero_sensitive( state, sizeof(state) );
     }
     template<typename Block_Cipher_t, std::size_t Block_Bits>
-    void CBC<Block_Cipher_t,Block_Bits>::manually_set_state(const u8_t * const state_bytes)
+    void CBC<Block_Cipher_t,Block_Bits>::manually_set_state(const u8_t * const __restrict state_bytes)
     {
         std::memcpy( state, state_bytes, sizeof(state) );
     }
@@ -111,7 +102,7 @@ namespace ssc
     }
     
     template<typename Block_Cipher_t, std::size_t Block_Bits>
-    void CBC<Block_Cipher_t,Block_Bits>::encrypt_no_padding(const u8_t *bytes_in, u8_t *bytes_out, const std::size_t size_in, const u8_t *iv)
+    void CBC<Block_Cipher_t,Block_Bits>::encrypt_no_padding(const u8_t *bytes_in, u8_t *bytes_out, const std::size_t size_in, const u8_t * __restrict iv)
     {
         using std::memcpy;
         
@@ -128,7 +119,7 @@ namespace ssc
         }
     }
     template<typename Block_Cipher_t, std::size_t Block_Bits>
-    std::size_t CBC<Block_Cipher_t,Block_Bits>::encrypt(const u8_t *bytes_in, u8_t *bytes_out, const std::size_t size_in, const u8_t *iv)
+    std::size_t CBC<Block_Cipher_t,Block_Bits>::encrypt(const u8_t *bytes_in, u8_t *bytes_out, const std::size_t size_in, const u8_t * __restrict iv)
     {
         using std::memcpy;
          // If an IV was supplied, copy it into the state
@@ -164,7 +155,7 @@ namespace ssc
         return calculate_padded_ciphertext_size_( size_in );
     }
     template<typename Block_Cipher_t, std::size_t Block_Bits>
-    std::size_t CBC<Block_Cipher_t,Block_Bits>::decrypt(const u8_t *bytes_in, u8_t *bytes_out, const std::size_t size_in, const u8_t *iv)
+    std::size_t CBC<Block_Cipher_t,Block_Bits>::decrypt(const u8_t *bytes_in, u8_t *bytes_out, const std::size_t size_in, const u8_t * __restrict iv)
     {
         using std::memcpy;
         
@@ -190,7 +181,7 @@ namespace ssc
         return size_in - count_iso_iec_7816_padding_bytes_( bytes_out, size_in );
     }
     template<typename Block_Cipher_t, std::size_t Block_Bits>
-    void CBC<Block_Cipher_t,Block_Bits>::decrypt_no_padding(const u8_t *bytes_in, u8_t *bytes_out, const std::size_t size_in, const u8_t *iv)
+    void CBC<Block_Cipher_t,Block_Bits>::decrypt_no_padding(const u8_t *bytes_in, u8_t *bytes_out, const std::size_t size_in, const u8_t * __restrict iv)
     {
         using std::memcpy;
         

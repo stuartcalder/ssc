@@ -1,5 +1,7 @@
 #include <cstdio>
 #include <cstdlib>
+#include <utility>
+#include <memory>
 
 #include <ssc/interface/terminal.hh>
 
@@ -121,15 +123,19 @@ namespace ssc
         zero_sensitive( buffer, sizeof(buffer) );
         delwin( w );
 #elif defined(_WIN64)
+#if 0
         char buffer [max_pw_size + 1];
+#endif
+        auto const buffer_size = max_pw_size + 1;
+        auto buffer = std::make_unique<char[]>( buffer_size );
         int index = 0;
         char mpl [4] = { 0 };
         snprintf( mpl, sizeof(mpl), "%d", max_pw_size );
         bool repeat_ui, repeat_input;
-        outer = true;
+        repeat_ui = true;
         while ( repeat_ui )
         {
-            memset( buffer, 0, sizeof(buffer) );
+            memset( buffer.get(), 0, buffer_size );
             system( "cls" );
             if ( _cputs( "Please input a password (max length " ) != 0 )
             {
@@ -146,7 +152,7 @@ namespace ssc
                 fputs( "Failed to _cputs\n", stderr );
                 exit( EXIT_FAILURE );
             }
-            inner = true;
+            repeat_input = true;
             while ( repeat_input )
             {
                 int ch = _getch();
@@ -204,9 +210,9 @@ namespace ssc
             }/* ! if ( index < min_pw_size ) */
             repeat_ui = false;
         }/* ! while ( repeat_ui ) */
-        int const password_size = strlen( buffer );
-        strncpy( pw_buffer, buffer, password_size + 1 );
-        zero_sensitive( buffer, sizeof(buffer) );
+        int const password_size = strlen( buffer.get() );
+        strncpy( pw_buffer, buffer.get(), password_size + 1 );
+        zero_sensitive( buffer.get(), buffer_size );
         system( "cls" );
 #else
     #error "ssc::Terminal::get_pw(...) defined for Gnu/Linux and MS Windows"

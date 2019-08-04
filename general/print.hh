@@ -2,21 +2,12 @@
 #include <cstdint>
 #include <cstdio>
 
-#define MS_API
-#ifdef _WIN64
-    #if defined( SSC_EXPORTS )
-        #define MS_API __declspec(dllexport)
-    #else
-        #define MS_API __declspec(dllimport)
-    #endif
-#endif
-
 namespace ssc
 {
-    MS_API void print_binary_buffer( const uint8_t * buffer, const size_t num_bytes );
+    void print_binary_buffer( const uint8_t * buffer, const size_t num_bytes );
     
     template< typename integral_t >
-    MS_API void print_integral_buffer( integral_t * const i_buf, const size_t num_elements )
+    void print_integral_buffer( integral_t * const i_buf, const size_t num_elements )
     {
         using std::printf;
         static constexpr const auto& format_str = []( const size_t size ) {

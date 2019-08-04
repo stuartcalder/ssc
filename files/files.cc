@@ -82,7 +82,7 @@ namespace ssc
         return static_cast<size_t>(s.st_size);
 #else // All other platforms
         size_t num_bytes = 0;
-        FILE * stream = fopen( filename "rb" );
+        FILE * stream = fopen( filename, "rb" );
         if ( stream == nullptr )
         {
             fprintf( stderr, "Failed to open file %s\n", filename );
@@ -124,9 +124,9 @@ namespace ssc
         }
     }
 
-    void enforce_file_existence(char const * const filename,
-                                bool const         force_to_exist,
-                                char const * const opt_error_msg)
+    void enforce_file_existence(char const * const __restrict filename,
+                                bool const                    force_to_exist,
+                                char const * const __restrict opt_error_msg)
     {
         bool const exists = file_exists( filename );
         if ( exists )

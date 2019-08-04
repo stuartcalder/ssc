@@ -9,34 +9,25 @@
 #include <cstring>
 #include <ssc/general/integers.hh>
 
-#define MS_API
-#ifdef _WIN64
-    #if defined( SSC_EXPORTS )
-        #define MS_API __declspec(dllexport)
-    #else
-        #define MS_API __declspec(dllimport)
-    #endif
-#endif
-
 namespace ssc
 {
     static_assert(CHAR_BIT == 8);
     template< typename uint_t >
-    MS_API uint_t rotate_left( uint_t value, uint_t count )
+    uint_t rotate_left( uint_t value, uint_t count )
     {
         const uint_t mask = (CHAR_BIT * sizeof(uint_t)) - 1;
         count &= mask;
         return ( value << count ) | ( value >> (-count & mask));
     }
     template< typename uint_t >
-    MS_API uint_t rotate_right( uint_t value, uint_t count )
+    uint_t rotate_right( uint_t value, uint_t count )
     {
         const uint_t mask = (CHAR_BIT * sizeof(uint_t)) - 1;
         count &= mask;
         return ( value >> count ) | ( value << (-count & mask));
     }
     template< std::size_t Block_Bits >
-    MS_API void xor_block(void * __restrict block, const void * __restrict add)
+    void xor_block(void * __restrict block, const void * __restrict add)
     {
         static_assert( CHAR_BIT == 8 );
         static_assert( (Block_Bits % 8 == 0), "Bits must be a multiple of bytes" );
@@ -92,8 +83,8 @@ namespace ssc
         }
     }
     
-    MS_API void generate_random_bytes(u8_t * const buffer,
-                                      std::size_t  num_bytes);
-    MS_API void zero_sensitive(void *      buffer,
-                               std::size_t num_bytes);
+    void generate_random_bytes(u8_t * const buffer,
+                               std::size_t  num_bytes);
+    void zero_sensitive(void *      buffer,
+                        std::size_t num_bytes);
 }

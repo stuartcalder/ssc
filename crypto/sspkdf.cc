@@ -5,12 +5,12 @@
 
 namespace ssc
 {
-    void SSPKDF(u8_t * const derived_key,
-                char const * password,
-                int const    password_length,
-                u8_t const * salt,
-                u32_t const  number_iterations,
-                u32_t const  number_concatenations)
+    void SSPKDF(u8_t * const __restrict derived_key,
+                char const * __restrict password,
+                int const               password_length,
+                u8_t const * __restrict salt,
+                u32_t const             number_iterations,
+                u32_t const             number_concatenations)
     {
         using std::memcpy;
         constexpr const int    State_Bits = 512;

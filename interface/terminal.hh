@@ -4,18 +4,9 @@
 #include <cstdint>
 #include <cstring>
 
-#define MS_API
-#ifdef _WIN64
-    #if defined( SSC_EXPORTS )
-        #define MS_API __declspec(dllexport)
-    #else
-        #define MS_API __declspec(dllimport)
-    #endif
-#endif
-
 namespace ssc
 {
-    class MS_API Terminal
+    class Terminal
     {
     public:
         /* CONSTRUCTORS */

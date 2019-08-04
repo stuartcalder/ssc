@@ -5,19 +5,10 @@
 #include <ssc/crypto/operations.hh>
 #include <ssc/general/integers.hh>
 
-#define MS_API
-#ifdef _WIN64
-    #if defined( SSC_EXPORTS )
-        #define MS_API __declspec(dllexport)
-    #else
-        #define MS_API __declspec(dllimport)
-    #endif
-#endif
-
 namespace ssc
 {
     template <std::size_t Key_Bits>
-    class MS_API Threefish
+    class Threefish
     {
     public:
         /* STATIC CHECKS */
@@ -59,8 +50,8 @@ namespace ssc
     };
     
     template <std::size_t Key_Bits>
-    void Threefish<Key_Bits>::rekey(const u8_t * new_key,
-                                    const u8_t * new_tweak)
+    void Threefish<Key_Bits>::rekey(const u8_t * __restrict new_key,
+                                    const u8_t * __restrict new_tweak)
     {
         expand_key( new_key, new_tweak );
     }
@@ -73,14 +64,14 @@ namespace ssc
     }
     
     template <std::size_t Key_Bits>
-    void Threefish<Key_Bits>::MIX(u64_t *x0, u64_t *x1, const int round, const int index) const
+    void Threefish<Key_Bits>::MIX(u64_t * __restrict x0, u64_t * __restrict x1, const int round, const int index) const
     {
         (*x0) = ((*x0) + (*x1));
         (*x1) = ( rotate_left<u64_t>( (*x1), get_rotate_constant( round, index ) ) ^ (*x0) );
     }
     
     template <std::size_t Key_Bits>
-    void Threefish<Key_Bits>::inverse_MIX(u64_t *x0, u64_t *x1, const int round, const int index) const
+    void Threefish<Key_Bits>::inverse_MIX(u64_t * __restrict x0, u64_t * __restrict x1, const int round, const int index) const
     {
         (*x1) = ((*x0) ^ (*x1));
         (*x1) = rotate_right<u64_t>( (*x1), get_rotate_constant( round, index ) ) ;
@@ -136,7 +127,7 @@ namespace ssc
     }/* ! get_rotate_constant */
     
     template <std::size_t Key_Bits >
-    void Threefish<Key_Bits>::expand_key(const u8_t *k, const u8_t *tw)
+    void Threefish<Key_Bits>::expand_key(const u8_t * __restrict k, const u8_t * __restrict tw)
     {
         // key / tweak setup
         u64_t key[Number_Words + 1]; // Big enough for the parity word
