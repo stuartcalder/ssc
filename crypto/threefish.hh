@@ -5,10 +5,19 @@
 #include <ssc/crypto/operations.hh>
 #include <ssc/general/integers.hh>
 
+#define MS_API
+#ifdef _WIN64
+    #if defined( SSC_EXPORTS )
+        #define MS_API __declspec(dllexport)
+    #else
+        #define MS_API __declspec(dllimport)
+    #endif
+#endif
+
 namespace ssc
 {
     template <std::size_t Key_Bits>
-    class Threefish
+    class MS_API Threefish
     {
     public:
         /* STATIC CHECKS */

@@ -4,9 +4,18 @@
 #include <string>
 #include <vector>
 
+#define MS_API
+#ifdef _WIN64
+    #if defined( SSC_EXPORTS )
+        #define MS_API __declspec(dllexport)
+    #else
+        #define MS_API __declspec(dllimport)
+    #endif
+#endif
+
 namespace ssc
 {
-    class Arg_Mapping
+    class MS_API Arg_Mapping
     {
     public:
         /* PUBLIC CONSTANTS & ALIASES */

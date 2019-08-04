@@ -7,6 +7,15 @@
 #include <ssc/crypto/operations.hh>
 #include <ssc/general/integers.hh>
 
+#define MS_API
+#ifdef _WIN64
+    #if defined( SSC_EXPORTS )
+        #define MS_API __declspec(dllexport)
+    #else
+        #define MS_API __declspec(dllimport)
+    #endif
+#endif
+
 /* 
   CBC < Block_Cipher_t, Block_Bits >
   This class implements The Cipher-Block-Chaining mode of operation for cryptographic block ciphers.
@@ -27,7 +36,7 @@
 namespace ssc
 {
     template<typename Block_Cipher_t, std::size_t Block_Bits>
-    class CBC
+    class MS_API CBC
     {
     public:
         /* COMPILE TIME CHECKS */
