@@ -7,8 +7,10 @@
     #include <unistd.h>
 #elif defined(_WIN64)
     #include <windows.h>
+#if 0 // Test without including these first
     #include <fileapi.h>
     #include <winbase.h>
+#endif
 #else
     #error "Only defined for Gnu/Linux"
 #endif

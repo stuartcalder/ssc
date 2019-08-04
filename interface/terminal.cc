@@ -1,10 +1,12 @@
 #include <cstdio>
+#include <cstdlib>
 
 #include <ssc/interface/terminal.hh>
 
 #if   defined(__gnu_linux__)
     #include <ncurses.h>
 #elif defined(_WIN64)
+    #include <conio.h>
     #include <windows.h>
 #endif
 
@@ -17,23 +19,7 @@ namespace ssc
         getmaxyx( stdscr, std_height, std_width );
         clear();
 #elif defined(_WIN64)
-        std_input_handle = GetStdHandle( STD_INPUT_HANDLE );
-        // Get standard input handle
-        if ( std_input_handle == INVALID_HANDLE_VALUE )
-        {
-            ErrorExit( "GetStdHandle" );
-        }
-        // Save the original mode
-        if ( ! GetConsoleMode( std_input_handle, &original_console_mode ) )
-        {
-            ErrorExit( "GetConsoleMode" );
-        }
-        // Set the new mode
-        DWORD new_mode = ENABLE_INSERT_MODE | ENABLE_PROCESSED_INPUT; 
-        if ( ! SetConsoleMode( std_input_handle, new_mode ) )
-        {
-            ErrorExit( "SetConsoleMode" );
-        }
+        system( "cls" );
 #else
     #error "ssc::Terminal() only defined for Gnu/Linux and MS Windows"
 #endif
@@ -43,12 +29,7 @@ namespace ssc
 #if   defined(__gnu_linux__)
         endwin();
 #elif defined(_WIN64)
-        if ( ! SetConsoleMode( std_input_handle, original_console_mode ) )
-        {
-            ErrorExit( "SetConsoleMode" );
-        }
-        //TODO
-        #error "Not implemented yet"
+        system( "cls" );
 #else
     #error "ssc::~Terminal() only defined for Gnu/Linux and MS Windows"
 #endif
@@ -59,26 +40,31 @@ namespace ssc
     {
         using namespace std;
 #if   defined(__gnu_linux__)
+        // Screen setup
         cbreak();               // Disable line buffering
         noecho();               // Disable echoing
         keypad( stdscr, TRUE ); // Enable special characters
+        // Buffer and index setup
         char buffer[ max_pw_size + 1 ]; // Prepare to store `max_pw_size` chars
         int index = 0;                  // Start from the beginning
         char mpl[4] = { 0 };            // max password length c-string
         snprintf( mpl, sizeof(mpl), "%d", max_pw_size );
+        // Create a new blank window `w`
         WINDOW *w = newwin( 5, max_pw_size, 0, 0 );
+        // Enable special characters in the new window `w`
         keypad( w, TRUE );
         bool outer, inner;
         outer = true;
         while ( outer )
         {
-            memset( buffer, 0, sizeof(buffer) );
-            wclear( w );
-            wmove( w, 1, 0 );
+            memset( buffer, 0, sizeof(buffer) ); // Zero the buffer
+            wclear( w );                         // Clear the new window
+            wmove( w, 1, 0 );                    // Move the cursor into position
             waddstr( w, "Please input a password (max length " );
             waddstr( w, mpl );
             waddstr( w, " characters)\n> " );
             inner = true;
+            // Input loop
             while( inner )
             {
                 int ch = wgetch( w );
@@ -105,8 +91,7 @@ namespace ssc
                         if ( index <= max_pw_size - 1 ) {
                             waddch( w, '*' );
                             wrefresh( w );
-                            buffer[ index ] = static_cast<char>( ch );
-                            ++index;
+                            buffer[ index++ ] = static_cast<char>( ch );
                         }
                 }
             }/* ! while( inner ) */
@@ -140,8 +125,89 @@ namespace ssc
         int index = 0;
         char mpl [4] = { 0 };
         snprintf( mpl, sizeof(mpl), "%d", max_pw_size );
-        //TODO
-        #error "Not totally implemented yet"
+        bool repeat_ui, repeat_input;
+        outer = true;
+        while ( repeat_ui )
+        {
+            memset( buffer, 0, sizeof(buffer) );
+            system( "cls" );
+            if ( _cputs( "Please input a password (max length " ) != 0 )
+            {
+                fputs( "Failed to _cputs\n", stderr );
+                exit( EXIT_FAILURE );
+            }
+            if ( _cputs( mpl ) != 0 )
+            {
+                fputs( "Failed to _cputs\n", stderr );
+                exit( EXIT_FAILURE );
+            }
+            if ( _cputs( " characters)\r\n> " ) != 0 )
+            {
+                fputs( "Failed to _cputs\n", stderr );
+                exit( EXIT_FAILURE );
+            }
+            inner = true;
+            while ( repeat_input )
+            {
+                int ch = _getch();
+                switch ( ch )
+                {
+                    // A password character key was pushed
+                    default:
+                        if ( (index <= max_pw_size - 1) &&
+                                (ch >= 32) && (ch <= 126) )
+                        {
+                            if ( _putch( '*' ) == EOF )
+                            {
+                                fputs( "Failed to _putch\n", stderr );
+                                exit( EXIT_FAILURE );
+                            }
+                            buffer[ index++ ] = static_cast<char>(ch);
+                        }
+                        break;
+                    // Backspace was pushed
+                    case ( '\b' ):
+                        if ( index > 0 )
+                        {
+                            if ( _cputs( "\b \b" ) != 0 )
+                            {
+                                fputs( "Failed to _cputs\n", stderr );
+                                exit( EXIT_FAILURE );
+                            }
+                            buffer[ --index ] = '\0';
+                        }
+                        break;
+                    // Enter was pushed
+                    case ( '\r' ):
+                        repeat_input = false;
+                        break;
+                }
+            }/* ! while ( repeat_input ) */
+            if ( index < min_pw_size )
+            {
+                constexpr auto char_arr_size = [](auto const &s)
+                {
+                    return sizeof(s) - 1;
+                };
+                constexpr auto const & first = "Minimum of ";
+                constexpr auto const & second = " characters needed!\r\n";
+                char prompt [char_arr_size(first) + \ // all the chars of first
+                             char_arr_size(second) + \ // all the chars of second
+                             2 + \                     // 2 chars for min pw length
+                             1] = { 0 };             // 0 null char
+                snprintf( prompt,
+                        sizeof(prompt),
+                        "Minimum of %d characters needed!\r\n",
+                        min_pw_size );
+                notify( prompt );
+                continue;
+            }/* ! if ( index < min_pw_size ) */
+            repeat_ui = false;
+        }/* ! while ( repeat_ui ) */
+        int const password_size = strlen( buffer );
+        strncpy( pw_buffer, buffer, password_size + 1 );
+        zero_sensitive( buffer, sizeof(buffer) );
+        system( "cls" );
 #else
     #error "ssc::Terminal::get_pw(...) defined for Gnu/Linux and MS Windows"
 #endif
@@ -158,8 +224,14 @@ namespace ssc
         wgetch( w );
         delwin( w );
 #elif defined(_WIN64)
-        //TODO
-        #error "Not implemented yet"
+        system( "cls" );
+        if ( _cputs( notice ) != 0 )
+        {
+            fputs( "Failed to _cputs\n", stderr );
+            exit( EXIT_FAILURE );
+        }
+        system( "pause" );
+        system( "cls" );
 #else
     #error "ssc::Terminal::notify(...) defined for Gnu/Linux and MS Windows"
 #endif

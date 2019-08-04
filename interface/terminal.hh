@@ -21,10 +21,7 @@ namespace ssc
 #if   defined(__gnu_linux__)
         int std_height;
         int std_width;
-#elif defined(_WIN64)
-        HANDLE std_input_handle;
-        DWORD  original_console_mode;
-#else
+#elif !defined(_WIN64)
     #error "ssc::Terminal only defined for Gnu/Linux and MS Windows"
 #endif
     };/* ! class ssc::Terminal */
