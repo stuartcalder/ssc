@@ -11,7 +11,8 @@ namespace ssc
     {
     public:
         /* PUBLIC CONSTANTS & ALIASES */
-        using Arg_Map_t = std::vector< std::pair<std::string, std::string> >;
+        using String_Pair_t = std::pair<std::string, std::string>;
+        using Arg_Map_t = std::vector< String_Pair_t >;
         /* PUBLIC INTERFACE */
         void print_mapping() const;
         void parse_c_args(const int argc, const char * argv[]);
@@ -22,8 +23,8 @@ namespace ssc
         Arg_Mapping(const int argc, const char * argv[]);
     private:
         /* PRIVATE DATA */
-        Arg_Map_t mapping;
+        DLL_LOCAL Arg_Map_t mapping;
         /* PRIVATE INTERFACE */
-        bool is_option     (const std::string & str) const;
+        DLL_LOCAL bool is_option     (const std::string & str) const;
     };
 }
