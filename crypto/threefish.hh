@@ -137,24 +137,26 @@ namespace ssc
         u64_t key[Number_Words + 1]; // Big enough for the parity word
         std::memcpy( key, k, sizeof(state) );
         u64_t tweak[3];
-        if ( tw != nullptr ) { // If a valid tweak was supplied
+        if ( tw != nullptr )
+        { // If a valid tweak was supplied
             std::memcpy( tweak, tw, sizeof(u64_t) * 2 );
             // Tweak parity word
             tweak[ 2 ] = tweak[ 0 ] ^ tweak[ 1 ];
         }
-        else {              // If a valid tweak wasn't supplied
+        else
+        { // If a valid tweak wasn't supplied
             tweak[ 0 ] = 0;
             tweak[ 1 ] = 0;
             tweak[ 2 ] = 0;
         }
         // Define parity words for the key. (tweak parity word is above)
         key[ Number_Words ] = Constant_240;
-        for ( int i = 0; i < Number_Words; ++i ) {
+        for ( int i = 0; i < Number_Words; ++i )
             key[ Number_Words ] ^= key[ i ];
-        }
         
         // Arbitrary keyschedule generation
-        for ( int subkey = 0; subkey < Number_Subkeys; ++subkey ) {// for each subkey
+        for ( int subkey = 0; subkey < Number_Subkeys; ++subkey )
+        { // for each subkey
             const int subkey_index = subkey * Number_Words;
             for ( int i = 0; i <= Number_Words - 4; ++i )// each word of the subkey
                 key_schedule[ subkey_index + i ] = key[ (subkey + i) % (Number_Words + 1) ];
@@ -190,7 +192,8 @@ namespace ssc
     void Threefish<Key_Bits>::cipher(const u8_t *in, u8_t *out)
     {
         std::memcpy( state, in, sizeof(state) );
-        for ( int round = 0; round < Number_Rounds; ++round ) {
+        for ( int round = 0; round < Number_Rounds; ++round )
+        {
             // Adding subkeys
             if ( round % 4 == 0 )
                 add_subkey( round );
@@ -209,7 +212,8 @@ namespace ssc
     {
         std::memcpy( state, in, sizeof(state) );
         subtract_subkey( Number_Rounds );
-        for ( int round = Number_Rounds - 1; round >= 0; --round ) {
+        for ( int round = Number_Rounds - 1; round >= 0; --round )
+        {
             inverse_permute_state();
             for ( int j = 0; j <= (Number_Words / 2) - 1; ++j )
                 inverse_MIX( (state + (2 * j)), (state + (2 * j) + 1), round, j );
@@ -223,80 +227,80 @@ namespace ssc
     void Threefish<Key_Bits>::permute_state()
     {
         if      constexpr(Number_Words == 4)
-	{
-		u64_t w = state[ 1 ];
-		state[ 1 ] = state[ 3 ];
-		state[ 3 ] = w;
-	}
+        {
+            u64_t w = state[ 1 ];
+            state[ 1 ] = state[ 3 ];
+            state[ 3 ] = w;
+        }
         else if constexpr(Number_Words == 8)
-	{
-		u64_t w0, w1;
-		/* Start from the left. Shift words in and out as necessary
-		Starting with index 0 ...*/
-		// index 0 overwrites index 6
-		w0 = state[ 6 ];
-		state[ 6 ] = state[ 0 ];
-		// original index 6 (currently w0)
-		// overwrites index 4 (saved into w1)
-		w1 = state[ 4 ];
-		state[ 4 ] = w0;
-		// original index 4 (currently w1)
-		// overwrites index 2 (saved into w0)
-		w0 = state[ 2 ];
-		state[ 2 ] = w1;
-		// original index 2 (currently w0)
-		// overwrites index 0 (doesn't need to be saved, as it was already written into state[6]
-		state[ 0 ] = w0;
+        {
+            u64_t w0, w1;
+            /* Start from the left. Shift words in and out as necessary
+            Starting with index 0 ...*/
+            // index 0 overwrites index 6
+            w0 = state[ 6 ];
+            state[ 6 ] = state[ 0 ];
+            // original index 6 (currently w0)
+            // overwrites index 4 (saved into w1)
+            w1 = state[ 4 ];
+            state[ 4 ] = w0;
+            // original index 4 (currently w1)
+            // overwrites index 2 (saved into w0)
+            w0 = state[ 2 ];
+            state[ 2 ] = w1;
+            // original index 2 (currently w0)
+            // overwrites index 0 (doesn't need to be saved, as it was already written into state[6]
+            state[ 0 ] = w0;
 
-		/* Index 1 and 5 don't move. All that's left is to swap index 3 and index 7 */
-		w0 = state[ 3 ];
-		state[ 3 ] = state[ 7 ];
-		state[ 7 ] = w0;
-	}
+            /* Index 1 and 5 don't move. All that's left is to swap index 3 and index 7 */
+            w0 = state[ 3 ];
+            state[ 3 ] = state[ 7 ];
+            state[ 7 ] = w0;
+        }
         else if constexpr(Number_Words == 16)
-	{
-		u64_t w0, w1;
-		// 1 overwrites 15 (stored in w0)
-		w0 = state[ 15 ];
-		state[ 15 ] = state[ 1 ];
-		// 15 (in w0) overwrites 7 (stored in w1)
-		w1 = state[ 7 ];
-		state[ 7 ] = w0;
-		// 7 (in w1) overwrites 9 (stored in w0)
-		w0 = state[ 9 ];
-		state[ 9 ] = w1;
-		// 9 (in w0) overwrites 1
-		state[ 1 ] = w0;
+        {
+            u64_t w0, w1;
+            // 1 overwrites 15 (stored in w0)
+            w0 = state[ 15 ];
+            state[ 15 ] = state[ 1 ];
+            // 15 (in w0) overwrites 7 (stored in w1)
+            w1 = state[ 7 ];
+            state[ 7 ] = w0;
+            // 7 (in w1) overwrites 9 (stored in w0)
+            w0 = state[ 9 ];
+            state[ 9 ] = w1;
+            // 9 (in w0) overwrites 1
+            state[ 1 ] = w0;
 
-		// 3 overwrites 11 (stored in w0)
-		w0 = state[ 11 ];
-		state[ 11 ] = state[ 3 ];
-		// 11 (in w0) overwrites 5 (stored in w1)
-		w1 = state[ 5 ];
-		state[ 5 ] = w0;
-		// 5 (in w1) overwrites 13 (stored in w0)
-		w0 = state[ 13 ];
-		state[ 13 ] = w1;
-		// 13 (in w0) overwrites 3
-		state[ 3 ] = w0;
+            // 3 overwrites 11 (stored in w0)
+            w0 = state[ 11 ];
+            state[ 11 ] = state[ 3 ];
+            // 11 (in w0) overwrites 5 (stored in w1)
+            w1 = state[ 5 ];
+            state[ 5 ] = w0;
+            // 5 (in w1) overwrites 13 (stored in w0)
+            w0 = state[ 13 ];
+            state[ 13 ] = w1;
+            // 13 (in w0) overwrites 3
+            state[ 3 ] = w0;
 
-		// 4 and 6 are swapped
-		w0 = state[ 4 ];
-		state[ 4 ] = state[ 6 ];
-		state[ 6 ] = w0;
+            // 4 and 6 are swapped
+            w0 = state[ 4 ];
+            state[ 4 ] = state[ 6 ];
+            state[ 6 ] = w0;
 
-		// 8 overwrites 14 (stored in w0)
-		w0 = state[ 14 ];
-		state[ 14 ] = state[ 8 ];
-		// 14 (in w0) overwrites 12 (stored in w1)
-		w1 = state[ 12 ];
-		state[ 12 ] = w0;
-		// 12 (in w1) overwrites 10 (stored in w0)
-		w0 = state[ 10 ];
-		state[ 10 ] = w1;
-		// 10 (in w0) overwrites 8
-		state[ 8 ] = w0;
-	}
+            // 8 overwrites 14 (stored in w0)
+            w0 = state[ 14 ];
+            state[ 14 ] = state[ 8 ];
+            // 14 (in w0) overwrites 12 (stored in w1)
+            w1 = state[ 12 ];
+            state[ 12 ] = w0;
+            // 12 (in w1) overwrites 10 (stored in w0)
+            w0 = state[ 10 ];
+            state[ 10 ] = w1;
+            // 10 (in w0) overwrites 8
+            state[ 8 ] = w0;
+        }
     }
     
     template <std::size_t Key_Bits>
