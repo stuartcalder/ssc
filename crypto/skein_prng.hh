@@ -6,20 +6,12 @@
 #include <ssc/crypto/skein.hh>
 #include <ssc/crypto/operations.hh>
 #include <ssc/general/integers.hh>
-
-#define DLL_API
-#if defined( _WIN32 )
-    #if defined( BUILD_DLL )
-        #define DLL_API __declspec(dllexport)
-    #else
-        #define DLL_API __declspec(dllimport)
-    #endif
-#endif
+#include <ssc/general/symbols.hh>
 
 namespace ssc
 {
     template <std::size_t State_Bits>
-    class DLL_API Skein_PRNG
+    class DLL_PUBLIC Skein_PRNG
     {
     public:
         static_assert( State_Bits == 256 ||
@@ -38,8 +30,8 @@ namespace ssc
         void get(u8_t * const output_buffer,
                  const u64_t  requested_bytes);
     private:
-        u8_t    state [State_Bytes];
-        Skein_t skein;
+        DLL_LOCAL u8_t    state [State_Bytes];
+        DLL_LOCAL Skein_t skein;
     };
     
     template <std::size_t State_Bits>

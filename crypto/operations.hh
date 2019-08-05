@@ -8,35 +8,27 @@
 #include <climits>
 #include <cstring>
 #include <ssc/general/integers.hh>
-
-#define DLL_API
-#if defined( _WIN32 )
-    #if defined( BUILD_DLL )
-        #define DLL_API __declspec(dllexport)
-    #else
-        #define DLL_API __declspec(dllimport)
-    #endif
-#endif
+#include <ssc/general/symbols.hh>
 
 namespace ssc
 {
     static_assert(CHAR_BIT == 8);
     template< typename uint_t >
-    DLL_API uint_t rotate_left( uint_t value, uint_t count )
+    DLL_PUBLIC uint_t rotate_left( uint_t value, uint_t count )
     {
         const uint_t mask = (CHAR_BIT * sizeof(uint_t)) - 1;
         count &= mask;
         return ( value << count ) | ( value >> (-count & mask));
     }
     template< typename uint_t >
-    DLL_API uint_t rotate_right( uint_t value, uint_t count )
+    DLL_PUBLIC uint_t rotate_right( uint_t value, uint_t count )
     {
         const uint_t mask = (CHAR_BIT * sizeof(uint_t)) - 1;
         count &= mask;
         return ( value >> count ) | ( value << (-count & mask));
     }
     template< std::size_t Block_Bits >
-    DLL_API void xor_block(void * __restrict block, const void * __restrict add)
+    DLL_PUBLIC void xor_block(void * __restrict block, const void * __restrict add)
     {
         static_assert( CHAR_BIT == 8 );
         static_assert( (Block_Bits % 8 == 0), "Bits must be a multiple of bytes" );
@@ -92,8 +84,8 @@ namespace ssc
         }
     }/* ! xor_block */
     
-    DLL_API void generate_random_bytes(u8_t * const buffer,
-                                       std::size_t  num_bytes);
-    DLL_API void zero_sensitive(void *      buffer,
-                                std::size_t num_bytes);
+    DLL_PUBLIC void generate_random_bytes(u8_t * const buffer,
+                                          std::size_t  num_bytes);
+    DLL_PUBLIC void zero_sensitive(void *      buffer,
+                                   std::size_t num_bytes);
 }

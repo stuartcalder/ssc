@@ -1,22 +1,14 @@
 #pragma once
 #include <cstdint>
 #include <cstdio>
-
-#define DLL_API
-#if defined( _WIN32 )
-    #if defined( BUILD_DLL )
-        #define DLL_API __declspec(dllexport)
-    #else
-        #define DLL_API __declspec(dllimport)
-    #endif
-#endif
+#include <ssc/general/symbols.hh>
 
 namespace ssc
 {
-    DLL_API void print_binary_buffer( const uint8_t * buffer, const size_t num_bytes );
+    DLL_PUBLIC void print_binary_buffer( const uint8_t * buffer, const size_t num_bytes );
     
     template< typename integral_t >
-    DLL_API void print_integral_buffer( integral_t * const i_buf, const size_t num_elements )
+    DLL_PUBLIC void print_integral_buffer( integral_t * const i_buf, const size_t num_elements )
     {
         using std::printf;
         static constexpr const auto& format_str = []( const size_t size ) {

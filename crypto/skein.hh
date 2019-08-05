@@ -2,20 +2,13 @@
 #include <ssc/crypto/threefish.hh>
 #include <ssc/crypto/ubi.hh>
 #include <ssc/general/integers.hh>
+#include <ssc/general/symbols.hh>
 
-#define DLL_API
-#if defined( _WIN32 )
-    #if defined( BUILD_DLL )
-        #define DLL_API __declspec(dllexport)
-    #else
-        #define DLL_API __declspec(dllimport)
-    #endif
-#endif
 
 namespace ssc
 {
     template <std::size_t State_Bits>
-    class DLL_API Skein
+    class DLL_PUBLIC Skein
     {
     public:
         /* PUBLIC CONSTANTS AND COMPILE-TIME CHECKS */
@@ -43,15 +36,15 @@ namespace ssc
                          u64_t const num_bytes_in);
     private:
         /* PRIVATE DATA */
-        UBI_t ubi;
+        DLL_LOCAL UBI_t ubi;
         /* PRIVATE INTERFACE */
-        void process_config_block_ (u64_t const num_output_bits);
-        void process_key_block_    (u8_t const * const key_in,
-                                    u64_t const key_size);
-        void process_message_block_(u8_t const * const message_in,
-                                    u64_t const message_size);
-        void output_transform_     (u8_t * const out,
-                                    u64_t const num_output_bytes);
+        DLL_LOCAL void process_config_block_ (u64_t const num_output_bits);
+        DLL_LOCAL void process_key_block_    (u8_t const * const key_in,
+                                              u64_t const key_size);
+        DLL_LOCAL void process_message_block_(u8_t const * const message_in,
+                                              u64_t const message_size);
+        DLL_LOCAL void output_transform_     (u8_t * const out,
+                                              u64_t const num_output_bytes);
     };
     
     template <std::size_t State_Bits>

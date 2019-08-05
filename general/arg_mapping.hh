@@ -3,19 +3,11 @@
 #include <utility>
 #include <string>
 #include <vector>
-
-#define DLL_API
-#if defined( _WIN32 )
-    #if defined( BUILD_DLL )
-        #define DLL_API __declspec(dllexport)
-    #else
-        #define DLL_API __declspec(dllimport)
-    #endif
-#endif
+#include <ssc/general/symbols.hh>
 
 namespace ssc
 {
-    class DLL_API Arg_Mapping
+    class DLL_PUBLIC Arg_Mapping
     {
     public:
         /* PUBLIC CONSTANTS & ALIASES */

@@ -6,15 +6,7 @@
 #include <utility>
 #include <ssc/crypto/operations.hh>
 #include <ssc/general/integers.hh>
-
-#define DLL_API
-#if defined( _WIN32 )
-    #if defined( BUILD_DLL )
-        #define DLL_API __declspec(dllexport)
-    #else
-        #define DLL_API __declspec(dllimport)
-    #endif
-#endif
+#include <ssc/general/symbols.hh>
 
 /* 
   CBC < Block_Cipher_t, Block_Bits >
@@ -36,7 +28,7 @@
 namespace ssc
 {
     template<typename Block_Cipher_t, std::size_t Block_Bits>
-    class DLL_API CBC
+    class DLL_PUBLIC CBC
     {
     public:
         /* COMPILE TIME CHECKS */
@@ -58,9 +50,9 @@ namespace ssc
         Block_Cipher_t  blk_cipher;
         u8_t            state[Block_Bytes] = { 0 };
         /* PRIVATE INTERFACE */
-        static std::size_t        apply_iso_iec_7816_padding_(u8_t *bytes, const std::size_t prepadding_size);
-        static std::size_t  count_iso_iec_7816_padding_bytes_(const u8_t * const bytes, const std::size_t padded_size);
-        static std::size_t  calculate_padded_ciphertext_size_(const std::size_t unpadded_plaintext_size);
+        DLL_LOCAL static std::size_t        apply_iso_iec_7816_padding_(u8_t *bytes, const std::size_t prepadding_size);
+        DLL_LOCAL static std::size_t  count_iso_iec_7816_padding_bytes_(const u8_t * const bytes, const std::size_t padded_size);
+        DLL_LOCAL static std::size_t  calculate_padded_ciphertext_size_(const std::size_t unpadded_plaintext_size);
     };
     
     // CONSTRUCTORS

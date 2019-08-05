@@ -1,5 +1,5 @@
 CC = g++
-CXXFLAGS = -std=c++17 -O3 -pipe -Wall -fno-exceptions
+CXXFLAGS = -std=c++17 -O3 -pipe -Wall -fno-exceptions -fvisibility=hidden
 OBJFLAGS = -c -fPIC
 LINKOPTS = -Wl,--no-undefined
 LIBPATH = /usr/lib
@@ -20,7 +20,7 @@ files.o:
 	$(CC) $(CXXFLAGS) $(OBJFLAGS) \
 		files/files.cc
 terminal.o:
-	$(CC) $(CXXFLAGS) $(LINKOPTS) $(OBJFLAGS) \
+	$(CC) $(CXXFLAGS) $(OBJFLAGS) \
 		interface/terminal.cc
 operations.o:
 	$(CC) $(CXXFLAGS) $(OBJFLAGS) \

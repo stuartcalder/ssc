@@ -1,21 +1,13 @@
 #pragma once
 
-#include <ssc/crypto/operations.hh>
 #include <cstdint>
 #include <cstring>
-
-#define DLL_API
-#if defined( _WIN32 )
-    #if defined( BUILD_DLL )
-        #define DLL_API __declspec(dllexport)
-    #else
-        #define DLL_API __declspec(dllimport)
-    #endif
-#endif
+#include <ssc/crypto/operations.hh>
+#include <ssc/general/symbols.hh>
 
 namespace ssc
 {
-    class DLL_API Terminal
+    class DLL_PUBLIC Terminal
     {
     public:
         /* CONSTRUCTORS */
@@ -27,8 +19,8 @@ namespace ssc
         void notify(char const * notice);
     private:
 #if defined( __gnu_linux__ )
-        int std_height;
-        int std_width;
+        DLL_LOCAL int std_height;
+        DLL_LOCAL int std_width;
 #elif !defined( _WIN64 )
     #error "ssc::Terminal only defined for Gnu/Linux and MS Windows"
 #endif
