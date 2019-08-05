@@ -4,11 +4,20 @@
 #include <ssc/crypto/operations.hh>
 #include <ssc/general/integers.hh>
 
+#define DLL_API
+#if defined( _WIN32 )
+    #if defined( BUILD_DLL )
+        #define DLL_API __declspec(dllexport)
+    #else
+        #define DLL_API __declspec(dllimport)
+    #endif
+#endif
+
 namespace ssc
 {
     template <typename Tweakable_Block_Cipher_t,
               std::size_t State_Bits>
-    class UBI
+    class DLL_API UBI
     {
     public:
         /* Compile-Time checks, Constants, and Aliases */

@@ -4,9 +4,18 @@
 #include <cstdint>
 #include <cstring>
 
+#define DLL_API
+#if defined( _WIN32 )
+    #if defined( BUILD_DLL )
+        #define DLL_API __declspec(dllexport)
+    #else
+        #define DLL_API __declspec(dllimport)
+    #endif
+#endif
+
 namespace ssc
 {
-    class Terminal
+    class DLL_API Terminal
     {
     public:
         /* CONSTRUCTORS */
@@ -17,10 +26,10 @@ namespace ssc
                     int const    min_pw_size);
         void notify(char const * notice);
     private:
-#if   defined(__gnu_linux__)
+#if defined( __gnu_linux__ )
         int std_height;
         int std_width;
-#elif !defined(_WIN64)
+#elif !defined( _WIN64 )
     #error "ssc::Terminal only defined for Gnu/Linux and MS Windows"
 #endif
     };/* ! class ssc::Terminal */

@@ -3,10 +3,19 @@
 #include <ssc/crypto/ubi.hh>
 #include <ssc/general/integers.hh>
 
+#define DLL_API
+#if defined( _WIN32 )
+    #if defined( BUILD_DLL )
+        #define DLL_API __declspec(dllexport)
+    #else
+        #define DLL_API __declspec(dllimport)
+    #endif
+#endif
+
 namespace ssc
 {
     template <std::size_t State_Bits>
-    class Skein
+    class DLL_API Skein
     {
     public:
         /* PUBLIC CONSTANTS AND COMPILE-TIME CHECKS */
