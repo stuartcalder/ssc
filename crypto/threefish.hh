@@ -24,18 +24,21 @@ namespace ssc
         static_assert((Key_Bits == 256 || Key_Bits == 512 || Key_Bits == 1024), "Invalid keysize");
         static_assert ((CHAR_BIT == 8), "This implementation needs 8-bit chars");
         /* PUBLIC CONSTANTS */
-        static constexpr const int       Number_Words   = Key_Bits / 64;
-        static constexpr const int       Number_Rounds  = [](auto nw) {
-                                                              if ( nw == 16 )
-                                                                  return 80;
-                                                              return 72;
-                                                          }(Number_Words);
-        static constexpr const int       Number_Subkeys = (Number_Rounds / 4) + 1;
-        static constexpr const u64_t     Constant_240   = 0x1bd1'1bda'a9fc'1a22;
+        static constexpr const int   Number_Words   = Key_Bits / 64;
+        static constexpr const int   Number_Rounds  = [](auto nw)
+                                                      {
+                                                          if ( nw == 16 )
+                                                              return 80;
+                                                          return 72;
+                                                      }( Number_Words );
+        static constexpr const int   Number_Subkeys = (Number_Rounds / 4) + 1;
+        static constexpr const u64_t Constant_240   = 0x1bd1'1bda'a9fc'1a22;
         /* CONSTRUCTORS / DESTRUCTORS */
-        Threefish() {
+        Threefish()
+        {
         }
-        Threefish(const u8_t * __restrict k, const u8_t * __restrict tw = nullptr) {
+        Threefish(const u8_t * __restrict k, const u8_t * __restrict tw = nullptr)
+        {
             expand_key( k, tw );
         }
         ~Threefish(); // forward declared
@@ -45,8 +48,8 @@ namespace ssc
         void rekey(const u8_t __restrict * new_key, const u8_t __restrict * new_tweak = nullptr);
     private:
         /* PRIVATE DATA */
-        u64_t state       [Number_Words];
-        u64_t key_schedule[Number_Subkeys * Number_Words];
+        u64_t state        [Number_Words];
+        u64_t key_schedule [Number_Subkeys * Number_Words];
         /* PRIVATE FUNCTIONS */
         void         MIX                  (u64_t * __restrict x0, u64_t * __restrict x1, const int round, const int index) const;
         void         inverse_MIX          (u64_t * __restrict x0, u64_t * __restrict x1, const int round, const int index) const;
@@ -54,7 +57,7 @@ namespace ssc
         void         add_subkey           (const int round);
         void         subtract_subkey      (const int round);
         static u64_t get_rotate_constant  (const int round, const int index);
-        void         permute_state();
+        void         permute_state        ();
         void         inverse_permute_state();
     };
     
@@ -308,76 +311,76 @@ namespace ssc
     void Threefish<Key_Bits>::inverse_permute_state()
     {
         if constexpr(Number_Words == 4)
-	{
-		permute_state();  // here, permute_state() and inverse_permute_state() are the same operation
-	}
+        {
+            permute_state();  // here, permute_state() and inverse_permute_state() are the same operation
+        }
         else if constexpr(Number_Words == 8)
-	{
-		u64_t w0, w1;
-		/* Starting from the left with index 0 */
-		// original index 0
-		// overwrites original index 2 (saved into w0)
-		w0 = state[ 2 ];
-		state[ 2 ] = state[ 0 ];
-		// original index 2 (currently in w0)
-		// overwrites original index 4 (saved into w1)
-		w1 = state[ 4 ];
-		state[ 4 ] = w0;
-		// original index 4 (currently in w1)
-		// overwrites original index 6 (saved into w0)
-		w0 = state[ 6 ];
-		state[ 6 ] = w1;
-		// original index 6 (currently in w0)
-		// overwrites original index 0 (doesnt need to be saved)
-		state[ 0 ] = w0;
-		/* Index 1 and 5 don't move. All that's left is to swap index 3 and index 7 */
-		w0 = state[ 3 ];
-		state[ 3 ] = state[ 7 ];
-		state[ 7 ] = w0;
-	}
+        {
+            u64_t w0, w1;
+            /* Starting from the left with index 0 */
+            // original index 0
+            // overwrites original index 2 (saved into w0)
+            w0 = state[ 2 ];
+            state[ 2 ] = state[ 0 ];
+            // original index 2 (currently in w0)
+            // overwrites original index 4 (saved into w1)
+            w1 = state[ 4 ];
+            state[ 4 ] = w0;
+            // original index 4 (currently in w1)
+            // overwrites original index 6 (saved into w0)
+            w0 = state[ 6 ];
+            state[ 6 ] = w1;
+            // original index 6 (currently in w0)
+            // overwrites original index 0 (doesnt need to be saved)
+            state[ 0 ] = w0;
+            /* Index 1 and 5 don't move. All that's left is to swap index 3 and index 7 */
+            w0 = state[ 3 ];
+            state[ 3 ] = state[ 7 ];
+            state[ 7 ] = w0;
+        }
         else if constexpr(Number_Words == 16)
-	{
-		 u64_t w0, w1;
-		 // 1 overwrites 9 (stored in w0)
-		 w0 = state[ 9 ];
-		 state[ 9 ] = state[ 1 ];
-		 // 9 (in w0) overwrites 7 (stored in w1)
-		 w1 = state[ 7 ];
-		 state[ 7 ] = w0;
-		 // 7 (in w1) overwrites 15 (stored in w0)
-		 w0 = state[ 15 ];
-		 state[ 15 ] = w1;
-		 // 15 (in w0) overwrites 1
-		 state[ 1 ] = w0;
-		 
-		 // 3 overwrites 13 (stored in w0)
-		 w0 = state[ 13 ];
-		 state[ 13 ] = state[ 3 ];
-		 // 13 (in w0) overwrites 5 (stored in w1)
-		 w1 = state[ 5 ];
-		 state[ 5 ] = w0;
-		 // 5 (in w1) overwrites 11 (stored in w0)
-		 w0 = state[ 11 ];
-		 state[ 11 ] = w1;
-		 // 11 (in w0) overwrites 3
-		 state[ 3 ] = w0;
-		 
-		 // 4 and 6 are swapped
-		 w0 = state[ 4 ];
-		 state[ 4 ] = state[ 6 ];
-		 state[ 6 ] = w0;
-		 
-		 // 8 overwrites 10 (stored in w0)
-		 w0 = state[ 10 ];
-		 state[ 10 ] = state[ 8 ];
-		 // 10 (in w0) overwrites 12 (stored in w1)
-		 w1 = state[ 12 ];
-		 state[ 12 ] = w0;
-		 // 12 (in w1) overwrites 14 (stored in w0)
-		 w0 = state[ 14 ];
-		 state[ 14 ] = w1;
-		 // 14 (in w0) overwrites 8
-		 state[ 8 ] = w0;
-	}
+        {
+             u64_t w0, w1;
+             // 1 overwrites 9 (stored in w0)
+             w0 = state[ 9 ];
+             state[ 9 ] = state[ 1 ];
+             // 9 (in w0) overwrites 7 (stored in w1)
+             w1 = state[ 7 ];
+             state[ 7 ] = w0;
+             // 7 (in w1) overwrites 15 (stored in w0)
+             w0 = state[ 15 ];
+             state[ 15 ] = w1;
+             // 15 (in w0) overwrites 1
+             state[ 1 ] = w0;
+             
+             // 3 overwrites 13 (stored in w0)
+             w0 = state[ 13 ];
+             state[ 13 ] = state[ 3 ];
+             // 13 (in w0) overwrites 5 (stored in w1)
+             w1 = state[ 5 ];
+             state[ 5 ] = w0;
+             // 5 (in w1) overwrites 11 (stored in w0)
+             w0 = state[ 11 ];
+             state[ 11 ] = w1;
+             // 11 (in w0) overwrites 3
+             state[ 3 ] = w0;
+             
+             // 4 and 6 are swapped
+             w0 = state[ 4 ];
+             state[ 4 ] = state[ 6 ];
+             state[ 6 ] = w0;
+             
+             // 8 overwrites 10 (stored in w0)
+             w0 = state[ 10 ];
+             state[ 10 ] = state[ 8 ];
+             // 10 (in w0) overwrites 12 (stored in w1)
+             w1 = state[ 12 ];
+             state[ 12 ] = w0;
+             // 12 (in w1) overwrites 14 (stored in w0)
+             w0 = state[ 14 ];
+             state[ 14 ] = w1;
+             // 14 (in w0) overwrites 8
+             state[ 8 ] = w0;
+        }
     }
 } /* ! namespace ssc */
