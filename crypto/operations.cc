@@ -1,10 +1,10 @@
 #include <ssc/general/integers.hh>
 #include <ssc/crypto/operations.hh>
 
-#if   defined(__gnu_linux__)
+#if   defined( __gnu_linux__ )
     // Include unistd.h for getentropy()
     #include <unistd.h>
-#elif defined(_WIN64)
+#elif defined( _WIN64 )
     // Include as the base for win32 crap
     #include <windows.h>
     // Include for definitions of NTSUCCESS
@@ -13,7 +13,7 @@
     // Include bcrypt.h for BCryptGenRandom()
     #include <bcrypt.h>
 #else
-    #error "Currently operations.cc only implemented for Gnu/Linux and Microsoft Windows"
+    #error "Currently operations.cc only implemented for Gnu/Linux and 64-bit Microsoft Windows"
 #endif
 
 namespace ssc
@@ -22,7 +22,7 @@ namespace ssc
     {
         using namespace std;
 
-#if   defined(__gnu_linux__)
+#if   defined( __gnu_linux__ )
         static constexpr auto const & Fail_String = "Failed to getentropy()\n";
         size_t offset = 0;
         while ( num_bytes >= 256 )
@@ -40,7 +40,7 @@ namespace ssc
             fputs( Fail_String, stderr );
             exit( EXIT_FAILURE );
         }
-#elif defined(_WIN64)
+#elif defined( _WIN64 )
         BCRYPT_ALG_HANDLE cng_provider_handle;
         // Open algorithm provider
         if ( BCryptOpenAlgorithmProvider( &cng_provider_handle, L"RNG", NULL, 0 ) != STATUS_SUCCESS )
@@ -68,9 +68,9 @@ namespace ssc
     {
         using namespace std;
 
-#if   defined(__gnu_linux__)
+#if   defined( __gnu_linux__ )
         explicit_bzero( buffer, num_bytes );
-#elif defined(_WIN64)
+#elif defined( _WIN64 )
         SecureZeroMemory( buffer, num_bytes );
 #else
     #error "ssc::zero_sensitive defined for Gnu/Linux and MS Windows"
