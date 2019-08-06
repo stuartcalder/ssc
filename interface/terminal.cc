@@ -16,11 +16,11 @@ namespace ssc
 {
     Terminal::Terminal()
     {
-#if   defined(__gnu_linux__)
+#if   defined( __gnu_linux__ )
         initscr();
         getmaxyx( stdscr, std_height, std_width );
         clear();
-#elif defined(_WIN64)
+#elif defined( _WIN64 )
         system( "cls" );
 #else
     #error "ssc::Terminal() only defined for Gnu/Linux and MS Windows"
@@ -28,9 +28,9 @@ namespace ssc
     }/* ! ssc::Terminal::Terminal() */
     Terminal::~Terminal()
     {
-#if   defined(__gnu_linux__)
+#if   defined( __gnu_linux__ )
         endwin();
-#elif defined(_WIN64)
+#elif defined( _WIN64 )
         system( "cls" );
 #else
     #error "ssc::~Terminal() only defined for Gnu/Linux and MS Windows"
@@ -41,13 +41,17 @@ namespace ssc
                           int const min_pw_size)
     {
         using namespace std;
-#if   defined(__gnu_linux__)
+#if   defined( __gnu_linux__ )
         // Screen setup
         cbreak();               // Disable line buffering
         noecho();               // Disable echoing
         keypad( stdscr, TRUE ); // Enable special characters
         // Buffer and index setup
+#if 0
         char buffer[ max_pw_size + 1 ]; // Prepare to store `max_pw_size` chars
+#endif
+        auto const buffer_size = max_pw_size + 1;
+        auto buffer = std::make_unique<char[]>( buffer_size );
         int index = 0;                  // Start from the beginning
         char mpl[4] = { 0 };            // max password length c-string
         snprintf( mpl, sizeof(mpl), "%d", max_pw_size );
@@ -59,7 +63,7 @@ namespace ssc
         outer = true;
         while ( outer )
         {
-            memset( buffer, 0, sizeof(buffer) ); // Zero the buffer
+            memset( buffer.get(), 0, buffer_size ); // Zero the buffer
             wclear( w );                         // Clear the new window
             wmove( w, 1, 0 );                    // Move the cursor into position
             waddstr( w, "Please input a password (max length " );
@@ -76,7 +80,8 @@ namespace ssc
                     case ( KEY_DC ):
                     case ( KEY_LEFT ):
                     case ( KEY_BACKSPACE ):
-                        if ( index > 0 ) {
+                        if ( index > 0 )
+                        {
                             int y, x;
                             getyx( w, y, x );
                             wdelch( w );
@@ -90,7 +95,8 @@ namespace ssc
                         inner = false;
                         break;
                     default:
-                        if ( index <= max_pw_size - 1 ) {
+                        if ( index <= max_pw_size - 1 )
+                        {
                             waddch( w, '*' );
                             wrefresh( w );
                             buffer[ index++ ] = static_cast<char>( ch );
@@ -118,14 +124,11 @@ namespace ssc
             }/* ! if ( index < min_pw_size ) */
             outer = false;
         }/* ! while ( outer ) */
-        int const password_size = strlen( buffer );
-        strncpy( pw_buffer, buffer, password_size + 1 );
-        zero_sensitive( buffer, sizeof(buffer) );
+        int const password_size = strlen( buffer.get() );
+        strncpy( pw_buffer, buffer.get(), password_size + 1 );
+        zero_sensitive( buffer.get(), buffer_size );
         delwin( w );
-#elif defined(_WIN64)
-#if 0
-        char buffer [max_pw_size + 1];
-#endif
+#elif defined( _WIN64 )
         auto const buffer_size = max_pw_size + 1;
         auto buffer = std::make_unique<char[]>( buffer_size );
         int index = 0;
@@ -221,7 +224,7 @@ namespace ssc
     void Terminal::notify(char const *notice)
     {
         using namespace std;
-#if   defined(__gnu_linux__)
+#if   defined( __gnu_linux__ )
         WINDOW * w = newwin( 1, strlen(notice) + 1, 0, 0 );
         wclear( w );
         wmove( w, 0, 0 );
@@ -229,7 +232,7 @@ namespace ssc
         wrefresh( w );
         wgetch( w );
         delwin( w );
-#elif defined(_WIN64)
+#elif defined( _WIN64 )
         system( "cls" );
         if ( _cputs( notice ) != 0 )
         {
