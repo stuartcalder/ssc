@@ -1,23 +1,19 @@
 #include <ssc/files/files.hh>
 #include <ssc/general/integers.hh>
 
-#if   defined(__gnu_linux__)
+#if   defined( __gnu_linux__ )
     #include <sys/types.h>
     #include <sys/stat.h>
     #include <unistd.h>
-#elif defined(_WIN64)
+#elif defined( _WIN64 )
     #include <windows.h>
-#if 0 // Test without including these first
-    #include <fileapi.h>
-    #include <winbase.h>
-#endif
 #else
     #error "Only defined for Gnu/Linux"
 #endif
 
 namespace ssc
 {
-#if   defined(__gnu_linux__)
+#if   defined( __gnu_linux__ )
     std::size_t get_file_size(const int file_d)
     {
         using namespace std;
@@ -32,7 +28,7 @@ namespace ssc
         using namespace std;
         using namespace std;
     }
-#elif defined(_WIN64)
+#elif defined( _WIN64 )
     std::size_t get_file_size(HANDLE handle)
     {
         using namespace std;
@@ -72,7 +68,7 @@ namespace ssc
     {
         using namespace std;
         
-#if defined(__gnu_linux__)
+#if defined( __gnu_linux__ )
         struct stat s;
         if ( stat( filename, &s ) != 0 )
         {
