@@ -8,7 +8,7 @@ namespace ssc
     DLL_PUBLIC void print_binary_buffer( const uint8_t * buffer, const size_t num_bytes );
     
     template< typename integral_t >
-    DLL_PUBLIC void print_integral_buffer( integral_t * const i_buf, const size_t num_elements )
+    void print_integral_buffer( integral_t * const i_buf, const size_t num_elements )
     {
         using std::printf;
         static constexpr const auto& format_str = []( const size_t size ) {
@@ -30,8 +30,11 @@ namespace ssc
         const integral_t * const alias = reinterpret_cast<const integral_t*>( i_buf );
         
         printf( "0x" );
-        for( size_t i = 0; i < num_elements; ++i )
+        for ( size_t i = 0; i < num_elements; ++i )
             printf( format_str, alias[i] );
         printf( "\n" );
     }
-}
+#if defined( _WIN32 )
+    template void DLL_PUBLIC print_integral_buffer<unsigned char>
+#endif
+}/* ! namespace ssc */
