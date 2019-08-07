@@ -379,5 +379,7 @@ namespace ssc
              state[ 8 ] = w0;
         }
     }
+#if defined( _WIN32 )
     template class DLL_PUBLIC Threefish<512>;
+#endif
 } /* ! namespace ssc */

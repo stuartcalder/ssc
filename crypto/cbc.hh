@@ -207,5 +207,7 @@ namespace ssc
             zero_sensitive( buffer    , Block_Bytes );
             zero_sensitive( ciphertext, Block_Bytes );
         }
+#if defined( _WIN32 )
     template class DLL_PUBLIC CBC< Threefish<512>, 512 >;
+#endif
 }

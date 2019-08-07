@@ -84,9 +84,11 @@ namespace ssc
         }
     }/* ! xor_block */
 
+#if defined( _WIN32 )
     template u64_t DLL_PUBLIC rotate_left(u64_t value, u64_t count);
     template u64_t DLL_PUBLIC rotate_right(u64_t value, u64_t count);
     template void  DLL_PUBLIC xor_block<512>(void * __restrict block, void const * __restrict add);
+#endif
     
     DLL_PUBLIC void generate_random_bytes(u8_t * const buffer,
                                           std::size_t  num_bytes);
