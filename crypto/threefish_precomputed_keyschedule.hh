@@ -5,6 +5,7 @@
 #include <iostream>
 #include <ssc/crypto/operations.hh>
 
+#if 0 // Disable threefish_precomputed_keyschedule
 namespace ssc
 {
     template< size_t KEY_BITS=512 >
@@ -292,3 +293,4 @@ namespace ssc
             }
     }
 }
+#endif

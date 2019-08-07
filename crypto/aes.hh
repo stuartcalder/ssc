@@ -3,12 +3,14 @@
 #include <iostream>
 #include <ssc/crypto/operations.hh>
 #include <ssc/general/integers.hh>
-#if defined(__gnu_linux__)
-#include <endian.h>
+
+#if defined( __gnu_linux__ )
+    #include <endian.h>
 #else
-#error "Unimplemented on anything but Gnu/Linux"
+    #error "Unimplemented on anything but Gnu/Linux"
 #endif
 
+#if 0 // Disable AES code for now
 namespace ssc
 {
     template <std::size_t KEYBITS = 256>
@@ -362,3 +364,4 @@ namespace ssc
         }
     }
 }
+#endif

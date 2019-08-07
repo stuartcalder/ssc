@@ -5,6 +5,7 @@
 #include <ssc/crypto/cbc.hh>
 #include <ssc/files/files.hh>
 
+#if 0 // Disable file_encryption for now
 namespace ssc
 {
     template< typename Block_Cipher_t, size_t Block_Bits >
@@ -129,3 +130,4 @@ namespace ssc
         fclose( output_file );
     }
 }
+#endif

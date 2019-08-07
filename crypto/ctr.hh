@@ -6,6 +6,7 @@
 #include <utility>
 #include <ssc/general/integers.hh>
 
+#if 0 // Disable ctr for now
 namespace ssc
 {
     template<typename Block_Cipher_t, int Block_Bits>
@@ -140,3 +141,4 @@ namespace ssc
         return keystream;
     }
 }
+#endif

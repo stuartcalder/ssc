@@ -4,7 +4,9 @@
 #include <ssc/crypto/operations.hh>
 #include <ssc/general/integers.hh>
 #include <ssc/general/symbols.hh>
-#include <ssc/crypto/threefish.hh>
+#if defined( _WIN32 )
+    #include <ssc/crypto/threefish.hh>
+#endif
 
 namespace ssc
 {

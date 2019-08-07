@@ -5,6 +5,7 @@
 #include <iostream>
 #include <ssc/crypto/operations.hh>
 
+#if 0 // Disable threefish_runtime_keyschedule for now.
 template< size_t KEY_BITS=512 >
 class Threefish_Runtime_Keyschedule
 {
@@ -288,3 +289,4 @@ uint64_t Threefish_Runtime_Keyschedule<KEY_BITS>::inverse_permute_index(const in
     return perm[i];
   }
 }
+#endif

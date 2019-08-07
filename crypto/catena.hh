@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 
+#if 0 // Disable Catena for now
 namespace ssc
 {
     template< typename Hash_Func_t,
@@ -30,3 +31,4 @@ namespace ssc
               size_t   Hash_Bits >
     Catena<Hash_Func_t,Hash_Bits>::
 }
+#endif

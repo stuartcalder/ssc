@@ -134,9 +134,9 @@ namespace ssc
     void Threefish<Key_Bits>::expand_key(const u8_t * __restrict k, const u8_t * __restrict tw)
     {
         // key / tweak setup
-        u64_t key[Number_Words + 1]; // Big enough for the parity word
+        u64_t key [Number_Words + 1]; // Big enough for the parity word
         std::memcpy( key, k, sizeof(state) );
-        u64_t tweak[3];
+        u64_t tweak [3];
         if ( tw != nullptr )
         { // If a valid tweak was supplied
             std::memcpy( tweak, tw, sizeof(u64_t) * 2 );
