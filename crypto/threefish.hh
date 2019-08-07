@@ -9,7 +9,7 @@
 namespace ssc
 {
     template <std::size_t Key_Bits>
-    class DLL_PUBLIC Threefish
+    class Threefish
     {
     public:
         /* STATIC CHECKS */
@@ -40,17 +40,17 @@ namespace ssc
         void rekey(const u8_t __restrict * new_key, const u8_t __restrict * new_tweak = nullptr);
     private:
         /* PRIVATE DATA */
-        DLL_LOCAL u64_t state        [Number_Words];
-        DLL_LOCAL u64_t key_schedule [Number_Subkeys * Number_Words];
+        u64_t state        [Number_Words];
+        u64_t key_schedule [Number_Subkeys * Number_Words];
         /* PRIVATE FUNCTIONS */
-        DLL_LOCAL void         MIX                  (u64_t * __restrict x0, u64_t * __restrict x1, const int round, const int index) const;
-        DLL_LOCAL void         inverse_MIX          (u64_t * __restrict x0, u64_t * __restrict x1, const int round, const int index) const;
-        DLL_LOCAL void         expand_key           (const u8_t * __restrict key, const u8_t * __restrict tweak);
-        DLL_LOCAL void         add_subkey           (const int round);
-        DLL_LOCAL void         subtract_subkey      (const int round);
-        DLL_LOCAL static u64_t get_rotate_constant  (const int round, const int index);
-        DLL_LOCAL void         permute_state        ();
-        DLL_LOCAL void         inverse_permute_state();
+        void         MIX                  (u64_t * __restrict x0, u64_t * __restrict x1, const int round, const int index) const;
+        void         inverse_MIX          (u64_t * __restrict x0, u64_t * __restrict x1, const int round, const int index) const;
+        void         expand_key           (const u8_t * __restrict key, const u8_t * __restrict tweak);
+        void         add_subkey           (const int round);
+        void         subtract_subkey      (const int round);
+        static u64_t get_rotate_constant  (const int round, const int index);
+        void         permute_state        ();
+        void         inverse_permute_state();
     };
     
     template <std::size_t Key_Bits>
@@ -379,4 +379,5 @@ namespace ssc
              state[ 8 ] = w0;
         }
     }
+    template class DLL_PUBLIC Threefish<512>;
 } /* ! namespace ssc */

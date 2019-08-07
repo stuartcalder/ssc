@@ -11,7 +11,7 @@
 namespace ssc
 {
     template <std::size_t State_Bits>
-    class DLL_PUBLIC Skein_PRNG
+    class Skein_PRNG
     {
     public:
         static_assert( State_Bits == 256 ||
@@ -30,8 +30,8 @@ namespace ssc
         void get(u8_t * const output_buffer,
                  const u64_t  requested_bytes);
     private:
-        DLL_LOCAL u8_t    state [State_Bytes];
-        DLL_LOCAL Skein_t skein;
+        u8_t    state [State_Bytes];
+        Skein_t skein;
     };
     
     template <std::size_t State_Bits>
@@ -77,4 +77,5 @@ namespace ssc
                      requested_bytes );
         zero_sensitive( buffer.get(), buffer_size );
     }
-}
+    template class DLL_PUBLIC Skein_PRNG<512>;
+}/* ! namespace ssc */

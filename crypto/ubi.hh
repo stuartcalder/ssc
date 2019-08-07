@@ -4,12 +4,13 @@
 #include <ssc/crypto/operations.hh>
 #include <ssc/general/integers.hh>
 #include <ssc/general/symbols.hh>
+#include <ssc/crypto/threefish.hh>
 
 namespace ssc
 {
     template <typename Tweakable_Block_Cipher_t,
               std::size_t State_Bits>
-    class DLL_PUBLIC UBI
+    class UBI
     {
     public:
         /* Compile-Time checks, Constants, and Aliases */
@@ -40,20 +41,20 @@ namespace ssc
         /* Private Compile-Time constants */
         static constexpr const auto & xor_block_ = xor_block<State_Bits>;
         /* Private Data */
-        DLL_LOCAL Tweakable_Block_Cipher_t block_cipher;
-        DLL_LOCAL u8_t                     tweak_state[Tweak_Bytes];
-        DLL_LOCAL u8_t                     key_state  [State_Bytes];
-        DLL_LOCAL u8_t                     msg_state  [State_Bytes];
+        Tweakable_Block_Cipher_t block_cipher;
+        u8_t                     tweak_state[Tweak_Bytes];
+        u8_t                     key_state  [State_Bytes];
+        u8_t                     msg_state  [State_Bytes];
         /* Private Interface */
-        DLL_LOCAL void       set_tweak_first_();
-        DLL_LOCAL void       set_tweak_last_();
-        DLL_LOCAL void       clear_tweak_first_();
-        DLL_LOCAL void       clear_tweak_last_();
-        DLL_LOCAL void       clear_tweak_all_();
-        DLL_LOCAL void       set_tweak_type_(const Type_Mask_t t_mask);
-        DLL_LOCAL void       clear_msg_();
-        DLL_LOCAL u64_t      read_msg_block_(const u8_t * const message_offset,
-                                             const u64_t        bytes_left);
+        void       set_tweak_first_();
+        void       set_tweak_last_();
+        void       clear_tweak_first_();
+        void       clear_tweak_last_();
+        void       clear_tweak_all_();
+        void       set_tweak_type_(const Type_Mask_t t_mask);
+        void       clear_msg_();
+        u64_t      read_msg_block_(const u8_t * const message_offset,
+                                   const u64_t        bytes_left);
     };
     
     template <typename Tweakable_Block_Cipher_t,
@@ -180,4 +181,5 @@ namespace ssc
     {
         std::memset( key_state, 0, sizeof(key_state) );
     }
-}
+    template class DLL_PUBLIC UBI< Threefish<512>, 512 >;
+}/* ! namespace ssc */

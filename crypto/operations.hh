@@ -14,21 +14,21 @@ namespace ssc
 {
     static_assert(CHAR_BIT == 8);
     template< typename uint_t >
-    DLL_PUBLIC uint_t rotate_left( uint_t value, uint_t count )
+    uint_t rotate_left( uint_t value, uint_t count )
     {
         const uint_t mask = (CHAR_BIT * sizeof(uint_t)) - 1;
         count &= mask;
         return ( value << count ) | ( value >> (-count & mask));
     }
     template< typename uint_t >
-    DLL_PUBLIC uint_t rotate_right( uint_t value, uint_t count )
+    uint_t rotate_right( uint_t value, uint_t count )
     {
         const uint_t mask = (CHAR_BIT * sizeof(uint_t)) - 1;
         count &= mask;
         return ( value >> count ) | ( value << (-count & mask));
     }
     template< std::size_t Block_Bits >
-    DLL_PUBLIC void xor_block(void * __restrict block, const void * __restrict add)
+    void xor_block(void * __restrict block, const void * __restrict add)
     {
         static_assert( CHAR_BIT == 8 );
         static_assert( (Block_Bits % 8 == 0), "Bits must be a multiple of bytes" );
@@ -77,12 +77,16 @@ namespace ssc
         }
         else
         {
-            auto first_byte = reinterpret_cast<u8_t*>(block);
-            auto second_byte = reinterpret_cast<const u8_t*>(add);
+            u8_t       * first_byte = block;
+            u8_t const * second_byte = add;
             for ( std::size_t i = 0; i < Block_Bytes; ++i )
                 (*(first_byte + i)) ^= (*(second_byte + i));
         }
     }/* ! xor_block */
+
+    template u64_t DLL_PUBLIC rotate_left(u64_t value, u64_t count);
+    template u64_t DLL_PUBLIC rotate_right(u64_t value, u64_t count);
+    template void  DLL_PUBLIC xor_block<512>(void * __restrict block, void const * __restrict add);
     
     DLL_PUBLIC void generate_random_bytes(u8_t * const buffer,
                                           std::size_t  num_bytes);

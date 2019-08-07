@@ -28,9 +28,14 @@ operations.o:
 sspkdf.o: 
 	$(CC) $(CXXFLAGS) $(OBJFLAGS) \
 		crypto/sspkdf.cc
-libssc.so: arg_mapping.o base64.o print.o files.o terminal.o operations.o sspkdf.o
+error_conditions.o:
+	$(CC) $(CXXFLAGS) $(OBJFLAGS) \
+		general/error_conditions.cc
+libssc.so: arg_mapping.o base64.o print.o files.o terminal.o operations.o sspkdf.o error_conditions.o
 	$(CC) $(LINKOPTS) $(CXXFLAGS) -shared -o $@ \
-		arg_mapping.o base64.o print.o files.o terminal.o sspkdf.o operations.o \
+		arg_mapping.o base64.o print.o \
+		files.o terminal.o sspkdf.o \
+		operations.o error_conditions.o \
 		$(LINKFLAGS)
 install: libssc.so
 	install -s -m 0755 libssc.so $(LIBPATH)
