@@ -1,4 +1,5 @@
 #include <cstdio>
+#include <cstdlib>
 #include <ssc/general/error_conditions.hh>
 
 namespace ssc
