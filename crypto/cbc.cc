@@ -1,69 +1,14 @@
-#pragma once
-#include <cstdint>
-#include <cstdlib>
-#include <cstring>
-#include <cstdio>
-#include <utility>
-#include <ssc/crypto/operations.hh>
+#include <ssc/crypto/cbc.hh>
 #include <ssc/crypto/threefish.hh>
-#include <ssc/general/integers.hh>
-#include <ssc/general/symbols.hh>
-#include <ssc/general/error_conditions.hh>
 
-/* 
-   CBC < Block_Cipher_t, Block_Bits >
-   This class implements The Cipher-Block-Chaining mode of operation for cryptographic block ciphers.
-   Block_Cipher_t  =====> Some type that implements four specific methods:
-   std::size_t encrypt(const u8_t *bytes_in, u8_t *bytes_out, const std::size_t size_in, const u8_t *iv);
-   If IV is nullptr, the "state" is assumed to be already seeded with past invocations
-   If IV is not nullptr, it is used to seed the state for encryption
-   std::size_t decrypt(const u8_t *bytes_in, u8_t *bytes_out, const std::size_t size_in, const u8_t *iv);
-   If IV is nullptr, the "state" is assumed to be already seeded with past invocations
-   If IV is not nullptr, it is used to seed the state for encryption
-   void   encrypt_no_padding(const u8_t *bytes_in, u8_t *bytes_out, const std::size_t size_in, const u8_t *iv);
-   Same IV conditions as above ; does not do any sort of padding ; must only be used with buffers
-   perfectly divisible by Block_Bits
-   void   decrypt_no_padding(const u8_t *bytes_in, u8_t *bytes_out, const std::size_t size_in, const u8_t *iv);
-   Same conditions as above.
- * Block_Bits      =====> a std::size_t unsigned integer describing the number of bits in 1 block of the block cipher.
- */
 namespace ssc
 {
-    template<typename Block_Cipher_t, std::size_t Block_Bits>
-        class CBC
-        {
-            public:
-                /* COMPILE TIME CHECKS */
-                static_assert((Block_Bits >= 128)                      , "Modern block ciphers have at least 128-bit blocks!");
-                static_assert((Block_Bits % 8 == 0 ) && (CHAR_BIT == 8), "Block size must be a multiple of 8! A 'byte' must be 8 bits here.");
-                /* COMPILE TIME CONSTANTS */
-                static constexpr const std::size_t Block_Bytes = (Block_Bits / 8);
-                /* PUBLIC INTERFACE */
-                CBC() = delete;              // disallow argument-less construction
-                CBC(Block_Cipher_t &&blk_c); // 
-                ~CBC();
-                void   manually_set_state(const u8_t * const __restrict state_bytes);
-                void   encrypt_no_padding(const u8_t *bytes_in, u8_t *bytes_out, const std::size_t size_in, const u8_t * __restrict iv = nullptr);
-                void   decrypt_no_padding(const u8_t *bytes_in, u8_t *bytes_out, const std::size_t size_in, const u8_t * __restrict iv = nullptr);
-                std::size_t            decrypt(const u8_t *bytes_in, u8_t *bytes_out, const std::size_t size_in, const u8_t * __restrict iv = nullptr);
-                std::size_t            encrypt(const u8_t *bytes_in, u8_t *bytes_out, const std::size_t size_in, const u8_t * __restrict iv = nullptr);
-            private:
-                /* PRIVATE STATE */
-                Block_Cipher_t  blk_cipher;
-                u8_t            state [Block_Bytes] = { 0 };
-                /* PRIVATE INTERFACE */
-                static std::size_t        apply_iso_iec_7816_padding_(u8_t *bytes, const std::size_t prepadding_size);
-                static std::size_t  count_iso_iec_7816_padding_bytes_(const u8_t * const bytes, const std::size_t padded_size);
-                static std::size_t  calculate_padded_ciphertext_size_(const std::size_t unpadded_plaintext_size);
-        };
-}/* ! namespace ssc */
-#if 0 // Move implementation to its own file
     // CONSTRUCTORS
     template<typename Block_Cipher_t, std::size_t Block_Bits>
         CBC<Block_Cipher_t,Block_Bits>::CBC(Block_Cipher_t &&blk_c) 
         : blk_cipher{ std::move( blk_c ) }
-    {
-    }
+        {
+        }
     // DESTRUCTORS
     template<typename Block_Cipher_t, std::size_t Block_Bits>
         CBC<Block_Cipher_t,Block_Bits>::~CBC()
@@ -208,5 +153,5 @@ namespace ssc
             zero_sensitive( buffer    , Block_Bytes );
             zero_sensitive( ciphertext, Block_Bytes );
         }
+    template class DLL_PUBLIC CBC< Threefish<512>, 512 >;
 }
-#endif
