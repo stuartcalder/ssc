@@ -200,10 +200,10 @@ namespace ssc
                 };
                 constexpr auto const & first = "Minimum of ";
                 constexpr auto const & second = " characters needed!\r\n";
-                char prompt [char_arr_size(first) + \ // all the chars of first
-                             char_arr_size(second) + \ // all the chars of second
-                             2 + \                     // 2 chars for min pw length
-                             1] = { 0 };             // 0 null char
+                char prompt [char_arr_size(first)  + // all the chars of first
+                             char_arr_size(second) +// all the chars of second
+                             2 +                    // 2 chars for min pw length
+                             1] = { 0 };            // 0 null char
                 snprintf( prompt,
                         sizeof(prompt),
                         "Minimum of %d characters needed!\r\n",
