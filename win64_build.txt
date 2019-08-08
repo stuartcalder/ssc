@@ -1,3 +1,5 @@
+[binaries]
+cpp = 'cl'
 [host_machine]
 system = 'windows'
 cpu_family = 'x86_64'
