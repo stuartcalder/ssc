@@ -1,5 +1,5 @@
 [binaries]
-ccpp = 'cl'
+cpp = 'cl'
 [properties]
 sizeof_int = 4
 sys_root='c:\'
