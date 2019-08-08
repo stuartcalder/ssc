@@ -89,4 +89,7 @@ namespace ssc
     {
         return mapping;
     }
+
+    template class DLL_PUBLIC std::pair<std::string, std::string>;
+    template class DLL_PUBLIC std::vector< std::pair< std::string, std::string> >;
 }
