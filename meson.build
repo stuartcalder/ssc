@@ -20,9 +20,6 @@ elif host_machine.system() == 'windows'
 endif
 
 if host_machine.system() == 'linux'
-    # shared_library( 'ssc', sources: ssc_src, dependencies: lib_deps,
-    #   include_directories: inc_dir,
-    #   cpp_args: extra_args )
     shared_library( 'ssc', sources: ssc_src, dependencies: lib_deps,
         include_directories: inc_dir,  cpp_args:
         extra_args )
