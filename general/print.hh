@@ -34,7 +34,5 @@ namespace ssc
             printf( format_str, alias[i] );
         printf( "\n" );
     }
-#if defined( _WIN32 )
-    template void DLL_PUBLIC print_integral_buffer<unsigned char>;
-#endif
-}/* ! namespace ssc */
+    template void DLL_PUBLIC print_integral_buffer<unsigned char>(unsigned char * const, size_t const);
+}/* ! namespace isc */
