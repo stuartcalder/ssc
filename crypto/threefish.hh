@@ -34,7 +34,7 @@ namespace ssc
         /* PUBLIC FUNCTIONS */
         void cipher(const u8_t *in, u8_t *out);
         void inverse_cipher(const u8_t *in, u8_t *out);
-        void rekey(const u8_t __restrict * new_key, const u8_t __restrict * new_tweak = nullptr);
+        void rekey(const u8_t * __restrict new_key, const u8_t * __restrict new_tweak = nullptr);
     private:
         /* PRIVATE DATA */
         u64_t state       [Number_Words];
