@@ -19,11 +19,11 @@ namespace ssc
         using String_Pair_t = std::pair<std::string, std::string>;
         using Arg_Map_t = std::vector< String_Pair_t >;
         /* PUBLIC INTERFACE */
-        void print_mapping() const;
-        void parse_c_args(const int argc, const char * argv[]);
-        void clear();
-        Arg_Map_t const & get() const;
-        Arg_Map_t         consume();
+        DLL_PUBLIC void print_mapping() const;
+        DLL_PUBLIC void parse_c_args(const int argc, const char * argv[]);
+        DLL_PUBLIC void clear();
+        DLL_PUBLIC Arg_Map_t const & get() const;
+        DLL_PUBLIC Arg_Map_t         consume();
         /* CONSTRUCTOR(S) */
         Arg_Mapping(const int argc, const char * argv[]);
     private:
