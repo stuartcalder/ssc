@@ -9,8 +9,10 @@
     // Include as the base for win32 crap
     #include <windows.h>
     // Include for definitions of NTSUCCESS
+#if 0
     #include <ntstatus.h>
     #include <ntdef.h>
+#endif
     // Include bcrypt.h for BCryptGenRandom()
     #include <bcrypt.h>
 #else
