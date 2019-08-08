@@ -4,12 +4,6 @@
 #include <string>
 #include <vector>
 #include <ssc/general/symbols.hh>
-namespace std
-{
-    template class DLL_PUBLIC std::pair< std::string, std::string >;
-    template class DLL_PUBLIC std::vector< std::pair< std::string, std::string > >;
-}
-
 namespace ssc
 {
     class DLL_PUBLIC Arg_Mapping

@@ -31,18 +31,11 @@ sspkdf.o:
 error_conditions.o:
 	$(CC) $(CXXFLAGS) $(OBJFLAGS) \
 		general/error_conditions.cc
-threefish.o:
-	$(CC) $(CXXFLAGS) $(OBJFLAGS) \
-		crypto/threefish.cc
-cbc.o: threefish.o
-	$(CC) $(CXXFLAGS) $(OBJFLAGS) \
-		crypto/cbc.cc
-libssc.so: arg_mapping.o base64.o print.o files.o terminal.o operations.o sspkdf.o error_conditions.o cbc.o threefish.o
+libssc.so: arg_mapping.o base64.o print.o files.o terminal.o operations.o sspkdf.o error_conditions.o
 	$(CC) $(LINKOPTS) $(CXXFLAGS) -shared -o $@ \
 		arg_mapping.o base64.o print.o \
 		files.o terminal.o sspkdf.o \
 		operations.o error_conditions.o \
-		cbc.o threefish.o \
 		$(LINKFLAGS)
 install: libssc.so
 	install -s -m 0755 libssc.so $(LIBPATH)
