@@ -1,5 +1,5 @@
 [binaries]
-cpp = 'C:/Program Files (x64)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.22.27905/bin/Hostx86/x86/cl.exe'
+cpp = 'C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.22.27905/bin/Hostx86/x64/cl.exe'
 [host_machine]
 system = 'windows'
 cpu_family = 'x86_64'
