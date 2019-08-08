@@ -13,10 +13,13 @@ if host_machine.system() == 'linux'
     lib_deps += cc.find_library( 'ncurses' )
     lib_deps += cc.find_library( 'tinfo' )
     inc_dir  = include_directories( '/usr/local/include' )
+    extra_args = ''
 elif host_machine.system() == 'windows'
     lib_deps += cc.find_library( 'bcrypt' )
     inc_dir = include_directories( 'C:\local\include' )
+    extra_args = '-DBUILD_DLL'
 endif
 
 shared_library( 'ssc', sources: ssc_src, dependencies: lib_deps,
-    include_directories: inc_dir )
+    include_directories: inc_dir,
+    cpp_args: extra_args )
