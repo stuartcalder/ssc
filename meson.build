@@ -5,7 +5,8 @@ cc = meson.get_compiler( 'cpp' )
 
 ssc_src = [ 'general/arg_mapping.cc', 'general/base64.cc', 'general/print.cc',
     'files/files.cc', 'interface/terminal.cc', 'crypto/operations.cc',
-    'crypto/sspkdf.cc', 'general/error_conditions.cc' ]
+    'crypto/sspkdf.cc', 'general/error_conditions.cc', 'crypto/cbc.cc',
+    'crypto/threefish.cc' ]
 
 lib_deps = []
 if host_machine.system() == 'linux'
@@ -16,7 +17,7 @@ endif
 
 if host_machine.system() == 'windows'
     lib_deps += cc.find_library( 'bcrypt' )
-    inc_dir = include_directories( 'C:\\local\\include' )
+    inc_dir = include_directories( 'C:\local\include' )
 endif
 
 shared_library( 'ssc', sources: ssc_src, dependencies: lib_deps,
