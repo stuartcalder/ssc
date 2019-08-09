@@ -1,5 +1,6 @@
 project( 'ssc', 'cpp', default_options: [ 'cpp_std=c++17', 'buildtype=release',
-                                          'optimization=3', 'strip=true' ] )
+                                          'optimization=3', 'strip=true',
+                                          'cpp_eh=none'] )
 
 cc = meson.get_compiler( 'cpp' )
 
