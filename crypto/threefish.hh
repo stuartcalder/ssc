@@ -218,7 +218,7 @@ namespace ssc
     template <std::size_t Key_Bits>
     void Threefish<Key_Bits>::permute_state()
     {
-        if      constexpr(Number_Words == 4)
+        if constexpr(Number_Words == 4)
         {
             u64_t w = state[ 1 ];
             state[ 1 ] = state[ 3 ];
