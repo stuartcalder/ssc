@@ -5,7 +5,7 @@
 #include <string>
 #include <ssc/general/symbols.hh>
 
-#if defined( _WIN32 )
+#ifdef _WIN64
     #include <windows.h>
 #endif
 
