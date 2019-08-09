@@ -14,7 +14,7 @@ if host_machine.system() == 'linux'
     extra_args = '-fvisibility=hidden'
 elif host_machine.system() == 'windows'
     lib_deps += cc.find_library( 'bcrypt' )
-    inc_dir = include_directories( 'C:\local\include' )
+    inc_dir = include_directories( 'C:/local/include' )
     extra_args = '-DBUILD_STATIC'
 endif
 
