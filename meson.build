@@ -23,5 +23,5 @@ if host_machine.system() == 'linux'
                     cpp_args: extra_args )
 elif host_machine.system() == 'windows'
     static_library( 'ssc', sources: ssc_src, dependencies: lib_deps,
-        include_directories: inc_dir, cpp_args: extra_args)
+        include_directories: inc_dir, cpp_args: extra_args, install: true)
 endif
