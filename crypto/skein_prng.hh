@@ -77,5 +77,4 @@ namespace ssc
                      requested_bytes );
         zero_sensitive( buffer.get(), buffer_size );
     }
-    template class DLL_PUBLIC Skein_PRNG<512>;
 }/* ! namespace ssc */

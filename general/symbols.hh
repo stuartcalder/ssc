@@ -1,6 +1,6 @@
 #pragma once
 
-#if defined( BUILD_STATIC )
+#if defined( BUILD_STATIC ) || defined( IMPORT_STATIC )
     #define DLL_PUBLIC
     #define DLL_LOCAL
 #else

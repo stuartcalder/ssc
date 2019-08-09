@@ -219,156 +219,156 @@ namespace ssc
     void Threefish<Key_Bits>::permute_state()
     {
         if      constexpr(Number_Words == 4)
-	{
-		u64_t w = state[ 1 ];
-		state[ 1 ] = state[ 3 ];
-		state[ 3 ] = w;
-	}
+        {
+            u64_t w = state[ 1 ];
+            state[ 1 ] = state[ 3 ];
+            state[ 3 ] = w;
+        }
         else if constexpr(Number_Words == 8)
-	{
-		u64_t w0, w1;
-		/* Start from the left. Shift words in and out as necessary
-		Starting with index 0 ...*/
-		// index 0 overwrites index 6
-		w0 = state[ 6 ];
-		state[ 6 ] = state[ 0 ];
-		// original index 6 (currently w0)
-		// overwrites index 4 (saved into w1)
-		w1 = state[ 4 ];
-		state[ 4 ] = w0;
-		// original index 4 (currently w1)
-		// overwrites index 2 (saved into w0)
-		w0 = state[ 2 ];
-		state[ 2 ] = w1;
-		// original index 2 (currently w0)
-		// overwrites index 0 (doesn't need to be saved, as it was already written into state[6]
-		state[ 0 ] = w0;
+        {
+            u64_t w0, w1;
+            /* Start from the left. Shift words in and out as necessary
+            Starting with index 0 ...*/
+            // index 0 overwrites index 6
+            w0 = state[ 6 ];
+            state[ 6 ] = state[ 0 ];
+            // original index 6 (currently w0)
+            // overwrites index 4 (saved into w1)
+            w1 = state[ 4 ];
+            state[ 4 ] = w0;
+            // original index 4 (currently w1)
+            // overwrites index 2 (saved into w0)
+            w0 = state[ 2 ];
+            state[ 2 ] = w1;
+            // original index 2 (currently w0)
+            // overwrites index 0 (doesn't need to be saved, as it was already written into state[6]
+            state[ 0 ] = w0;
 
-		/* Index 1 and 5 don't move. All that's left is to swap index 3 and index 7 */
-		w0 = state[ 3 ];
-		state[ 3 ] = state[ 7 ];
-		state[ 7 ] = w0;
-	}
+            /* Index 1 and 5 don't move. All that's left is to swap index 3 and index 7 */
+            w0 = state[ 3 ];
+            state[ 3 ] = state[ 7 ];
+            state[ 7 ] = w0;
+        }
         else if constexpr(Number_Words == 16)
-	{
-		u64_t w0, w1;
-		// 1 overwrites 15 (stored in w0)
-		w0 = state[ 15 ];
-		state[ 15 ] = state[ 1 ];
-		// 15 (in w0) overwrites 7 (stored in w1)
-		w1 = state[ 7 ];
-		state[ 7 ] = w0;
-		// 7 (in w1) overwrites 9 (stored in w0)
-		w0 = state[ 9 ];
-		state[ 9 ] = w1;
-		// 9 (in w0) overwrites 1
-		state[ 1 ] = w0;
+        {
+            u64_t w0, w1;
+            // 1 overwrites 15 (stored in w0)
+            w0 = state[ 15 ];
+            state[ 15 ] = state[ 1 ];
+            // 15 (in w0) overwrites 7 (stored in w1)
+            w1 = state[ 7 ];
+            state[ 7 ] = w0;
+            // 7 (in w1) overwrites 9 (stored in w0)
+            w0 = state[ 9 ];
+            state[ 9 ] = w1;
+            // 9 (in w0) overwrites 1
+            state[ 1 ] = w0;
 
-		// 3 overwrites 11 (stored in w0)
-		w0 = state[ 11 ];
-		state[ 11 ] = state[ 3 ];
-		// 11 (in w0) overwrites 5 (stored in w1)
-		w1 = state[ 5 ];
-		state[ 5 ] = w0;
-		// 5 (in w1) overwrites 13 (stored in w0)
-		w0 = state[ 13 ];
-		state[ 13 ] = w1;
-		// 13 (in w0) overwrites 3
-		state[ 3 ] = w0;
+            // 3 overwrites 11 (stored in w0)
+            w0 = state[ 11 ];
+            state[ 11 ] = state[ 3 ];
+            // 11 (in w0) overwrites 5 (stored in w1)
+            w1 = state[ 5 ];
+            state[ 5 ] = w0;
+            // 5 (in w1) overwrites 13 (stored in w0)
+            w0 = state[ 13 ];
+            state[ 13 ] = w1;
+            // 13 (in w0) overwrites 3
+            state[ 3 ] = w0;
 
-		// 4 and 6 are swapped
-		w0 = state[ 4 ];
-		state[ 4 ] = state[ 6 ];
-		state[ 6 ] = w0;
+            // 4 and 6 are swapped
+            w0 = state[ 4 ];
+            state[ 4 ] = state[ 6 ];
+            state[ 6 ] = w0;
 
-		// 8 overwrites 14 (stored in w0)
-		w0 = state[ 14 ];
-		state[ 14 ] = state[ 8 ];
-		// 14 (in w0) overwrites 12 (stored in w1)
-		w1 = state[ 12 ];
-		state[ 12 ] = w0;
-		// 12 (in w1) overwrites 10 (stored in w0)
-		w0 = state[ 10 ];
-		state[ 10 ] = w1;
-		// 10 (in w0) overwrites 8
-		state[ 8 ] = w0;
-	}
+            // 8 overwrites 14 (stored in w0)
+            w0 = state[ 14 ];
+            state[ 14 ] = state[ 8 ];
+            // 14 (in w0) overwrites 12 (stored in w1)
+            w1 = state[ 12 ];
+            state[ 12 ] = w0;
+            // 12 (in w1) overwrites 10 (stored in w0)
+            w0 = state[ 10 ];
+            state[ 10 ] = w1;
+            // 10 (in w0) overwrites 8
+            state[ 8 ] = w0;
+        }
     }
     
     template <std::size_t Key_Bits>
     void Threefish<Key_Bits>::inverse_permute_state()
     {
         if constexpr(Number_Words == 4)
-	{
-		permute_state();  // here, permute_state() and inverse_permute_state() are the same operation
-	}
+        {
+            permute_state();  // here, permute_state() and inverse_permute_state() are the same operation
+        }
         else if constexpr(Number_Words == 8)
-	{
-		u64_t w0, w1;
-		/* Starting from the left with index 0 */
-		// original index 0
-		// overwrites original index 2 (saved into w0)
-		w0 = state[ 2 ];
-		state[ 2 ] = state[ 0 ];
-		// original index 2 (currently in w0)
-		// overwrites original index 4 (saved into w1)
-		w1 = state[ 4 ];
-		state[ 4 ] = w0;
-		// original index 4 (currently in w1)
-		// overwrites original index 6 (saved into w0)
-		w0 = state[ 6 ];
-		state[ 6 ] = w1;
-		// original index 6 (currently in w0)
-		// overwrites original index 0 (doesnt need to be saved)
-		state[ 0 ] = w0;
-		/* Index 1 and 5 don't move. All that's left is to swap index 3 and index 7 */
-		w0 = state[ 3 ];
-		state[ 3 ] = state[ 7 ];
-		state[ 7 ] = w0;
-	}
+        {
+            u64_t w0, w1;
+            /* Starting from the left with index 0 */
+            // original index 0
+            // overwrites original index 2 (saved into w0)
+            w0 = state[ 2 ];
+            state[ 2 ] = state[ 0 ];
+            // original index 2 (currently in w0)
+            // overwrites original index 4 (saved into w1)
+            w1 = state[ 4 ];
+            state[ 4 ] = w0;
+            // original index 4 (currently in w1)
+            // overwrites original index 6 (saved into w0)
+            w0 = state[ 6 ];
+            state[ 6 ] = w1;
+            // original index 6 (currently in w0)
+            // overwrites original index 0 (doesnt need to be saved)
+            state[ 0 ] = w0;
+            /* Index 1 and 5 don't move. All that's left is to swap index 3 and index 7 */
+            w0 = state[ 3 ];
+            state[ 3 ] = state[ 7 ];
+            state[ 7 ] = w0;
+        }
         else if constexpr(Number_Words == 16)
-	{
-		 u64_t w0, w1;
-		 // 1 overwrites 9 (stored in w0)
-		 w0 = state[ 9 ];
-		 state[ 9 ] = state[ 1 ];
-		 // 9 (in w0) overwrites 7 (stored in w1)
-		 w1 = state[ 7 ];
-		 state[ 7 ] = w0;
-		 // 7 (in w1) overwrites 15 (stored in w0)
-		 w0 = state[ 15 ];
-		 state[ 15 ] = w1;
-		 // 15 (in w0) overwrites 1
-		 state[ 1 ] = w0;
-		 
-		 // 3 overwrites 13 (stored in w0)
-		 w0 = state[ 13 ];
-		 state[ 13 ] = state[ 3 ];
-		 // 13 (in w0) overwrites 5 (stored in w1)
-		 w1 = state[ 5 ];
-		 state[ 5 ] = w0;
-		 // 5 (in w1) overwrites 11 (stored in w0)
-		 w0 = state[ 11 ];
-		 state[ 11 ] = w1;
-		 // 11 (in w0) overwrites 3
-		 state[ 3 ] = w0;
-		 
-		 // 4 and 6 are swapped
-		 w0 = state[ 4 ];
-		 state[ 4 ] = state[ 6 ];
-		 state[ 6 ] = w0;
-		 
-		 // 8 overwrites 10 (stored in w0)
-		 w0 = state[ 10 ];
-		 state[ 10 ] = state[ 8 ];
-		 // 10 (in w0) overwrites 12 (stored in w1)
-		 w1 = state[ 12 ];
-		 state[ 12 ] = w0;
-		 // 12 (in w1) overwrites 14 (stored in w0)
-		 w0 = state[ 14 ];
-		 state[ 14 ] = w1;
-		 // 14 (in w0) overwrites 8
-		 state[ 8 ] = w0;
-	}
-    }
+        {
+             u64_t w0, w1;
+             // 1 overwrites 9 (stored in w0)
+             w0 = state[ 9 ];
+             state[ 9 ] = state[ 1 ];
+             // 9 (in w0) overwrites 7 (stored in w1)
+             w1 = state[ 7 ];
+             state[ 7 ] = w0;
+             // 7 (in w1) overwrites 15 (stored in w0)
+             w0 = state[ 15 ];
+             state[ 15 ] = w1;
+             // 15 (in w0) overwrites 1
+             state[ 1 ] = w0;
+             
+             // 3 overwrites 13 (stored in w0)
+             w0 = state[ 13 ];
+             state[ 13 ] = state[ 3 ];
+             // 13 (in w0) overwrites 5 (stored in w1)
+             w1 = state[ 5 ];
+             state[ 5 ] = w0;
+             // 5 (in w1) overwrites 11 (stored in w0)
+             w0 = state[ 11 ];
+             state[ 11 ] = w1;
+             // 11 (in w0) overwrites 3
+             state[ 3 ] = w0;
+             
+             // 4 and 6 are swapped
+             w0 = state[ 4 ];
+             state[ 4 ] = state[ 6 ];
+             state[ 6 ] = w0;
+             
+             // 8 overwrites 10 (stored in w0)
+             w0 = state[ 10 ];
+             state[ 10 ] = state[ 8 ];
+             // 10 (in w0) overwrites 12 (stored in w1)
+             w1 = state[ 12 ];
+             state[ 12 ] = w0;
+             // 12 (in w1) overwrites 14 (stored in w0)
+             w0 = state[ 14 ];
+             state[ 14 ] = w1;
+             // 14 (in w0) overwrites 8
+             state[ 8 ] = w0;
+        }
+    }/* inverse_permute_state */
 } /* ! namespace ssc */

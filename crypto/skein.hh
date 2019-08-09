@@ -202,6 +202,5 @@ namespace ssc
         process_message_block_( bytes_in, num_bytes_in );
         output_transform_( bytes_out, State_Bytes );
     }
-    template class DLL_PUBLIC Skein<512>;
 }/* ! namespace ssc */
     

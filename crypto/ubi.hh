@@ -183,5 +183,4 @@ namespace ssc
     {
         std::memset( key_state, 0, sizeof(key_state) );
     }
-    template class DLL_PUBLIC UBI< Threefish<512>, 512 >;
 }/* ! namespace ssc */
