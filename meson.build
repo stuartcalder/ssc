@@ -14,7 +14,7 @@ if host_machine.system() == 'linux'
     lib_deps += cc.find_library( 'tinfo' )
     extra_args = '-fvisibility=hidden'
     shared_library( 'ssc', sources: ssc_src, dependencies: lib_deps,
-                    cpp_args: extra_args, install: true, strip: true)
+                    cpp_args: extra_args, install: true)
 elif host_machine.system() == 'windows'
     lib_deps += cc.find_library( 'bcrypt' )
     inc_dir = include_directories( 'C:/local/include' )
