@@ -2,7 +2,6 @@
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
-#include <cstdio>
 #include <utility>
 #include <ssc/crypto/operations.hh>
 #include <ssc/crypto/threefish.hh>

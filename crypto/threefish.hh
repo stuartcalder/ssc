@@ -298,6 +298,7 @@ namespace ssc
     template <std::size_t Key_Bits>
     void Threefish<Key_Bits>::inverse_permute_state()
     {
+        static_assert(Number_Words == 4 || Number_Words == 8 || Number_Words == 16);
         if constexpr(Number_Words == 4)
         {
             permute_state();  // here, permute_state() and inverse_permute_state() are the same operation
