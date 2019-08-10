@@ -1,8 +1,8 @@
 CC = g++
-CXXFLAGS = -std=c++17 -O3 -pipe -Wall -fno-exceptions -fvisibility=hidden
+CXXFLAGS = -std=c++17 -O3 -pipe -Wall -fno-exceptions -fvisibility=hidden -march=native -flto
 OBJFLAGS = -c -fPIC
 LINKOPTS = -Wl,--no-undefined
-LIBPATH = /usr/lib
+LIBPATH = /usr/lib64
 LINKFLAGS = -lncurses -ltinfo
 
 clean:

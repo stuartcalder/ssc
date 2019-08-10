@@ -77,8 +77,8 @@ namespace ssc
         }
         else
         {
-            u8_t       * first_byte = block;
-            u8_t const * second_byte = add;
+            u8_t       * first_byte = static_cast<u8_t *>(block);
+            u8_t const * second_byte = static_cast<u8_t const *>(add);
             for ( std::size_t i = 0; i < Block_Bytes; ++i )
                 (*(first_byte + i)) ^= (*(second_byte + i));
         }
