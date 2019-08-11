@@ -13,9 +13,10 @@ namespace ssc
         /* CONSTRUCTORS */
         Terminal();
         ~Terminal();
-        void get_pw(char       * pw_buffer,
-                    int const    max_pw_size,
-                    int const    min_pw_size);
+        // Returns password size
+        int get_pw(char    * pw_buffer,
+                   int const max_pw_size,
+                   int const min_pw_size);
         void notify(char const * notice);
     private:
 #if defined( __gnu_linux__ )

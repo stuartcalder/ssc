@@ -36,9 +36,9 @@ namespace ssc
     #error "ssc::~Terminal() only defined for Gnu/Linux and MS Windows"
 #endif
     }/* ! ssc::Terminal::~Terminal() */
-    void Terminal::get_pw(char    * pw_buffer,
-                          int const max_pw_size,
-                          int const min_pw_size)
+    int Terminal::get_pw(char    * pw_buffer,
+                         int const max_pw_size,
+                         int const min_pw_size)
     {
         using namespace std;
 #if   defined( __gnu_linux__ )
@@ -128,6 +128,7 @@ namespace ssc
         strncpy( pw_buffer, buffer.get(), password_size + 1 );
         zero_sensitive( buffer.get(), buffer_size );
         delwin( w );
+        return password_size;
 #elif defined( _WIN64 )
         auto const buffer_size = max_pw_size + 1;
         auto buffer = std::make_unique<char[]>( buffer_size );
@@ -201,9 +202,9 @@ namespace ssc
                 constexpr auto const & first = "Minimum of ";
                 constexpr auto const & second = " characters needed!\r\n";
                 char prompt [char_arr_size(first)  + // all the chars of first
-                             char_arr_size(second) +// all the chars of second
-                             2 +                    // 2 chars for min pw length
-                             1] = { 0 };            // 0 null char
+                             char_arr_size(second) + // all the chars of second
+                             2 +                     // 2 chars for min pw length
+                             1] = { 0 };             // 0 null char
                 snprintf( prompt,
                         sizeof(prompt),
                         "Minimum of %d characters needed!\r\n",
@@ -217,6 +218,7 @@ namespace ssc
         strncpy( pw_buffer, buffer.get(), password_size + 1 );
         zero_sensitive( buffer.get(), buffer_size );
         system( "cls" );
+        return password_size;
 #else
     #error "ssc::Terminal::get_pw(...) defined for Gnu/Linux and MS Windows"
 #endif
