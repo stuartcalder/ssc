@@ -10,7 +10,6 @@
     #include <windows.h>
     // Include for definitions of NTSUCCESS
     #include <ntstatus.h>
-    #include <ntdef.h>
 #if 0
     #include <ntstatus.h>
     #include <ntstatus.h>
