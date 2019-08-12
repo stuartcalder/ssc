@@ -38,7 +38,8 @@ error_conditions.o: general/error_conditions.cc general/error_conditions.hh
 libssc.so: 	arg_mapping.o base64.o print.o \
 			files.o terminal.o operations.o \
 			sspkdf.o error_conditions.o
-	$(CXXLINK) -shared -o $@ \
+	$(CXXLINK) \
+		-shared -o $@ \
 		arg_mapping.o base64.o print.o \
 		files.o terminal.o sspkdf.o \
 		operations.o error_conditions.o \
