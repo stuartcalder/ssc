@@ -3,6 +3,6 @@
 
 namespace ssc
 {
-    DLL_PUBLIC void die_fprintf(char const * die_message);
-    DLL_PUBLIC void die_fputs(char const * die_message);
+    void DLL_PUBLIC die_fprintf(char const * die_message);
+    void DLL_PUBLIC die_fputs(char const * die_message);
 }
