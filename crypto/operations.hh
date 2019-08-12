@@ -83,7 +83,7 @@ namespace ssc
                 (*(first_byte + i)) ^= (*(second_byte + i));
         }
     }/* ! xor_block */
-    void DLL_PUBLIC generate_random_bytes(u8_t * const buffer,
+    void DLL_PUBLIC generate_random_bytes(u8_t       * buffer,
                                           std::size_t  num_bytes);
     void DLL_PUBLIC zero_sensitive(void *      buffer,
                                    std::size_t num_bytes);

@@ -24,26 +24,44 @@
 namespace ssc
 {
     // Explicit instantions of generic template implementations that we want
-    void generate_random_bytes(u8_t * const buffer, std::size_t num_bytes)
+    void generate_random_bytes(u8_t * buffer, std::size_t num_bytes)
     {
         using namespace std;
 
 #if   defined( __gnu_linux__ )
+        static constexpr auto const Max_GetEntropy_Get = 256;
         static constexpr auto const & Fail_String = "Failed to getentropy()\n";
-        size_t offset = 0;
-        while ( num_bytes >= 256 )
+        while ( num_bytes >= Max_GetEntropy_Get )
         {
-            if ( getentropy( (buffer + offset), 256 ) != 0 )
+            if ( getentropy( buffer, Max_GetEntropy_Get ) != 0 )
             {
                 die_fputs( Fail_String );
             }
-            num_bytes -= 256;
-            offset    += 256;
+            num_bytes -= Max_GetEntropy_Get;
+            buffer    += Max_GetEntropy_Get;
+        }
+        if ( getentropy( buffer, num_bytes ) != 0 )
+        {
+            die_fputs( Fail_String );
+        }
+#if 0
+        static constexpr auto const Max_GetEntropy_Get = 256;
+        static constexpr auto const & Fail_String = "Failed to getentropy()\n";
+        size_t offset = 0;
+        while ( num_bytes >= Max_GetEntropy_Get )
+        {
+            if ( getentropy( (buffer + offset), Max_GetEntropy_Get) != 0 )
+            {
+                die_fputs( Fail_String );
+            }
+            num_bytes -= Max_GetEntropy_Get;
+            offset    += Max_GetEntropy_Get;
         }
         if ( getentropy( (buffer + offset), num_bytes ) != 0 )
         {
             die_fputs( Fail_String );
         }
+#endif
 #elif defined( _WIN64 )
         BCRYPT_ALG_HANDLE cng_provider_handle;
         // Open algorithm provider
