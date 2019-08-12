@@ -7,6 +7,7 @@ file I/O capabilities.
 -    **ncurses**
 -    **tinfo**
 ### MS Windows Dependencies
+-   Minimum Windows Vista/Server 2008
 ## Building ssc
 ### The Meson Way (Gnu/Linux and MS Windows)
 1. git clone [ssc](https://github.com/stuartcalder/ssc) into a system include
