@@ -33,7 +33,6 @@ namespace ssc
         {
             public:
                 /* NAMESPACE ABSORPTIONS */
-                using namespace integers;
                 /* COMPILE TIME CHECKS */
                 static_assert((Block_Bits >= 128)                      , "Modern block ciphers have at least 128-bit blocks!");
                 static_assert((Block_Bits % 8 == 0 ) && (CHAR_BIT == 8), "Block size must be a multiple of 8! A 'byte' must be 8 bits here.");
