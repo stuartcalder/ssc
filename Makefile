@@ -32,17 +32,14 @@ sspkdf.o: 		crypto/sspkdf.cc crypto/sspkdf.hh crypto/skein.hh \
 				crypto/operations.hh crypto/operations.cc general/integers.hh
 	$(CXXSTD) \
 		crypto/sspkdf.cc
-error_conditions.o: general/error_conditions.cc general/error_conditions.hh
-	$(CXXSTD) \
-		general/error_conditions.cc
 libssc.so: 	arg_mapping.o base64.o print.o \
 			files.o terminal.o operations.o \
-			sspkdf.o error_conditions.o
+			sspkdf.o
 	$(CXXLINK) \
 		-shared -o $@ \
 		arg_mapping.o base64.o print.o \
 		files.o terminal.o sspkdf.o \
-		operations.o error_conditions.o \
+		operations.o \
 		$(LINKFLAGS)
 install: libssc.so
 	install -s -m 0755 libssc.so $(LIBPATH)

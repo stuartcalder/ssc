@@ -2,7 +2,6 @@
 #include <cstddef>
 #include <cstdint>
 
-#endif
 namespace ssc
 {
     namespace ints

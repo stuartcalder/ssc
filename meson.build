@@ -6,7 +6,7 @@ cc = meson.get_compiler( 'cpp' )
 
 ssc_src = [ 'general/arg_mapping.cc', 'general/base64.cc', 'general/print.cc',
             'files/files.cc', 'interface/terminal.cc', 'crypto/operations.cc',
-            'crypto/sspkdf.cc', 'general/error_conditions.cc', ]
+            'crypto/sspkdf.cc' ]
 
 lib_deps = []
 extra_args = ''
