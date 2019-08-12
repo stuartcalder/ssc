@@ -19,10 +19,7 @@ file I/O capabilities.
 4. ninja
 5. ninja install (**as root**)
 ### The Makefile Way (Gnu/Linux only)
-1. git clone [ssc](https://github.com/stuartcalder/ssc) into a system include
-   directory
-    - **/usr/local/include** on Linux
-    - **C:\local\include\**  on Windows
+1. git clone [ssc](https://github.com/stuartcalder/ssc) into **/usr/local/include**
 2. cd ssc
 3. make **libssc.so**
 4. make install (**as root**)
