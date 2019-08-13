@@ -27,6 +27,7 @@ namespace ssc
         ~Skein_PRNG();
         void reseed(const u8_t * const seed,
                     const u64_t        seed_bytes);
+        void os_reseed(u64_t const seed_bytes);
         void get(u8_t * const output_buffer,
                  const u64_t  requested_bytes);
     private:
@@ -57,6 +58,17 @@ namespace ssc
         std::memcpy( buffer.get() + sizeof(state),
                      seed,
                      seed_bytes );
+        skein.hash_native( state, buffer.get(), buffer_size );
+        zero_sensitive( buffer.get(), buffer_size );
+    }
+
+    template <std::size_t State_Bits>
+    void Skein_PRNG<State_Bits>::os_reseed(u64_t const seed_bytes)
+    {
+        u64_t const buffer_size = sizeof(state) + seed_bytes;
+        auto buffer = std::make_unique<u8_t[]>( buffer_size );
+        std::memcpy( buffer.get(), state, sizeof(state) );
+        generate_random_bytes( buffer.get() + sizeof(state), seed_bytes );
         skein.hash_native( state, buffer.get(), buffer_size );
         zero_sensitive( buffer.get(), buffer_size );
     }
