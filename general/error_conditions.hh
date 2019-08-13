@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdio>
 #include <cstdlib>
-#include <ssc/general/symbols.hh>
 
 namespace ssc
 {
