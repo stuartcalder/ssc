@@ -37,8 +37,8 @@ namespace ssc
             }
         }
         {
-            u8_t key   [State_Bytes];
-            u8_t buffer[State_Bytes];
+            u8_t key    [State_Bytes];
+            u8_t buffer [State_Bytes];
             skein.hash( key, concat_buffer.get(), concat_size, sizeof(key) );
             skein.MAC ( buffer, concat_buffer.get(), key, concat_size, sizeof(key), sizeof(buffer) );
             xor_block<State_Bits>( key, buffer );
