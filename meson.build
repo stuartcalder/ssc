@@ -13,7 +13,7 @@ extra_args = ''
 if host_machine.system() == 'linux'
     lib_deps += cc.find_library( 'ncurses' )
     lib_deps += cc.find_library( 'tinfo' )
-    extra_args = '-fvisibility=hidden'
+    extra_args = [ '-fvisibility=hidden',  '-fno-exceptions' ]
     shared_library( 'ssc', sources: ssc_src, dependencies: lib_deps,
                     cpp_args: extra_args, install: true )
 elif host_machine.system() == 'windows'
