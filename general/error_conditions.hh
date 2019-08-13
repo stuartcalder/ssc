@@ -15,4 +15,4 @@ namespace ssc
         std::fputs( die_message, stderr );
         std::exit( EXIT_FAILURE );
     }
-}
+}/* ! namespace ssc */
