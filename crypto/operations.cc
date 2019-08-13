@@ -29,16 +29,16 @@ namespace ssc
         using namespace std;
 
 #if   defined( __gnu_linux__ )
-        static constexpr auto const Max_GetEntropy_Get = 256;
+        static constexpr auto const Max_GetEntropy_Bytes= 256;
         static constexpr auto const & Fail_String = "Failed to getentropy()\n";
-        while ( num_bytes >= Max_GetEntropy_Get )
+        while ( num_bytes >= Max_GetEntropy_Bytes )
         {
-            if ( getentropy( buffer, Max_GetEntropy_Get ) != 0 )
+            if ( getentropy( buffer, Max_GetEntropy_Bytes) != 0 )
             {
                 die_fputs( Fail_String );
             }
-            num_bytes -= Max_GetEntropy_Get;
-            buffer    += Max_GetEntropy_Get;
+            num_bytes -= Max_GetEntropy_Bytes;
+            buffer    += Max_GetEntropy_Bytes;
         }
         if ( getentropy( buffer, num_bytes ) != 0 )
         {
