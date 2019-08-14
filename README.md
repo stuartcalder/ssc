@@ -13,7 +13,7 @@ file I/O capabilities.
 1. git clone [ssc](https://github.com/stuartcalder/ssc) into a system include
    directory
     - **/usr/local/include** on Linux
-    - **C:\local\include** on Windows
+    - **C:/local/include** on Windows
 2. meson builddir
 3. cd builddir
 4. ninja
