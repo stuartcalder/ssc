@@ -99,8 +99,8 @@ namespace ssc
         for ( u64_t i = 0; i < number_iterations; ++i )
         {
             ubi.chain( Type_Mask_t::T_out,
-                         reinterpret_cast<u8_t *>(&i),
-                         sizeof(i) );
+                       reinterpret_cast<u8_t *>(&i),
+                       sizeof(i) );
             if ( bytes_left >= State_Bytes )
             {
                 std::memcpy( bytes_out, ubi.get_key_state(), State_Bytes );
