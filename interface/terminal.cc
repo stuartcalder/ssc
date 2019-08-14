@@ -5,11 +5,13 @@
 
 #include <ssc/interface/terminal.hh>
 
-#if   defined(__gnu_linux__)
+#if   defined( __gnu_linux__ )
     #include <ncurses.h>
-#elif defined(_WIN64)
+#elif defined( _WIN64 )
     #include <conio.h>
     #include <windows.h>
+#else
+    #error "ssc/interface/terminal.cc only defined for Gnu/Linux and 64-bit MS Windows"
 #endif
 
 namespace ssc

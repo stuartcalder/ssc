@@ -24,22 +24,16 @@ files.o:		files/files.cc files/files.hh
 terminal.o:		interface/terminal.cc interface/terminal.hh
 	$(CXXSTD) \
 		interface/terminal.cc
-operations.o:	crypto/operations.cc crypto/operations.hh \
-	            general/integers.hh general/error_conditions.hh
-	$(CXXSTD) \
-		crypto/operations.cc
 sspkdf.o: 		crypto/sspkdf.cc crypto/sspkdf.hh crypto/skein.hh \
-				crypto/operations.hh crypto/operations.cc general/integers.hh
+				crypto/operations.hh general/integers.hh
 	$(CXXSTD) \
 		crypto/sspkdf.cc
 libssc.so: 	arg_mapping.o base64.o print.o \
-			files.o terminal.o operations.o \
-			sspkdf.o
+			files.o terminal.o sspkdf.o
 	$(CXXLINK) \
 		-shared -o $@ \
 		arg_mapping.o base64.o print.o \
 		files.o terminal.o sspkdf.o \
-		operations.o \
 		$(LINKFLAGS)
 install: libssc.so
 	install -s -m 0755 libssc.so $(LIBPATH)

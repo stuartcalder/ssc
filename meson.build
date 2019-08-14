@@ -5,11 +5,9 @@ project( 'ssc', 'cpp', default_options: [ 'cpp_std=c++17', 'buildtype=release',
 cc = meson.get_compiler( 'cpp' )
 
 ssc_src = [ 'general/arg_mapping.cc', 'general/base64.cc', 'general/print.cc',
-            'files/files.cc', 'interface/terminal.cc', 'crypto/operations.cc',
-            'crypto/sspkdf.cc' ]
+            'files/files.cc', 'interface/terminal.cc', 'crypto/sspkdf.cc' ]
 
 lib_deps = []
-extra_args = ''
 if host_machine.system() == 'linux'
     lib_deps += cc.find_library( 'ncurses' )
     lib_deps += cc.find_library( 'tinfo' )

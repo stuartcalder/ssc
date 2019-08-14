@@ -9,6 +9,17 @@
 #include <cstring>
 #include <ssc/general/integers.hh>
 #include <ssc/general/symbols.hh>
+#include <ssc/general/error_conditions.hh>
+
+#if   defined( __gnu_linux__ )
+    #include <unistd.h>
+#elif defined( _WIN64 )
+    #include <windows.h>
+    #include <ntstatus.h>
+    #include <bcrypt.h>
+#else
+    #error "Operations.hh only implemented for Gnu/Linux and 64-bit Microsoft Windows"
+#endif
 
 namespace ssc
 {
@@ -59,7 +70,7 @@ namespace ssc
             auto second_dword = reinterpret_cast<const u64_t*>(add);
 
             static_assert(Block_Bits / 64 == 8);
-            (*(first_dword))     ^= (*(second_dword));
+            (*(first_dword    )) ^= (*(second_dword    ));
             (*(first_dword + 1)) ^= (*(second_dword + 1));
             (*(first_dword + 2)) ^= (*(second_dword + 2));
             (*(first_dword + 3)) ^= (*(second_dword + 3));
@@ -83,8 +94,44 @@ namespace ssc
                 (*(first_byte + i)) ^= (*(second_byte + i));
         }
     }/* ! xor_block */
-    void DLL_PUBLIC generate_random_bytes(u8_t       * buffer,
-                                          std::size_t  num_bytes);
-    void DLL_PUBLIC zero_sensitive(void *      buffer,
-                                   std::size_t num_bytes);
-}
+    inline void generate_random_bytes(u8_t * buffer, std::size_t num_bytes)
+    {
+        using namespace std;
+#if   defined( __gnu_linux__ )
+        static constexpr auto const Max_Bytes = 256;
+        while ( num_bytes >= Max_Bytes )
+        {
+            if ( getentropy( buffer, Max_Bytes ) != 0 )
+                die_fputs( "Failed to getentropy()\n" );
+            num_bytes -= Max_Bytes;
+            buffer    += Max_Bytes;
+        }
+        if ( getentropy( buffer, num_bytes ) != 0 )
+            die_fputs( "Failed to getentropy()\n" );
+#elif defined( _WIN64 )
+        BCRYPT_ALG_HANDLE cng_provider_handle;
+        // Open algorithm provider
+        if ( BCryptOpenAlgorithmProvider( &cng_provider_handle, L"RNG", NULL, 0 ) != STATUS_SUCCESS )
+            die_fputs( "BCryptOpenAlgorithmProvider() failed\n" );
+        // Generate randomness
+        if ( BCryptGenRandom( cng_provider_handle, buffer, num_bytes, 0 ) != STATUS_SUCCESS )
+            die_fputs( "BCryptGenRandom() failed\n" );
+        // Close algorithm provider
+        if ( BCryptCloseAlgorithmProvider( cng_provider_handle, 0 ) != STATUS_SUCCESS )
+            die_fputs( "BCryptCloseAlgorithmProvider() failed\n" );
+#else
+    #error "ssc::generate_random_bytes defined for Gnu/Linux and MS Windows"
+#endif
+    }/* ! ssc::generate_random_bytes( ... ) */
+    inline void zero_sensitive(void * buffer, std::size_t num_bytes)
+    {
+        using namespace std;
+#if   defined( __gnu_linux__ )
+        explicit_bzero( buffer, num_bytes );
+#elif defined( _WIN64 )
+        SecureZeroMemory( buffer, num_bytes );
+#else
+    #error "ssc::zero_sensitive defined for Gnu/Linux and MS Windows"
+#endif
+    }/* ! ssc::zero_sensitive( ... ) */
+}/* ! namespace ssc */
