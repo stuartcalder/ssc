@@ -40,8 +40,8 @@ namespace ssc
         u64_t state       [Number_Words];
         u64_t key_schedule[Number_Subkeys * Number_Words];
         /* PRIVATE FUNCTIONS */
-        void         MIX                  (u64_t * __restrict x0, u64_t * __restrict x1, const int round, const int index) const;
-        void         inverse_MIX          (u64_t * __restrict x0, u64_t * __restrict x1, const int round, const int index) const;
+        static void  MIX                  (u64_t * __restrict x0, u64_t * __restrict x1, const int round, const int index);
+        static void  inverse_MIX          (u64_t * __restrict x0, u64_t * __restrict x1, const int round, const int index);
         void         expand_key           (const u8_t * __restrict key, const u8_t * __restrict tweak);
         void         add_subkey           (const int round);
         void         subtract_subkey      (const int round);
@@ -64,14 +64,14 @@ namespace ssc
     }
     
     template <std::size_t Key_Bits>
-    void Threefish<Key_Bits>::MIX(u64_t * __restrict x0, u64_t * __restrict x1, const int round, const int index) const
+    void Threefish<Key_Bits>::MIX(u64_t * __restrict x0, u64_t * __restrict x1, const int round, const int index)
     {
         (*x0) = ((*x0) + (*x1));
         (*x1) = ( rotate_left<u64_t>( (*x1), get_rotate_constant( round, index ) ) ^ (*x0) );
     }
     
     template <std::size_t Key_Bits>
-    void Threefish<Key_Bits>::inverse_MIX(u64_t * __restrict x0, u64_t * __restrict x1, const int round, const int index) const
+    void Threefish<Key_Bits>::inverse_MIX(u64_t * __restrict x0, u64_t * __restrict x1, const int round, const int index)
     {
         (*x1) = ((*x0) ^ (*x1));
         (*x1) = rotate_right<u64_t>( (*x1), get_rotate_constant( round, index ) ) ;
