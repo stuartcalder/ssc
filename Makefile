@@ -28,12 +28,17 @@ sspkdf.o: 		crypto/sspkdf.cc crypto/sspkdf.hh crypto/skein.hh \
 				crypto/operations.hh general/integers.hh
 	$(CXXSTD) \
 		crypto/sspkdf.cc
+parse_string.o:	general/parse_string.cc general/parse_string.hh
+	$(CXXSTD) \
+		crypto/parse_string.hh
 libssc.so: 	arg_mapping.o base64.o print.o \
-			files.o terminal.o sspkdf.o
+			files.o terminal.o sspkdf.o \
+			parse_string.o
 	$(CXXLINK) \
 		-shared -o $@ \
 		arg_mapping.o base64.o print.o \
 		files.o terminal.o sspkdf.o \
+		parse_string.o \
 		$(LINKFLAGS)
 install: libssc.so
 	install -s -m 0755 libssc.so $(LIBPATH)
