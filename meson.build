@@ -5,7 +5,8 @@ project( 'ssc', 'cpp', default_options: [ 'cpp_std=c++17', 'buildtype=release',
 cc = meson.get_compiler( 'cpp' )
 
 ssc_src = [ 'general/arg_mapping.cc', 'general/base64.cc', 'general/print.cc',
-            'files/files.cc', 'interface/terminal.cc', 'crypto/sspkdf.cc' ]
+            'files/files.cc', 'interface/terminal.cc', 'crypto/sspkdf.cc',
+            'general/parse_string.cc']
 
 lib_deps = []
 if host_machine.system() == 'linux'
