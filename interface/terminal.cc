@@ -49,9 +49,6 @@ namespace ssc
         noecho();               // Disable echoing
         keypad( stdscr, TRUE ); // Enable special characters
         // Buffer and index setup
-#if 0
-        char buffer[ max_pw_size + 1 ]; // Prepare to store `max_pw_size` chars
-#endif
         auto const buffer_size = max_pw_size + 1;
         auto buffer = std::make_unique<char[]>( buffer_size );
         int index = 0;                  // Start from the beginning
