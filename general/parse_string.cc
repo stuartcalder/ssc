@@ -6,7 +6,7 @@ namespace ssc
     {
         bool success = true;
         std::string s;
-        for ( char const & ch : str )
+        for ( char const ch : str )
             if ( isdigit( ch ) )
                 s+= ch;
         if ( s.empty() )
