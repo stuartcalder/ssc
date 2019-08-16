@@ -1,6 +1,6 @@
 # ssc
-C++17 Library for Gnu/Linux and Microsoft Windows, providing cryptographic and Operating-System abstracted
-file I/O capabilities.
+C++17 Cryptographic & File I/O Library for Gnu/Linux and Microsoft Windows.
+Little Endian.
 ## Dependencies
 -   Meson Build System
 ### Linux Dependencies
