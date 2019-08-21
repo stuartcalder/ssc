@@ -5,43 +5,38 @@
     #include <sys/types.h>
     #include <sys/stat.h>
     #include <unistd.h>
+    #include <fcntl.h>
 #elif defined( _WIN64 )
     #include <windows.h>
 #else
-    #error "Only defined for Gnu/Linux"
+    #error "Only defined for Gnu/Linux and Win64"
 #endif
 
 namespace ssc
 {
-#if   defined( __gnu_linux__ )
-    std::size_t get_file_size(const int file_d)
+    std::size_t get_file_size(OS_File_t const os_file)
     {
         using namespace std;
-        
+#if   defined( __gnu_linux__ )
         struct stat s;
-        if ( fstat( file_d, &s ) == -1 )
+        if ( fstat( os_file, &s ) == -1 )
         {
-            fprintf( stderr, "Unable to fstat file descriptor #%d\n", file_d );
+            fprintf( stderr, "Error: Unable to fstat file descriptor #%d\n", os_file );
             exit( EXIT_FAILURE );
         }
-        return static_cast<std::size_t>(s.st_size);
-        using namespace std;
-        using namespace std;
-    }
+        return static_cast<size_t>(s.st_size);
 #elif defined( _WIN64 )
-    std::size_t get_file_size(HANDLE handle)
-    {
-        using namespace std;
-
-        LARGE_INTEGER l_i;
-        if ( GetFileSizeEx( handle, &l_i ) == 0 )
+        LARGE_INTEGER large_int;
+        if ( GetFileSizeEx( os_file, &large_int ) == 0 )
         {
             fputs( "Error: GetFileSizeEx() failed\n", stderr );
             exit( EXIT_FAILURE );
         }
-        return static_cast<size_t>(l_i.QuadPart);
-    }
+        return static_cast<size_t>(large_int.QuadPart);
+#else
+    #error "Gnu/Linux and Win64 supported platforms"
 #endif
+    }/* ! get_file_size(OS_File_t const) */
     
     std::size_t get_file_size(std::FILE * const file)
     {
@@ -68,7 +63,7 @@ namespace ssc
     {
         using namespace std;
         
-#if defined( __gnu_linux__ )
+#if   defined( __gnu_linux__ )
         struct stat s;
         if ( stat( filename, &s ) != 0 )
         {
@@ -76,6 +71,11 @@ namespace ssc
             exit( EXIT_FAILURE );
         }
         return static_cast<size_t>(s.st_size);
+#elif defined( _WIN64 )
+        OS_File_t file = open_existing_os_file( filename, true );
+        size_t const size = get_file_size( file );
+        close_os_file( file );
+        return size;
 #else // All other platforms
         size_t num_bytes = 0;
         FILE * stream = fopen( filename, "rb" );
@@ -150,5 +150,115 @@ namespace ssc
                 return;
         }
         std::exit( EXIT_FAILURE );
-    }
-}
+    }/* ! enforce_file_existence */
+    OS_File_t open_existing_os_file (char const * filename, bool const readonly)
+    {
+        using namespace std;
+        enforce_file_existence( filename, true );
+
+#if   defined( __gnu_linux__ )
+        int file_d;
+        decltype(O_RDWR) read_write_rights;
+
+        if ( readonly )
+            read_write_rights = O_RDONLY;
+        else
+            read_write_rights = O_RDWR;
+
+        if ( (file_d = open( filename, read_write_rights, static_cast<mode_t>(0600) )) == -1 )
+        {
+            fputs( "Error: Unable to open file\n", stderr );
+            exit( EXIT_FAILURE );
+        }
+        return file_d;
+#elif defined( _WIN64 )
+        HANDLE file_h;
+        decltype(GENERIC_READ) read_write_rights;
+
+        if ( readonly )
+            read_write_rights = GENERIC_READ;
+        else
+            read_write_rights = (GENERIC_READ | GENERIC_WRITE);
+
+        if ( (file_h  = CreateFileA( filename, read_write_rights, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL )) == INVALID_HANDLE_VALUE )
+        {
+            fputs( "Error: Unable to open file\n", stderr );
+            exit( EXIT_FAILURE );
+        }
+        return file_h;
+#else
+    #error "open_existing_os_file only defined for Gnu/Linux & Win64"
+#endif
+    }/* ! open_existing_os_file */
+    OS_File_t create_os_file (char const * filename)
+    {
+        using namespace std;
+        enforce_file_existence( filename, false );
+#if   defined( __gnu_linux__ )
+        int file_d;
+        if ( (file_d = open( filename, (O_RDWR|O_TRUNC|O_CREAT), static_cast<mode_t>(0600) )) == -1 )
+        {
+            fputs( "Error: Unable to create file\n", stderr );
+            exit( EXIT_FAILURE );
+        }
+        return file_d;
+#elif defined( _WIN64 )
+        HANDLE file_h;
+        if ( (file_h = CreateFileA( filename, (GENERIC_READ|GENERIC_WRITE), 0, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL )) == INVALID_HANDLE_VALUE )
+        {
+            fputs( "Error: Unable to create file\n", stderr );
+            exit( EXIT_FAILURE );
+        }
+        return file_h;
+#else
+    #error "create_os_file defined for Gnu/Linux and Win64"
+#endif
+    }/* ! create_os_file */
+    void close_os_file (OS_File_t const os_file)
+    {
+        using namespace std;
+#if   defined( __gnu_linux__ )
+        int ret_code = close( os_file );
+        if ( ret_code == -1 )
+        {
+            fprintf( stderr, "Error: Wasn't able to close file descriptor %d\n",
+                     ret_code );
+            exit( EXIT_FAILURE );
+        }
+#elif defined( _WIN64 )
+        if ( CloseHandle( os_file ) == 0 )
+        {
+            fputs( "Error: Was not able to close file\n", stderr );
+            exit( EXIT_FAILURE );
+        }
+#else
+    #error "Only defined for Gnu/Linux and Win64"
+#endif
+    }/* ! close_os_file */
+    void set_os_file_size (OS_File_t const os_file, size_t const new_size)
+    {
+        using namespace std;
+#if   defined( __gnu_linux__ )
+        if ( ftruncate( os_file, new_size ) == -1 )
+        {
+            fputs( "Error: Failed to set file size\n", stderr );
+            exit( EXIT_FAILURE );
+        }
+#elif defined( _WIN64 )
+        LARGE_INTEGER large_int;
+        large_int.QuadPart = static_cast<decltype(large_int.QuadPart)>(new_size);
+        if ( SetFilePointerEx( os_file, large_int, NULL, FILE_BEGIN ) == 0 )
+        {
+            fputs( "Error: Failed to SetFilePointerEx()\n", stderr );
+            exit( EXIT_FAILURE );
+        }
+        if ( SetEndOfFile( os_file ) == 0 )
+        {
+            fputs( "Error: Failed to SetEndOfFile()\n", stderr );
+            exit( EXIT_FAILURE );
+        }
+#else
+    #error "set_os_file_size only defined for Gnu/Linux and Win64"
+#endif
+    }/* ! set_os_file_size */
+}/* ! namespace ssc */

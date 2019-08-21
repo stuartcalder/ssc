@@ -7,7 +7,7 @@ host_os = host_machine.system()
 
 ssc_src = [ 'general/arg_mapping.cc', 'general/base64.cc', 'general/print.cc',
             'files/files.cc', 'interface/terminal.cc', 'crypto/sspkdf.cc',
-            'general/parse_string.cc' ]
+            'general/parse_string.cc', 'files/os_map.cc' ]
 
 lib_deps = []
 if host_os == 'linux'
