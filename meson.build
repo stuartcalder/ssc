@@ -22,4 +22,6 @@ elif host_os == 'windows'
     extra_args = '-DBUILD_STATIC'
     static_library( 'ssc', sources: ssc_src, dependencies: lib_deps,
                     include_directories: inc_dir, cpp_args: extra_args )
+else
+    assert( false )
 endif
