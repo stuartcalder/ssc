@@ -5,6 +5,8 @@
 
 #include <ssc/interface/terminal.hh>
 
+extern "C"
+{
 #if   defined( __gnu_linux__ )
     #include <ncurses.h>
 #elif defined( _WIN64 )
@@ -13,6 +15,7 @@
 #else
     #error "ssc/interface/terminal.cc only defined for Gnu/Linux and 64-bit MS Windows"
 #endif
+}/* ! extern "C" */
 
 namespace ssc
 {

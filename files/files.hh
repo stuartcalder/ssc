@@ -6,7 +6,10 @@
 #include <ssc/general/symbols.hh>
 
 #ifdef _WIN64
+extern "C"
+{
     #include <windows.h>
+}/* ! extern "C" */
 #endif
 
 namespace ssc

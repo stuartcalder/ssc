@@ -11,6 +11,8 @@
 #include <ssc/general/symbols.hh>
 #include <ssc/general/error_conditions.hh>
 
+extern "C"
+{
 #if   defined( __gnu_linux__ )
     #include <unistd.h>
 #elif defined( _WIN64 )
@@ -20,6 +22,7 @@
 #else
     #error "Operations.hh only implemented for Gnu/Linux and 64-bit Microsoft Windows"
 #endif
+}/* ! extern "C" */
 
 namespace ssc
 {

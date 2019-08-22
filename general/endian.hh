@@ -3,7 +3,10 @@
 #include <cstdlib>
 #include <cstdio>
 #if defined(__gnu_linux__)
+extern "C"
+{
     #include <endian.h>
+}/* ! extern "C" */
 #endif
 
 namespace ssc

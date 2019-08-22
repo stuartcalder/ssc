@@ -1,6 +1,8 @@
 #include <ssc/files/files.hh>
 #include <ssc/general/integers.hh>
 
+extern "C"
+{
 #if   defined( __gnu_linux__ )
     #include <sys/types.h>
     #include <sys/stat.h>
@@ -11,6 +13,7 @@
 #else
     #error "Only defined for Gnu/Linux and Win64"
 #endif
+}/* ! extern "C" */
 
 namespace ssc
 {

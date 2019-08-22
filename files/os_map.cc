@@ -1,5 +1,8 @@
 #include <ssc/general/integers.hh>
 #include <ssc/files/os_map.hh>
+
+extern "C"
+{
 #if   defined( __gnu_linux__ )
     #include <sys/mman.h>
 #elif defined( _WIN64 )
@@ -8,6 +11,7 @@
 #else
     #error "Only defined for Gnu/Linux and Win64"
 #endif
+}/* ! extern "C" */
 
 namespace ssc
 {
