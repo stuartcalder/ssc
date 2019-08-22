@@ -16,6 +16,8 @@ namespace ssc
     using OS_File_t = int;
 #elif defined( _WIN64 )
     using OS_File_t = HANDLE;
+#else
+    #error "Unsupported platform"
 #endif
 
     std::size_t DLL_PUBLIC  get_file_size   (OS_File_t const);
@@ -31,4 +33,4 @@ namespace ssc
     OS_File_t   DLL_PUBLIC  create_os_file   (char const * filename);
     void        DLL_PUBLIC  close_os_file    (OS_File_t const os_file); 
     void        DLL_PUBLIC  set_os_file_size (OS_File_t const os_file, std::size_t const new_size);
-}
+}/* ! namespace ssc */
