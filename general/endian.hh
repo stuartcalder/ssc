@@ -3,10 +3,9 @@
 #include <cstdlib>
 #include <cstdio>
 #if defined(__gnu_linux__)
-extern "C"
-{
-    #include <endian.h>
-}/* ! extern "C" */
+extern "C" {
+#   include <endian.h>
+}
 #endif
 
 namespace ssc
@@ -31,8 +30,8 @@ namespace ssc
     template< typename uint_t >
     uint_t Endian::host_to_le<uint_t>(const uint_t h) const
     {
-#if ! defined(__gnu_linux__)
-    #error "host_to_le() only defined for gnu/linux!"
+#ifndef __gnu_linux__
+#   error "host_to_le() only defined for gnu/linux!"
 #endif
         if      constexpr ( sizeof(uint_t) == 1 )
                               return h;

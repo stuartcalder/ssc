@@ -6,21 +6,20 @@
 #include <ssc/general/symbols.hh>
 
 #ifdef _WIN64
-extern "C"
-{
-    #include <windows.h>
-}/* ! extern "C" */
+extern "C" {
+#   include <windows.h>
+}
 #endif
 
 namespace ssc
 {
 
-#if   defined( __gnu_linux__ )
+#if defined( __gnu_linux__ )
     using OS_File_t = int;
 #elif defined( _WIN64 )
     using OS_File_t = HANDLE;
 #else
-    #error "Unsupported platform"
+#   error "Unsupported platform"
 #endif
 
     std::size_t DLL_PUBLIC  get_file_size   (OS_File_t const);

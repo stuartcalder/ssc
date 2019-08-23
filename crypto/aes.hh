@@ -7,9 +7,9 @@
 extern "C"
 {
 #if defined( __gnu_linux__ )
-    #include <endian.h>
+#   include <endian.h>
 #else
-    #error "Unimplemented on anything but Gnu/Linux"
+#   error "Unimplemented on anything but Gnu/Linux"
 #endif
 }/* ! extern "C" */
 

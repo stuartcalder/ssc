@@ -1,17 +1,16 @@
 #include <ssc/files/files.hh>
 #include <ssc/general/integers.hh>
 
-extern "C"
-{
-#if   defined( __gnu_linux__ )
-    #include <sys/types.h>
-    #include <sys/stat.h>
-    #include <unistd.h>
-    #include <fcntl.h>
+extern "C" {
+#if defined( __gnu_linux__ )
+#   include <sys/types.h>
+#   include <sys/stat.h>
+#   include <unistd.h>
+#   include <fcntl.h>
 #elif defined( _WIN64 )
-    #include <windows.h>
+#   include <windows.h>
 #else
-    #error "Only defined for Gnu/Linux and Win64"
+#   error "Only defined for Gnu/Linux and Win64"
 #endif
 }/* ! extern "C" */
 

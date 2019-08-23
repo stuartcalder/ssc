@@ -14,13 +14,13 @@
 extern "C"
 {
 #if   defined( __gnu_linux__ )
-    #include <unistd.h>
+#   include <unistd.h>
 #elif defined( _WIN64 )
-    #include <windows.h>
-    #include <ntstatus.h>
-    #include <bcrypt.h>
+#   include <windows.h>
+#   include <ntstatus.h>
+#   include <bcrypt.h>
 #else
-    #error "Operations.hh only implemented for Gnu/Linux and 64-bit Microsoft Windows"
+#   error "Operations.hh only implemented for Gnu/Linux and 64-bit Microsoft Windows"
 #endif
 }/* ! extern "C" */
 
