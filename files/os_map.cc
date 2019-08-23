@@ -16,7 +16,7 @@ namespace ssc
 {
     void map_file (OS_Map & os_map, bool const readonly)
     {
-#if   defined( __gnu_linux__ )
+#if defined( __gnu_linux__ )
         decltype(PROT_READ) const readwrite_flag = ( readonly ? PROT_READ : (PROT_READ | PROT_WRITE) );
         os_map.ptr = static_cast<u8_t *>(mmap( 0, os_map.size, readwrite_flag, MAP_SHARED, os_map.os_file, 0 ));
         if ( os_map.ptr == MAP_FAILED )
@@ -54,7 +54,7 @@ namespace ssc
             exit( EXIT_FAILURE );
         }
 #else
-    #error "map_file only defined for Gnu/Linux and Win64"
+#   error "map_file only defined for Gnu/Linux and Win64"
 #endif
     }/* ! map_file */
 
@@ -62,7 +62,7 @@ namespace ssc
     void unmap_file (OS_Map const & os_map)
     {
         using namespace std;
-#if   defined( __gnu_linux__ )
+#if defined( __gnu_linux__ )
         if ( munmap( os_map.ptr, os_map.size ) == -1 )
         {
             fputs( "Error: Failed to unmap file\n", stderr );
@@ -76,7 +76,7 @@ namespace ssc
         }
         close_os_file( os_map.win64_filemapping );
 #else
-    #error "unmap_file only defined for Gnu/Linux and Win64"
+#   error "unmap_file only defined for Gnu/Linux and Win64"
 #endif
     }/* ! unmap_file */
 
@@ -84,7 +84,7 @@ namespace ssc
     void sync_map (OS_Map const & os_map)
     {
         using namespace std;
-#if   defined( __gnu_linux__ )
+#if defined( __gnu_linux__ )
         if ( msync( os_map.ptr, os_map.size, MS_SYNC ) == -1 )
         {
             fputs( "Error: Failed to sync mmap()\n", stderr );
@@ -97,7 +97,7 @@ namespace ssc
             exit( EXIT_FAILURE );
         }
 #else
-    #error "sync_map only defined for Gnu/Linux and Win64"
+#   error "sync_map only defined for Gnu/Linux and Win64"
 #endif
     }/* ! sync_map */
 
