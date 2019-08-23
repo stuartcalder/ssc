@@ -14,10 +14,8 @@ namespace ssc
                                  const char (&s1)[Array_Size])
     {
         for ( std::size_t i = 0; i < Array_Size; ++i )
-        {
             if ( s0[ i ] != s1[ i ] )
                 return false;
-        }
         return true;
     }
 }
