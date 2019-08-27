@@ -27,7 +27,7 @@ namespace ssc
 #elif defined( _WIN64 )
         system( "cls" );
 #else
-    #error "ssc::Terminal() only defined for Gnu/Linux and MS Windows"
+#   error "ssc::Terminal() only defined for Gnu/Linux and MS Windows"
 #endif
     }/* ! ssc::Terminal::Terminal() */
     Terminal::~Terminal()
@@ -37,7 +37,7 @@ namespace ssc
 #elif defined( _WIN64 )
         system( "cls" );
 #else
-    #error "ssc::~Terminal() only defined for Gnu/Linux and MS Windows"
+#   error "ssc::~Terminal() only defined for Gnu/Linux and MS Windows"
 #endif
     }/* ! ssc::Terminal::~Terminal() */
     int Terminal::get_pw(char    * pw_buffer,
@@ -221,7 +221,7 @@ namespace ssc
         system( "cls" );
         return password_size;
 #else
-    #error "ssc::Terminal::get_pw(...) defined for Gnu/Linux and MS Windows"
+#   error "ssc::Terminal::get_pw(...) defined for Gnu/Linux and MS Windows"
 #endif
     }/* ! ssc::Terminal::get_pw */
     void Terminal::notify(char const *notice)
@@ -245,7 +245,7 @@ namespace ssc
         system( "pause" );
         system( "cls" );
 #else
-    #error "ssc::Terminal::notify(...) defined for Gnu/Linux and MS Windows"
+#   error "ssc::Terminal::notify(...) defined for Gnu/Linux and MS Windows"
 #endif
     }/* ! ssc::Terminal::notify */
 }
