@@ -4,16 +4,30 @@ Little Endian.
 ## Dependencies
 -   Meson Build System
 ### Linux Dependencies
--    **ncurses**
--    **tinfo**
+-    __ncurses__
+-    __tinfo__
 ### MS Windows Dependencies
--   Minimum Windows Vista/Server 2008
-## Building ssc with Meson
-1. git clone [ssc](https://github.com/stuartcalder/ssc) into a system include
-   directory
-    - **/usr/local/include** on Linux
-    - **C:/local/include** on Windows
-2. meson builddir
-3. cd builddir
-4. ninja
-5. ninja install (**as root**)
+-   Minimum **Windows Vista/Server 2008**
+-   Visual Studio 2019
+## Building ssc with Meson on Gnu/Linux
+1. git clone [ssc](https://github.com/stuartcalder/ssc) into **/usr/include**
+2. cd into __/usr/include__ and do the following:
+```
+    mkdir builddir
+    cd builddir
+    ninja
+    sudo ninja install
+```
+
+## Building ssc with Meson on Microsoft Windows(c)
+1. git clone [ssc](https://github.com/stuartcalder/ssc) into **C:/include**
+2. Open a command-prompt, specifically open __"x64 Native Tools Command Prompt for VS 2019"__
+2. cd into __C:/include__ and do the following:
+```
+    mkdir builddir
+    cd builddir
+    ninja
+```
+3. Assuming success, ninja should have outputted a file __libssc.a__
+4. Rename __libssc.a__ to __ssc.lib__
+5. Manually copy __ssc.lib__ to __C:/lib__

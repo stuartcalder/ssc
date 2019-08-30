@@ -18,7 +18,7 @@ if host_os == 'linux'
                     cpp_args: extra_args, install: true )
 elif host_os == 'windows'
     lib_deps += cc.find_library( 'bcrypt' )
-    inc_dir = include_directories( 'C:/local/include' )
+    inc_dir = include_directories( 'C:/include' )
     extra_args = '-DBUILD_STATIC'
     static_library( 'ssc', sources: ssc_src, dependencies: lib_deps,
                     include_directories: inc_dir, cpp_args: extra_args )
