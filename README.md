@@ -14,6 +14,7 @@ Little Endian.
 2. cd into __/usr/include__ and do the following:
 ```
     mkdir builddir
+    meson --backend ninja --prefix=/usr builddir
     cd builddir
     ninja
     sudo ninja install
@@ -25,6 +26,7 @@ Little Endian.
 2. cd into __C:/include__ and do the following:
 ```
     mkdir builddir
+    meson --backend ninja builddir
     cd builddir
     ninja
 ```
