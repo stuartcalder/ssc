@@ -1,5 +1,6 @@
 #pragma once
 
+/* Symbol visibility macros */
 #if defined( BUILD_STATIC ) || defined( IMPORT_STATIC )
 #   define DLL_PUBLIC
 #   define DLL_LOCAL
