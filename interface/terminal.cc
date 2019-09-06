@@ -6,38 +6,37 @@
 #include <ssc/interface/terminal.hh>
 
 extern "C" {
-#if defined( __gnu_linux__ )
-#   include <ncurses.h>
-#elif defined( _WIN64 )
-#   include <conio.h>
-#   include <windows.h>
+#if defined(__gnu_linux__)
+#	include <ncurses.h>
+#elif defined(_WIN64)
+#	include <conio.h>
+#	include <windows.h>
 #else
-#   error "ssc/interface/terminal.cc only defined for Gnu/Linux and 64-bit MS Windows"
+#	error "ssc/interface/terminal.cc only defined for Gnu/Linux and 64-bit MS Windows"
 #endif
 }/* ! extern "C" */
 
-namespace ssc
-{
+namespace ssc {
     Terminal::Terminal()
     {
-#if   defined( __gnu_linux__ )
+#if defined(__gnu_linux__)
         initscr();
         getmaxyx( stdscr, std_height, std_width );
         clear();
-#elif defined( _WIN64 )
+#elif defined(_WIN64)
         system( "cls" );
 #else
-#   error "ssc::Terminal() only defined for Gnu/Linux and MS Windows"
+#	error "ssc::Terminal() only defined for Gnu/Linux and MS Windows"
 #endif
     }/* ! ssc::Terminal::Terminal() */
     Terminal::~Terminal()
     {
-#if   defined( __gnu_linux__ )
+#if defined(__gnu_linux__)
         endwin();
-#elif defined( _WIN64 )
+#elif defined(_WIN64)
         system( "cls" );
 #else
-#   error "ssc::~Terminal() only defined for Gnu/Linux and MS Windows"
+#	error "ssc::~Terminal() only defined for Gnu/Linux and MS Windows"
 #endif
     }/* ! ssc::Terminal::~Terminal() */
     int Terminal::get_pw(char    * pw_buffer,
@@ -45,7 +44,7 @@ namespace ssc
                          int const min_pw_size)
     {
         using namespace std;
-#if   defined( __gnu_linux__ )
+#if   defined(__gnu_linux__)
         // Screen setup
         cbreak();               // Disable line buffering
         noecho();               // Disable echoing
@@ -130,7 +129,7 @@ namespace ssc
         zero_sensitive( buffer.get(), buffer_size );
         delwin( w );
         return password_size;
-#elif defined( _WIN64 )
+#elif defined(_WIN64)
         auto const buffer_size = max_pw_size + 1;
         auto buffer = std::make_unique<char[]>( buffer_size );
         int index = 0;
@@ -227,7 +226,7 @@ namespace ssc
     void Terminal::notify(char const *notice)
     {
         using namespace std;
-#if   defined( __gnu_linux__ )
+#if   defined(__gnu_linux__)
         WINDOW * w = newwin( 1, strlen(notice) + 1, 0, 0 );
         wclear( w );
         wmove( w, 0, 0 );
@@ -235,7 +234,7 @@ namespace ssc
         wrefresh( w );
         wgetch( w );
         delwin( w );
-#elif defined( _WIN64 )
+#elif defined(_WIN64)
         system( "cls" );
         if ( _cputs( notice ) != 0 )
         {

@@ -3,6 +3,7 @@
 #include <cstring>
 #include <ssc/general/symbols.hh>
 
+#if 0 // Disable for now
 /*
  
    [76543210][76543210][76543210]   3 octets
@@ -20,3 +21,4 @@ namespace ssc
     DLL_PUBLIC void b64_r648_encode(const uint8_t * const in, char * const out, const size_t size_in);
     DLL_PUBLIC void b64_r648_decode(const char * const in, uint8_t * const out, const size_t size_in);
 }
+#endif

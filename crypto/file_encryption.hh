@@ -2,7 +2,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <memory>
-#include <ssc/crypto/cbc.hh>
+#include <ssc/crypto/cipherblockchaining.hh>
 #include <ssc/files/files.hh>
 
 #if 0 // Disable file_encryption for now

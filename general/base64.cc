@@ -1,4 +1,5 @@
 #include <ssc/general/base64.hh>
+#if 0
 
 namespace ssc
 {
@@ -154,3 +155,4 @@ namespace ssc
         }
     }
 }
+#endif

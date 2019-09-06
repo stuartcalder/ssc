@@ -30,3 +30,7 @@
 #       endif
 #   endif
 #endif
+
+#if defined( __OpenBSD__ ) || defined( __gnu_linux__ )
+#   define UNIXLIKE_OS 1
+#endif
