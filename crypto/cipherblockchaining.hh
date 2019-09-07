@@ -10,21 +10,21 @@
 #include <ssc/general/error_conditions.hh>
 
 /* 
-   CipherBlockChaining < Block_Cipher_t, Block_Bits >
-   This class implements The Cipher-Block-Chaining mode of operation for cryptographic block ciphers.
-   Block_Cipher_t  =====> Some type that implements four specific methods:
-   size_t encrypt(const u8_t *bytes_in, u8_t *bytes_out, const size_t size_in, const u8_t *iv);
-   If IV is nullptr, the "state" is assumed to be already seeded with past invocations
-   If IV is not nullptr, it is used to seed the state for encryption
-   size_t decrypt(const u8_t *bytes_in, u8_t *bytes_out, const size_t size_in, const u8_t *iv);
-   If IV is nullptr, the "state" is assumed to be already seeded with past invocations
-   If IV is not nullptr, it is used to seed the state for encryption
-   void   encrypt_no_padding(const u8_t *bytes_in, u8_t *bytes_out, const size_t size_in, const u8_t *iv);
-   Same IV conditions as above ; does not do any sort of padding ; must only be used with buffers
-   perfectly divisible by Block_Bits
-   void   decrypt_no_padding(const u8_t *bytes_in, u8_t *bytes_out, const size_t size_in, const u8_t *iv);
-   Same conditions as above.
- * Block_Bits      =====> a size_t unsigned integer describing the number of bits in 1 block of the block cipher.
+	CipherBlockChaining < Block_Cipher_t, Block_Bits >
+	This class implements The Cipher-Block-Chaining mode of operation for cryptographic block ciphers.
+	Block_Cipher_t  =====> Some type that implements four specific methods:
+	size_t encrypt(const u8_t *bytes_in, u8_t *bytes_out, const size_t size_in, const u8_t *iv);
+	If IV is nullptr, the "state" is assumed to be already seeded with past invocations
+	If IV is not nullptr, it is used to seed the state for encryption
+	size_t decrypt(const u8_t *bytes_in, u8_t *bytes_out, const size_t size_in, const u8_t *iv);
+	If IV is nullptr, the "state" is assumed to be already seeded with past invocations
+	If IV is not nullptr, it is used to seed the state for encryption
+	void   encrypt_no_padding(const u8_t *bytes_in, u8_t *bytes_out, const size_t size_in, const u8_t *iv);
+	Same IV conditions as above ; does not do any sort of padding ; must only be used with buffers
+	perfectly divisible by Block_Bits
+	void   decrypt_no_padding(const u8_t *bytes_in, u8_t *bytes_out, const size_t size_in, const u8_t *iv);
+	Same conditions as above.
+	Block_Bits      =====> a size_t unsigned integer describing the number of bits in 1 block of the block cipher.
  */
 namespace ssc {
 	template <typename Block_Cipher_t, size_t Block_Bits>
@@ -54,7 +54,7 @@ namespace ssc {
 		static size_t	apply_iso_iec_7816_padding_ (u8_t *bytes, size_t const prepadding_size);
 		static size_t	count_iso_iec_7816_padding_bytes_ (u8_t const * const bytes, size_t const padded_size);
 		static size_t	calculate_padded_ciphertext_size_ (size_t const unpadded_plaintext_size);
-	}; /* ! CipherBlockChaining */
+	}; /* CipherBlockChaining */
 	/* Constructors */
 	template <typename Block_Cipher_t, size_t Block_Bits>
 	CipherBlockChaining<Block_Cipher_t,Block_Bits>::CipherBlockChaining (Block_Cipher_t &&blk_c) 

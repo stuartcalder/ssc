@@ -10,10 +10,10 @@ namespace ssc {
 	template <size_t Key_Bits>
 	class Threefish {
 	public:
-		/* STATIC CHECKS */
+		/* Static Checks */
 		static_assert((Key_Bits == 256 || Key_Bits == 512 || Key_Bits == 1024), "Invalid keysize");
-		static_assert ((CHAR_BIT == 8), "This implementation needs 8-bit chars");
-		/* PUBLIC CONSTANTS */
+		static_assert((CHAR_BIT == 8), "This implementation needs 8-bit chars");
+		/* Public Constants */
 		static constexpr int const   Number_Words   = Key_Bits / 64;
 		static constexpr int const   Number_Rounds  = [](auto nw) {
 								if (nw == 16)
@@ -22,26 +22,26 @@ namespace ssc {
 								}(Number_Words);
 		static constexpr int const   Number_Subkeys = (Number_Rounds / 4) + 1;
 		static constexpr u64_t const Constant_240   = 0x1bd1'1bda'a9fc'1a22;
-		/* CONSTRUCTORS / DESTRUCTORS */
+		/* Constructors / Destructors */
 		Threefish (void) {}
 		Threefish (u8_t const * __restrict k, u8_t const * __restrict tw = nullptr) {
 			expand_key_( k, tw );
 		}
-		~Threefish (void); // forward declared
-		/* PUBLIC FUNCTIONS */
+		~Threefish (void);	/* forward declared */
+		/* Public Functions */
 		void
-		cipher(u8_t const *in, u8_t *out);
+		cipher	(u8_t const *in, u8_t *out);
 
 		void
-		inverse_cipher(u8_t const *in, u8_t *out);
+		inverse_cipher	(u8_t const *in, u8_t *out);
 
 		void
-		rekey(u8_t const * __restrict new_key, u8_t const * __restrict new_tweak = nullptr);
+		rekey	(u8_t const * __restrict new_key, u8_t const * __restrict new_tweak = nullptr);
 	private:
-		/* PRIVATE DATA */
+		/* Private Data */
 		u64_t state        [Number_Words];
 		u64_t key_schedule [Number_Subkeys * Number_Words];
-		/* PRIVATE FUNCTIONS */
+		/* Private Functions */
 		static void
 		mix_		(u64_t * __restrict x0, u64_t * __restrict x1, int const round, int const index);
 
@@ -81,7 +81,7 @@ namespace ssc {
 
 	template <size_t Key_Bits>
 	void
-	Threefish<Key_Bits>::mix_	(u64_t * __restrict x0, u64_t * __restrict x1, int const round, int const index) {
+	Threefish<Key_Bits>::mix_		(u64_t * __restrict x0, u64_t * __restrict x1, int const round, int const index) {
 		(*x0) = ((*x0) + (*x1));
 		(*x1) = ( rotate_left<u64_t>( (*x1), get_rotate_constant_( round, index ) ) ^ (*x0) );
 	}
@@ -196,18 +196,15 @@ namespace ssc {
 	Threefish<Key_Bits>::cipher	(u8_t const *in, u8_t *out) {
 		std::memcpy( state, in, sizeof(state) );
 		for (int round = 0; round < Number_Rounds; ++round) {
-			// Adding subkeys
-			if (round % 4 == 0)
+			if (round % 4 == 0)		/* Adding subkeys */
 				add_subkey_( round );
-			// MIXing
-			for (int j = 0; j <= (Number_Words / 2) - 1; ++j)
+			for (int j = 0; j <= ((Number_Words / 2) - 1); ++j)	/* Performing MIX function */
 				mix_( (state + (2 * j)), (state + (2 * j) + 1), round, j );
-			// Permutations
-			permute_state_();
+			permute_state_();		/* Permute the state, using fixed constants */
 		}
 		add_subkey_( Number_Rounds );
 		std::memcpy( out, state, sizeof(state) );
-	}
+	} /* cipher */
 
 	template <size_t Key_Bits>
 	void
@@ -216,13 +213,13 @@ namespace ssc {
 		subtract_subkey_( Number_Rounds );
 		for (int round = Number_Rounds - 1; round >= 0; --round) {
 			inverse_permute_state_();
-			for (int j = 0; j <= (Number_Words / 2) - 1; ++j)
+			for (int j = 0; j <= ((Number_Words / 2) - 1); ++j)
 				inverse_mix_( (state + (2 * j)), (state + (2 * j) + 1), round, j );
-			if  (round % 4 == 0)
+			if (round % 4 == 0)
 				subtract_subkey_( round );
 		}
 		std::memcpy( out, state, sizeof(state) );
-	}
+	} /* inverse_cipher */
 
 	template <size_t Key_Bits>
 	void
@@ -297,7 +294,7 @@ namespace ssc {
 			// 10 (in w0) overwrites 8
 			state[ 8 ] = w0;
 		}
-	}
+	} /* permute_state_ */
 
 	template <size_t Key_Bits>
 	void
