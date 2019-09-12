@@ -63,7 +63,7 @@ namespace ssc {
 		process_message_block_ (u8_t const * const message_in, u64_t const message_size);
 
 		void
-		output_transform_ (u8_t * const out, u64_t const num_output_bytes);
+		output_transform_ (u8_t *out, u64_t const num_output_bytes);
 	}; /* ! Skein */
     
 	template <size_t State_Bits>
@@ -104,21 +104,18 @@ namespace ssc {
     
 	template <size_t State_Bits>
 	void
-	Skein<State_Bits>::output_transform_ (u8_t * const out, u64_t const num_output_bytes) {
-		u8_t * bytes_out = out;
-		u64_t number_iterations = num_output_bytes / State_Bytes;
-		if ((num_output_bytes % State_Bytes) != 0) {
-			++number_iterations;
-		}
+	Skein<State_Bits>::output_transform_ (u8_t *out, u64_t const num_output_bytes) {
 		u64_t bytes_left = num_output_bytes;
-		for (u64_t i = 0; i < number_iterations; ++i) {
+		u64_t i = 0;
+		for (;;) {
 			ubi.chain( Type_Mask_e::T_out, reinterpret_cast<u8_t *>(&i), sizeof(i) );
+			++i;
 			if (bytes_left >= State_Bytes) {
-				std::memcpy( bytes_out, ubi.get_key_state(), State_Bytes );
-				bytes_out  += State_Bytes;
+				std::memcpy( out, ubi.get_key_state(), State_Bytes );
+				out        += State_Bytes;
 				bytes_left -= State_Bytes;
 			} else {
-				std::memcpy( bytes_out, ubi.get_key_state(), bytes_left );
+				std::memcpy( out, ubi.get_key_state(), bytes_left );
 				break;
 			}
 		}
