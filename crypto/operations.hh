@@ -24,14 +24,14 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/general/error_conditions.hh>
 
 extern "C" {
-#if defined(__gnu_linux__)
+#if defined(__OpenBSD__) || defined(__gnu_linux__)
 #	include <unistd.h>
 #elif defined(_WIN64)
 #	include <windows.h>
 #	include <ntstatus.h>
 #	include <bcrypt.h>
 #else
-#	error "Operations.hh only implemented for Gnu/Linux and 64-bit Microsoft Windows"
+#	error "Operations.hh only implemented for GNU/Linux and 64-bit Microsoft Windows"
 #endif
 } /* ! extern "C" */
 
@@ -103,7 +103,7 @@ namespace ssc {
 	inline void
 	generate_random_bytes (u8_t * buffer, std::size_t num_bytes) {
 		using namespace std;
-#if defined(__gnu_linux__)
+#if defined(__OpenBSD__) || defined(__gnu_linux__)
 		static constexpr auto const Max_Bytes = 256;
 		while (num_bytes >= Max_Bytes) {
 			if (getentropy( buffer, Max_Bytes ) != 0)
@@ -125,19 +125,19 @@ namespace ssc {
 		if (BCryptCloseAlgorithmProvider( cng_provider_handle, 0 ) != STATUS_SUCCESS)
 			die_fputs( "BCryptCloseAlgorithmProvider() failed\n" );
 #else
-#	error "ssc::generate_random_bytes defined for Gnu/Linux and MS Windows"
+#	error "ssc::generate_random_bytes defined for OpenBSD, GNU/Linux, and MS Windows"
 #endif
 	} /* ! generate_random_bytes */
 
 	inline void
 	zero_sensitive (void *buffer, std::size_t num_bytes) {
 		using namespace std;
-#if defined(__gnu_linux__)
+#if defined(__OpenBSD__) || defined(__gnu_linux__)
 		explicit_bzero( buffer, num_bytes );
 #elif defined(_WIN64)
 		SecureZeroMemory( buffer, num_bytes );
 #else
-#	error "ssc::zero_sensitive defined for Gnu/Linux and MS Windows"
+#	error "ssc::zero_sensitive defined for OpenBSD, GNU/Linux, and MS Windows"
 #endif
 	} /* ! zero_sensitive */
 	

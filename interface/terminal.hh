@@ -31,11 +31,11 @@ namespace ssc
                    int const min_pw_size);
         void notify(char const * notice);
     private:
-#if defined( __gnu_linux__ )
+#if defined(__OpenBSD__) || defined( __gnu_linux__ )
         DLL_LOCAL int std_height;
         DLL_LOCAL int std_width;
 #elif !defined( _WIN64 )
-    #error "ssc::Terminal only defined for Gnu/Linux and MS Windows"
+    #error "ssc::Terminal only defined for OpenBSD, GNU/Linux, and MS Windows"
 #endif
     };/* ! class ssc::Terminal */
 }/* ! namespace ssc */

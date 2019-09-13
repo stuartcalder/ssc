@@ -25,7 +25,7 @@ extern "C" {
 
 namespace ssc {
 
-#if defined(__gnu_linux__)
+#if defined(__OpenBSD__) || defined(__gnu_linux__)
 	using OS_File_t = int;
 #elif defined(_WIN64)
 	using OS_File_t = HANDLE;

@@ -14,24 +14,24 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/general/integers.hh>
 
 extern "C" {
-#if defined( __gnu_linux__ )
+#if defined(__OpenBSD__) || defined(__gnu_linux__)
 #	include <sys/types.h>
 #	include <sys/stat.h>
 #	include <unistd.h>
 #	include <fcntl.h>
-#elif defined( _WIN64 )
+#elif defined(_WIN64)
 #	include <windows.h>
 #else
 #	error "Only defined for Gnu/Linux and Win64"
 #endif
-}/* ! extern "C" */
+}/* extern "C" */
 
 namespace ssc {
 
 	size_t
 	get_file_size	(OS_File_t const os_file) {
 		using namespace std;
-#if defined(__gnu_linux__)
+#if defined(__OpenBSD__) || defined(__gnu_linux__)
 		struct stat s;
 		if (fstat( os_file, &s ) == -1) {
 			fprintf( stderr, "Error: Unable to fstat file descriptor #%d\n", os_file );
@@ -46,7 +46,7 @@ namespace ssc {
 		}
 		return static_cast<size_t>(large_int.QuadPart);
 #else
-#	error "Gnu/Linux and Win64 supported platforms"
+#	error "OpenBSD, GNU/Linux, and Win64 supported platforms"
 #endif
 	}/* get_file_size */
 
@@ -72,7 +72,7 @@ namespace ssc {
 	size_t
 	get_file_size	(char const * filename) {
 	using namespace std;
-#if defined(__gnu_linux__)
+#if defined(__OpenBSD__) || defined(__gnu_linux__)
 		struct stat s;
 		if (stat( filename, &s) != 0 ) {
 			fprintf( stderr, "Failed to stat info about %s\n", filename );
@@ -155,7 +155,7 @@ namespace ssc {
 	open_existing_os_file	(char const * filename, bool const readonly) {
 		using namespace std;
 		enforce_file_existence( filename, true );
-#if defined(__gnu_linux__)
+#if defined(__OpenBSD__) || defined(__gnu_linux__)
 		int file_d;
 		decltype(O_RDWR) read_write_rights;
 
@@ -184,7 +184,7 @@ namespace ssc {
 		}
 		return file_h;
 #else
-#	error "open_existing_os_file only defined for Gnu/Linux & Win64"
+#	error "open_existing_os_file only defined for OpenBSD, GNU/Linux, & Win64"
 #endif
 	}/* ! open_existing_os_file */
 
@@ -192,7 +192,7 @@ namespace ssc {
 	create_os_file	(char const * filename) {
 		using namespace std;
 		enforce_file_existence( filename, false );
-#if defined(__gnu_linux__)
+#if defined(__OpenBSD__) || defined(__gnu_linux__)
 		int file_d;
 		if ((file_d = open( filename, (O_RDWR|O_TRUNC|O_CREAT), static_cast<mode_t>(0600) )) == -1) {
 			fputs( "Error: Unable to create file\n", stderr );
@@ -207,14 +207,14 @@ namespace ssc {
 		}
 		return file_h;
 #else
-#	error "create_os_file defined for Gnu/Linux and Win64"
+#	error "create_os_file defined for OpenBSD, GNU/Linux, and Win64"
 #endif
 	}/* ! create_os_file */
 
 	void
 	close_os_file	(OS_File_t const os_file) {
 		using namespace std;
-#if defined(__gnu_linux__)
+#if defined(__OpenBSD__) || defined(__gnu_linux__)
 		int ret_code = close( os_file );
 		if (ret_code == -1) {
 			fprintf( stderr, "Error: Wasn't able to close file descriptor %d\n", ret_code );
@@ -226,14 +226,14 @@ namespace ssc {
 			exit( EXIT_FAILURE );
 		}
 #else
-#	error "Only defined for Gnu/Linux and Win64"
+#	error "Only defined for OpenBSD, GNU/Linux, and Win64"
 #endif
 	}/* ! close_os_file */
 
 	void
 	set_os_file_size	(OS_File_t const os_file, size_t const new_size) {
 		using namespace std;
-#if defined(__gnu_linux__)
+#if defined(__OpenBSD__) || defined(__gnu_linux__)
 		if (ftruncate( os_file, new_size ) == -1) {
 			fputs( "Error: Failed to set file size\n", stderr );
 			exit( EXIT_FAILURE );
@@ -250,7 +250,7 @@ namespace ssc {
 			exit( EXIT_FAILURE );
 		}
 #else
-#	error "set_os_file_size only defined for Gnu/Linux and Win64"
+#	error "set_os_file_size only defined for OpenBSD, GNU/Linux, and Win64"
 #endif
 	}/* ! set_os_file_size */
 }/* ! namespace ssc */

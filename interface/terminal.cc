@@ -18,37 +18,37 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/interface/terminal.hh>
 
 extern "C" {
-#if defined(__gnu_linux__)
+#if defined(__OpenBSD__) || defined(__gnu_linux__)
 #	include <ncurses.h>
 #elif defined(_WIN64)
 #	include <conio.h>
 #	include <windows.h>
 #else
-#	error "ssc/interface/terminal.cc only defined for Gnu/Linux and 64-bit MS Windows"
+#	error "ssc/interface/terminal.cc only defined for OpenBSD, GNU/Linux, and 64-bit MS Windows"
 #endif
 }/* ! extern "C" */
 
 namespace ssc {
     Terminal::Terminal()
     {
-#if defined(__gnu_linux__)
+#if defined(__OpenBSD__) || defined(__gnu_linux__)
         initscr();
         getmaxyx( stdscr, std_height, std_width );
         clear();
 #elif defined(_WIN64)
         system( "cls" );
 #else
-#	error "ssc::Terminal() only defined for Gnu/Linux and MS Windows"
+#	error "ssc::Terminal() only defined for OpenBSD, GNU/Linux and MS Windows"
 #endif
     }/* ! ssc::Terminal::Terminal() */
     Terminal::~Terminal()
     {
-#if defined(__gnu_linux__)
+#if defined(__OpenBSD__) || defined(__gnu_linux__)
         endwin();
 #elif defined(_WIN64)
         system( "cls" );
 #else
-#	error "ssc::~Terminal() only defined for Gnu/Linux and MS Windows"
+#	error "ssc::~Terminal() only defined for OpenBSD, GNU/Linux, and MS Windows"
 #endif
     }/* ! ssc::Terminal::~Terminal() */
     int Terminal::get_pw(char    * pw_buffer,
@@ -56,7 +56,7 @@ namespace ssc {
                          int const min_pw_size)
     {
         using namespace std;
-#if   defined(__gnu_linux__)
+#if defined(__OpenBSD__) || defined(__gnu_linux__)
         // Screen setup
         cbreak();               // Disable line buffering
         noecho();               // Disable echoing
@@ -232,13 +232,13 @@ namespace ssc {
         system( "cls" );
         return password_size;
 #else
-#   error "ssc::Terminal::get_pw(...) defined for Gnu/Linux and MS Windows"
+#   error "ssc::Terminal::get_pw(...) defined for OpenBSD, GNU/Linux, and MS Windows"
 #endif
     }/* ! ssc::Terminal::get_pw */
     void Terminal::notify(char const *notice)
     {
         using namespace std;
-#if   defined(__gnu_linux__)
+#if defined(__OpenBSD__) || defined(__gnu_linux__)
         WINDOW * w = newwin( 1, strlen(notice) + 1, 0, 0 );
         wclear( w );
         wmove( w, 0, 0 );
@@ -256,7 +256,7 @@ namespace ssc {
         system( "pause" );
         system( "cls" );
 #else
-#   error "ssc::Terminal::notify(...) defined for Gnu/Linux and MS Windows"
+#	error "ssc::Terminal::notify(...) defined for OpenBSD, GNU/Linux, and MS Windows"
 #endif
     }/* ! ssc::Terminal::notify */
 }

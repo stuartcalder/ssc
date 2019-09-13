@@ -42,7 +42,3 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #       endif
 #   endif
 #endif
-
-#if defined( __OpenBSD__ ) || defined( __gnu_linux__ )
-#   define UNIXLIKE_OS 1
-#endif
