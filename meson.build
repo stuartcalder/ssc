@@ -13,8 +13,9 @@ lib_deps = []
 if host_os == 'openbsd'
 	lib_deps += cc.find_library( 'ncurses' )
 	extra_args = [ '-fvisibility=hidden', '-fno-exceptions' ]
+	inc_dir = include_directories( '.' )
 	shared_library( 'ssc', sources: ssc_src, dependencies: lib_deps,
-			cpp_args: extra_args, install: true )
+			cpp_args: extra_args, install: true, include_directories: inc_dir )
 elif host_os == 'linux'
 	lib_deps += cc.find_library( 'ncurses' )
 	lib_deps += cc.find_library( 'tinfo' )
