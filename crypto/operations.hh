@@ -102,12 +102,12 @@ namespace ssc {
 	
 	inline void
 	generate_random_bytes (u8_t * buffer, std::size_t num_bytes) {
-		using namespace std;
+                using namespace std;
 #if defined(__OpenBSD__) || defined(__gnu_linux__)
-		static constexpr auto const Max_Bytes = 256;
-		while (num_bytes >= Max_Bytes) {
-			if (getentropy( buffer, Max_Bytes ) != 0)
-				die_fputs( "Failed to getentropy()\n" );
+                static constexpr auto const Max_Bytes = 256;
+                while (num_bytes >= Max_Bytes) {
+                        if (getentropy( buffer, Max_Bytes ) != 0)
+                                die_fputs( "Failed to getentropy()\n" );
 			num_bytes -= Max_Bytes;
 			buffer    += Max_Bytes;
 		}
