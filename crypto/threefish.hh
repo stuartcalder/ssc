@@ -48,20 +48,20 @@ namespace ssc {
 		inverse_cipher	(u8_t const *in, u8_t *out);
 
 		void
-		rekey	(u8_t const * __restrict new_key, u8_t const * __restrict new_tweak = nullptr);
+		rekey	(u8_t const *__restrict new_key, u8_t const *__restrict new_tweak = nullptr);
 	private:
 		/* Private Data */
 		u64_t state        [Number_Words];
 		u64_t key_schedule [Number_Subkeys * Number_Words];
 		/* Private Functions */
 		static void
-		mix_		(u64_t * __restrict x0, u64_t * __restrict x1, int const round, int const index);
+		mix_		(u64_t *__restrict x0, u64_t *__restrict x1, int const round, int const index);
 
 		static void
-		inverse_mix_	(u64_t * __restrict x0, u64_t * __restrict x1, int const round, int const index);
+		inverse_mix_	(u64_t *__restrict x0, u64_t *__restrict x1, int const round, int const index);
 
 		void
-		expand_key_	(u8_t const * __restrict key, u8_t const * __restrict tweak);
+		expand_key_	(u8_t const *__restrict key, u8_t const *__restrict tweak);
 
 		void
 		add_subkey_	(int const round);
@@ -80,8 +80,8 @@ namespace ssc {
 	}; /* class Threefish */
 	template <size_t Key_Bits>
 	void
-	Threefish<Key_Bits>::rekey	(u8_t const * __restrict new_key,
-					 u8_t const * __restrict new_tweak) {
+	Threefish<Key_Bits>::rekey	(u8_t const *__restrict new_key,
+					 u8_t const *__restrict new_tweak) {
 		expand_key_( new_key, new_tweak );
 	}
 
@@ -93,14 +93,14 @@ namespace ssc {
 
 	template <size_t Key_Bits>
 	void
-	Threefish<Key_Bits>::mix_		(u64_t * __restrict x0, u64_t * __restrict x1, int const round, int const index) {
+	Threefish<Key_Bits>::mix_		(u64_t *__restrict x0, u64_t *__restrict x1, int const round, int const index) {
 		(*x0) = ((*x0) + (*x1));
 		(*x1) = ( rotate_left<u64_t>( (*x1), get_rotate_constant_( round, index ) ) ^ (*x0) );
 	}
 
 	template <size_t Key_Bits>
 	void
-	Threefish<Key_Bits>::inverse_mix_	(u64_t * __restrict x0, u64_t * __restrict x1, int const round, int const index) {
+	Threefish<Key_Bits>::inverse_mix_	(u64_t *__restrict x0, u64_t *__restrict x1, int const round, int const index) {
 		(*x1) = ((*x0) ^ (*x1));
 		(*x1) = rotate_right<u64_t>( (*x1), get_rotate_constant_( round, index ) ) ;
 		(*x0) = (*x0) - (*x1);
