@@ -52,11 +52,11 @@ namespace ssc {
 		CipherBlockChaining  (Block_Cipher_t &&blk_c);	/* Construct a CipherBlockChaining object with the block cipher in-place. */
 		~CipherBlockChaining (void);			/* Destruct a CipherBlockChaining object. (zero sensitive memory) */
 
-		void	manually_set_state (u8_t const * const __restrict state_bytes);
-		void	encrypt_no_padding (u8_t const *bytes_in, u8_t *bytes_out, size_t const size_in, u8_t const * __restrict iv = nullptr);
-		void	decrypt_no_padding (u8_t const *bytes_in, u8_t *bytes_out, size_t const size_in, u8_t const * __restrict iv = nullptr);
-		size_t	decrypt (u8_t const *bytes_in, u8_t *bytes_out, size_t const size_in, u8_t const * __restrict iv = nullptr);
-		size_t	encrypt (u8_t const *bytes_in, u8_t *bytes_out, size_t const size_in, u8_t const * __restrict iv = nullptr);
+		void	manually_set_state (u8_t const *__restrict const state_bytes);
+		void	encrypt_no_padding (u8_t const *bytes_in, u8_t *bytes_out, size_t const size_in, u8_t const *__restrict iv = nullptr);
+		void	decrypt_no_padding (u8_t const *bytes_in, u8_t *bytes_out, size_t const size_in, u8_t const *__restrict iv = nullptr);
+		size_t	decrypt (u8_t const *bytes_in, u8_t *bytes_out, size_t const size_in, u8_t const *__restrict iv = nullptr);
+		size_t	encrypt (u8_t const *bytes_in, u8_t *bytes_out, size_t const size_in, u8_t const *__restrict iv = nullptr);
 	private:
 		/* PRIVATE STATE */
 		Block_Cipher_t  blk_cipher;

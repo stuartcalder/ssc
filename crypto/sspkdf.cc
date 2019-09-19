@@ -18,12 +18,12 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 namespace ssc
 {
 	void
-	sspkdf	(u8_t * const __restrict derived_key,
-		 char const * __restrict password,
-		 int const               password_length,
-		 u8_t const * __restrict salt,
-		 u32_t const             number_iterations,
-		 u32_t const             number_concatenations) {
+	sspkdf	(u8_t *__restrict const derived_key,
+		 char const *__restrict password,
+		 int const              password_length,
+		 u8_t const *__restrict salt,
+		 u32_t const            number_iterations,
+		 u32_t const            number_concatenations) {
 	using std::memcpy;
 	constexpr int const State_Bits = 512;
 	constexpr int const State_Bytes = State_Bits / 8;

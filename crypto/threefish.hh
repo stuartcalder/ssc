@@ -36,7 +36,7 @@ namespace ssc {
 		static constexpr u64_t const Constant_240   = 0x1bd1'1bda'a9fc'1a22;
 		/* Constructors / Destructors */
 		Threefish (void) {}
-		Threefish (u8_t const * __restrict k, u8_t const * __restrict tw = nullptr) {
+		Threefish (u8_t const *__restrict k, u8_t const *__restrict tw = nullptr) {
 			expand_key_( k, tw );
 		}
 		~Threefish (void);	/* forward declared */
@@ -151,7 +151,7 @@ namespace ssc {
 
 	template <size_t Key_Bits >
 	void
-	Threefish<Key_Bits>::expand_key_	(u8_t const * __restrict k, u8_t const * __restrict tw) {
+	Threefish<Key_Bits>::expand_key_	(u8_t const *__restrict k, u8_t const *__restrict tw) {
 		// key / tweak setup
 		u64_t key [Number_Words + 1]; // Big enough for the parity word
 		std::memcpy( key, k, sizeof(state) );

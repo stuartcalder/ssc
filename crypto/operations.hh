@@ -55,7 +55,7 @@ namespace ssc {
 
 	template <std::size_t Block_Bits>
 	void
-	xor_block (void * __restrict block, void const * __restrict add) {
+	xor_block (void *__restrict block, void const *__restrict add) {
 		static_assert(CHAR_BIT == 8);
 		static_assert((Block_Bits % 8 == 0), "Bits must be a multiple of bytes");
 		static constexpr std::size_t const Block_Bytes = Block_Bits / 8;
@@ -115,19 +115,19 @@ namespace ssc {
 			die_fputs( "Failed to getentropy()\n" );
 #elif defined(_WIN64)
 		BCRYPT_ALG_HANDLE cng_provider_handle;
-		/* Open algorithm provider. */
+		// Open algorithm provider.
 		if (BCryptOpenAlgorithmProvider( &cng_provider_handle, L"RNG", NULL, 0 ) != STATUS_SUCCESS)
 			die_fputs( "BCryptOpenAlgorithmProvider() failed\n" );
-		// Generate randomness
+		// Generate randomness.
 		if (BCryptGenRandom( cng_provider_handle, buffer, num_bytes, 0 ) != STATUS_SUCCESS)
 			die_fputs( "BCryptGenRandom() failed\n" );
-		// Close algorithm provider
+		// Close algorithm provider.
 		if (BCryptCloseAlgorithmProvider( cng_provider_handle, 0 ) != STATUS_SUCCESS)
 			die_fputs( "BCryptCloseAlgorithmProvider() failed\n" );
 #else
 #	error "ssc::generate_random_bytes defined for OpenBSD, GNU/Linux, and MS Windows"
 #endif
-	} /* ! generate_random_bytes */
+	} /* generate_random_bytes (u8_t*,size_t) */
 
 	inline void
 	zero_sensitive (void *buffer, std::size_t num_bytes) {
@@ -139,6 +139,6 @@ namespace ssc {
 #else
 #	error "ssc::zero_sensitive defined for OpenBSD, GNU/Linux, and MS Windows"
 #endif
-	} /* ! zero_sensitive */
+	} /* ! zero_sensitive (u8_t*,size_t) */
 	
 }/* ! namespace ssc */
