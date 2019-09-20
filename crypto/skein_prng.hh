@@ -51,7 +51,7 @@ namespace ssc {
                 os_reseed (u64_t const seed_bytes);
 
                 /* void get(output_buffer,requested_bytes)
-                 *      Writes ${requested_bytes} bytes into the ${output_buffer}. */
+                 *      Writes ${requested_bytes} pseudorandom bytes into the ${output_buffer}. */
                 void
                 get (u8_t * const output_buffer,
                      u64_t const  requested_bytes);
