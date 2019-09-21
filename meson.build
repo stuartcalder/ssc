@@ -5,9 +5,9 @@ project( 'ssc', 'cpp', default_options: [ 'cpp_std=c++17', 'buildtype=release',
 cc = meson.get_compiler( 'cpp' )
 host_os = host_machine.system()
 
-ssc_src = [ 'general/arg_mapping.cc', 'general/base64.cc', 'general/print.cc',
-            'files/files.cc', 'interface/terminal.cc', 'crypto/sspkdf.cc',
-            'general/parse_string.cc', 'files/os_map.cc' ]
+ssc_src = ['general/arg_mapping.cc', 'general/base64.cc', 'general/print.cc',
+           'files/files.cc', 'interface/terminal.cc', 'crypto/sspkdf.cc',
+           'general/parse_string.cc', 'files/os_map.cc']
 
 lib_deps = []
 if host_os == 'openbsd'
