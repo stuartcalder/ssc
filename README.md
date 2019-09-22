@@ -32,7 +32,7 @@ Little Endian only!
     sudo ninja install
 ```
 
-## Building on a Microsoft Windows(c) system
+### Building on a Microsoft Windows(c) system
 1. git clone [ssc](https://github.com/stuartcalder/ssc) into __C:/include__
 2. Open a command-prompt, specifically open __"x64 Native Tools Command Prompt for VS 2019"__
 2. cd into __C:/include__ and do the following:
