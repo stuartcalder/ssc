@@ -43,3 +43,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #       endif
 #   endif
 #endif
+
+/* Common OS check macros */
+#if defined(__OpenBSD__) || defined(__gnu_linux__)
+#	define __Unix_Like__ 1
+#endif /* defined(__OpenBSD__) || defined(__gnu_linux__) */

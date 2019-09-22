@@ -16,10 +16,11 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <utility>
 #include <memory>
 
+#include <ssc/general/symbols.hh>
 #include <ssc/interface/terminal.hh>
 
 extern "C" {
-#if defined(__OpenBSD__) || defined(__gnu_linux__)
+#if defined(__Unix_Like__)
 #	include <ncurses.h>
 #elif defined(_WIN64)
 #	include <conio.h>
@@ -32,7 +33,7 @@ extern "C" {
 namespace ssc {
     Terminal::Terminal()
     {
-#if defined(__OpenBSD__) || defined(__gnu_linux__)
+#if defined(__Unix_Like__)
         initscr();
         getmaxyx( stdscr, std_height, std_width );
         clear();
@@ -44,7 +45,7 @@ namespace ssc {
     }/* ! ssc::Terminal::Terminal() */
     Terminal::~Terminal()
     {
-#if defined(__OpenBSD__) || defined(__gnu_linux__)
+#if defined(__Unix_Like__)
         endwin();
 #elif defined(_WIN64)
         system( "cls" );
@@ -57,7 +58,7 @@ namespace ssc {
                          int const min_pw_size)
     {
         using namespace std;
-#if defined(__OpenBSD__) || defined(__gnu_linux__)
+#if defined(__Unix_Like__)
         // Screen setup
         cbreak();               // Disable line buffering
         noecho();               // Disable echoing
@@ -233,13 +234,13 @@ namespace ssc {
         system( "cls" );
         return password_size;
 #else
-#   error "ssc::Terminal::get_pw(...) defined for OpenBSD, GNU/Linux, and MS Windows"
+#	error "ssc::Terminal::get_pw(...) defined for OpenBSD, GNU/Linux, and MS Windows"
 #endif
     }/* ! ssc::Terminal::get_pw */
     void Terminal::notify(char const *notice)
     {
         using namespace std;
-#if defined(__OpenBSD__) || defined(__gnu_linux__)
+#if defined(__Unix_Like__)
         WINDOW * w = newwin( 1, strlen(notice) + 1, 0, 0 );
         wclear( w );
         wmove( w, 0, 0 );

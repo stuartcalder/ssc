@@ -15,8 +15,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include <cstdint>
 #include <cstring>
-#include <ssc/crypto/operations.hh>
+
 #include <ssc/general/symbols.hh>
+#include <ssc/crypto/operations.hh>
 
 namespace ssc
 {
@@ -32,10 +33,10 @@ namespace ssc
                    int const min_pw_size);
         void notify(char const * notice);
     private:
-#if defined(__OpenBSD__) || defined( __gnu_linux__ )
+#if defined(__Unix_Like__)
         DLL_LOCAL int std_height;
         DLL_LOCAL int std_width;
-#elif !defined( _WIN64 )
+#elif !defined(_WIN64)
     #error "ssc::Terminal only defined for OpenBSD, GNU/Linux, and MS Windows"
 #endif
     };/* ! class ssc::Terminal */

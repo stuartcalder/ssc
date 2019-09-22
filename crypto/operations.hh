@@ -25,7 +25,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/general/error_conditions.hh>
 
 extern "C" {
-#if defined(__OpenBSD__) || defined(__gnu_linux__)
+#if defined(__Unix_Like__)
 #	include <unistd.h>
 #elif defined(_WIN64)
 #	include <windows.h>
@@ -104,7 +104,7 @@ namespace ssc {
 	inline void
 	obtain_os_entropy (u8_t *buffer, size_t num_bytes) {
                 using namespace std;
-#if defined(__OpenBSD__) || defined(__gnu_linux__)
+#if defined(__Unix_Like__)
                 static constexpr auto const Max_Bytes = 256;
                 while (num_bytes >= Max_Bytes) {
                         if (getentropy( buffer, Max_Bytes ) != 0)
@@ -133,7 +133,7 @@ namespace ssc {
 	inline void
 	zero_sensitive (void *buffer, std::size_t num_bytes) {
 		using namespace std;
-#if defined(__OpenBSD__) || defined(__gnu_linux__)
+#if defined(__Unix_Like__)
 		explicit_bzero( buffer, num_bytes );
 #elif defined(_WIN64)
 		SecureZeroMemory( buffer, num_bytes );

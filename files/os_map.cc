@@ -11,11 +11,12 @@ the following disclaimer in the documentation and/or other materials provided wi
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
+#include <ssc/general/symbols.hh>
 #include <ssc/general/integers.hh>
 #include <ssc/files/os_map.hh>
 
 extern "C" {
-#if defined(__OpenBSD__) || defined(__gnu_linux__)
+#if defined(__Unix_Like__)
 #	include <sys/mman.h>
 #elif defined(_WIN64)
 #	include <windows.h>
@@ -28,7 +29,7 @@ extern "C" {
 namespace ssc {
 	void
 	map_file	(OS_Map & os_map, bool const readonly) {
-#if defined(__OpenBSD__) || defined(__gnu_linux__)
+#if defined(__Unix_Like__)
 		decltype(PROT_READ) const readwrite_flag = (readonly ? PROT_READ : (PROT_READ | PROT_WRITE));
 		os_map.ptr = static_cast<u8_t *>(mmap( nullptr, os_map.size, readwrite_flag, MAP_SHARED, os_map.os_file, 0 ));
 		if ( os_map.ptr == MAP_FAILED ) {
@@ -68,7 +69,7 @@ namespace ssc {
 	void
 	unmap_file	(OS_Map const & os_map) {
 		using namespace std;
-#if defined(__OpenBSD__) || defined(__gnu_linux__)
+#if defined(__Unix_Like__)
 		if (munmap( os_map.ptr, os_map.size ) == -1) {
 			fputs( "Error: Failed to unmap file\n", stderr );
 			exit( EXIT_FAILURE );
@@ -87,7 +88,7 @@ namespace ssc {
 	void
 	sync_map	(OS_Map const & os_map) {
 		using namespace std;
-#if defined(__OpenBSD__) || defined(__gnu_linux__)
+#if defined(__Unix_Like__)
 		if (msync( os_map.ptr, os_map.size, MS_SYNC ) == -1) {
 			fputs( "Error: Failed to sync mmap()\n", stderr );
 			exit( EXIT_FAILURE );

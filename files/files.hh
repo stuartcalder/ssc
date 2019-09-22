@@ -26,12 +26,12 @@ extern "C" {
 
 namespace ssc {
 
-#if defined(__OpenBSD__) || defined(__gnu_linux__)
+#if defined(__Unix_Like__)
 	using OS_File_t = int;
 #elif defined(_WIN64)
 	using OS_File_t = HANDLE;
 #else
-#   error "Unsupported platform"
+#	error "Unsupported platform"
 #endif
 
 	size_t DLL_PUBLIC
