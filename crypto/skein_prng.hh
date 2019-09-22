@@ -104,7 +104,7 @@ namespace ssc {
                 // Copy the state into the beginning of the temp buffer.
                 std::memcpy( buffer.get(), state, sizeof(state) );
                 // Write ${seed_bytes} bytes of entropy after the end of the copied-in state.
-                generate_random_bytes( buffer.get() + sizeof(state), seed_bytes );
+		obtain_os_entropy( buffer.get() + sizeof(state), seed_bytes );
                 // Hash the buffer, outputting the hash back into the state.
                 skein.hash_native( state, buffer.get(), buffer_size );
                 // Securely zero over the used buffer.

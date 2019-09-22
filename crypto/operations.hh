@@ -102,7 +102,7 @@ namespace ssc {
 	}/* ! xor_block */
 	
 	inline void
-	generate_random_bytes (u8_t * buffer, std::size_t num_bytes) {
+	obtain_os_entropy (u8_t *buffer, size_t num_bytes) {
                 using namespace std;
 #if defined(__OpenBSD__) || defined(__gnu_linux__)
                 static constexpr auto const Max_Bytes = 256;
@@ -126,9 +126,9 @@ namespace ssc {
 		if (BCryptCloseAlgorithmProvider( cng_provider_handle, 0 ) != STATUS_SUCCESS)
 			die_fputs( "BCryptCloseAlgorithmProvider() failed\n" );
 #else
-#	error "ssc::generate_random_bytes defined for OpenBSD, GNU/Linux, and MS Windows"
+#	error "ssc::obtain_os_entropy defined for OpenBSD, GNU/Linux, and MS Windows"
 #endif
-	} /* generate_random_bytes (u8_t*,size_t) */
+	} /* obtain_os_entropy (u8_t*,size_t) */
 
 	inline void
 	zero_sensitive (void *buffer, std::size_t num_bytes) {
