@@ -12,6 +12,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 */
 #pragma once
 
+#include <cstdlib>
+#include <cstdio>
+
 #include <ssc/general/symbols.hh>
 #include <ssc/general/integers.hh>
 
@@ -27,7 +30,10 @@ namespace ssc {
 	inline void
 	lock_os_memory (void const *addr, size_t const length) {
 #if defined(__Unix_Like__)
-		mlock( addr, length );
+		if (mlock( addr, length ) != 0) {
+			std::fputs( "Error: Failed to mlock()\n", stderr );
+			std::exit( EXIT_FAILURE );
+		}
 #else
 #	error	"lock_memory only implemented on unix-like operating systems."
 #endif
@@ -36,7 +42,10 @@ namespace ssc {
 	inline void
 	unlock_os_memory (void const *addr, size_t const length) {
 #if defined(__Unix_Like__)
-		munlock( addr, length );
+		if (munlock( addr, length ) != 0) {
+			std::fputs( "Error: Failed to munlock()\n", stderr );
+			std::exit( EXIT_FAILURE );
+		}
 #else
 #	error	"unlock_memory only implemented on unix-like operating systems."
 #endif
