@@ -12,15 +12,21 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 */
 #pragma once
 
+#include <ssc/general/symbols.hh>
+#include <ssc/general/integers.hh>
+
+#if defined(__Unix_Like__) // For now, only support memory-locking on unix-like operating systems.
+#define	__SSC_memlocking__	1	// If this macro is defined, consider memory locking to be supported.
+
 #include <cstdlib>
 #include <cstdio>
 
 #include <ssc/general/symbols.hh>
 #include <ssc/general/integers.hh>
 
+// Get OS-specific headers needed for locking memory.
 extern "C" {
 #if defined(__Unix_Like__)
-#	define __SSC_memlocking__	1
 #	include <sys/mman.h>
 #else
 #	error	"Only implemented on Unix-like systems."
@@ -52,3 +58,4 @@ namespace ssc {
 #endif
 	}/* unlock_memory */
 }/* ! namespace ssc */
+#endif /* #if defined(__Unix_Like__) */
