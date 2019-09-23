@@ -20,6 +20,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 extern "C" {
 #if defined(__Unix_Like__)
+#	define __SSC_memlocking__	1
 #	include <sys/mman.h>
 #else
 #	error	"Only implemented on Unix-like systems."

@@ -15,6 +15,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/crypto/skein.hh>
 #include <ssc/crypto/operations.hh>
 #include <ssc/general/integers.hh>
+#include <ssc/memory/os_memory_locking.hh>
 
 namespace ssc
 {
@@ -52,6 +53,10 @@ namespace ssc
 	{
 		u8_t key    [State_Bytes];
 		u8_t buffer [State_Bytes];
+#ifdef __SSC_memlocking__
+		lock_os_memory( key   , sizeof(key)    );
+		lock_os_memory( buffer, sizeof(buffer) );
+#endif
 
 		skein.hash( key, concat_buffer.get(), concat_size, sizeof(key) );
 		skein.message_auth_code( buffer, concat_buffer.get(), key, concat_size, sizeof(key), sizeof(buffer) );
@@ -63,6 +68,10 @@ namespace ssc
 		skein.hash( derived_key, buffer, sizeof(buffer), State_Bytes );
 		zero_sensitive( key   , sizeof(key) );
 		zero_sensitive( buffer, sizeof(buffer) );
+#ifdef __SSC_memlocking__
+		unlock_os_memory( key, sizeof(key) );
+		unlock_os_memory( buffer, sizeof(buffer) );
+#endif
 	}
 	zero_sensitive( concat_buffer.get(), concat_size );
     } /* sspkdf */

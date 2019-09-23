@@ -18,6 +18,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/crypto/operations.hh>
 #include <ssc/general/integers.hh>
 #include <ssc/general/symbols.hh>
+#include <ssc/memory/os_memory_locking.hh>
 
 namespace ssc {
 	template <size_t Key_Bits>
@@ -36,8 +37,17 @@ namespace ssc {
 		static constexpr int const   Number_Subkeys = (Number_Rounds / 4) + 1;
 		static constexpr u64_t const Constant_240   = 0x1bd1'1bda'a9fc'1a22;
 		/* Constructors / Destructors */
-		Threefish (void) {}
+		Threefish (void) {
+#ifdef __SSC_memlocking__
+			lock_os_memory( state       , sizeof(state)        );
+			lock_os_memory( key_schedule, sizeof(key_schedule) );
+#endif
+		}
 		Threefish (u8_t const *__restrict k, u8_t const *__restrict tw = nullptr) {
+#ifdef __SSC_memlocking__
+			lock_os_memory( state       , sizeof(state)        );
+			lock_os_memory( key_schedule, sizeof(key_schedule) );
+#endif
 			expand_key_( k, tw );
 		}
 		~Threefish (void);	/* forward declared */
@@ -90,6 +100,10 @@ namespace ssc {
 	Threefish<Key_Bits>::~Threefish	(void) {
 		zero_sensitive( key_schedule, sizeof(key_schedule) );
 		zero_sensitive( state       , sizeof(state) );
+#ifdef __SSC_memlocking__
+		unlock_os_memory( key_schedule, sizeof(key_schedule) );
+		unlock_os_memory( state       , sizeof(state)        );
+#endif
 	}
 
 	template <size_t Key_Bits>
