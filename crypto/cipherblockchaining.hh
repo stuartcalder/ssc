@@ -21,6 +21,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/general/integers.hh>
 #include <ssc/general/symbols.hh>
 #include <ssc/general/error_conditions.hh>
+#include <ssc/memory/os_memory_locking.hh>
 
 /* 
 	CipherBlockChaining < Block_Cipher_t, Block_Bits >
@@ -71,11 +72,19 @@ namespace ssc {
 	/* Constructors */
 	template <typename Block_Cipher_t, size_t Block_Bits>
 	CipherBlockChaining<Block_Cipher_t,Block_Bits>::CipherBlockChaining (Block_Cipher_t &&blk_c) 
-	    : blk_cipher{ std::move( blk_c ) } {}
+	    : blk_cipher{ std::move( blk_c ) }
+	{
+#ifdef __SSC_memlocking__
+		lock_os_memory( state, sizeof(state) );
+#endif
+	}
 	/* Destructors */
 	template <typename Block_Cipher_t, size_t Block_Bits>
 	CipherBlockChaining<Block_Cipher_t,Block_Bits>::~CipherBlockChaining (void) {
 		zero_sensitive( state, sizeof(state) );
+#ifdef __SSC_memlocking__
+		unlock_os_memory( state, sizeof(state) );
+#endif
 	}
 
 	template <typename Block_Cipher_t, size_t Block_Bits>
@@ -143,7 +152,12 @@ namespace ssc {
 		size_t bytes_left = size_in;
 		u8_t const * in  = bytes_in;
 		u8_t * out = bytes_out;
+
 		u8_t buffer [Block_Bytes];
+#ifdef __SSC_memlocking__
+		lock_os_memory( buffer, sizeof(buffer) );
+#endif
+
 		static_assert(sizeof(state)  == Block_Bytes);
 		static_assert(sizeof(buffer) == Block_Bytes);
 		while (bytes_left >= Block_Bytes) {
@@ -167,6 +181,9 @@ namespace ssc {
 		memcpy( state, buffer, Block_Bytes );
 		memcpy( out  , buffer, Block_Bytes );
 		zero_sensitive( buffer, Block_Bytes );
+#ifdef __SSC_memlocking__
+		unlock_os_memory( buffer, sizeof(buffer) );
+#endif
 		return calculate_padded_ciphertext_size_( size_in );
 	} /* ! encrypt */
 
@@ -178,8 +195,13 @@ namespace ssc {
 		if (iv != nullptr)
 			memcpy( state, iv, sizeof(state) );
 		size_t const last_block_offset = (size_in >= Block_Bytes) ? (size_in - Block_Bytes) : 0;
+
 		u8_t ciphertext [Block_Bytes];
 		u8_t buffer     [Block_Bytes];
+#ifdef __SSC_memlocking__
+		lock_os_memory( ciphertext, sizeof(ciphertext) );
+		lock_os_memory( buffer    , sizeof(buffer)     );
+#endif
 		static_assert(sizeof(state)      == Block_Bytes);
 		static_assert(sizeof(ciphertext) == Block_Bytes);
 		static_assert(sizeof(buffer)     == Block_Bytes);
@@ -194,6 +216,10 @@ namespace ssc {
 		}
 		zero_sensitive( buffer    , Block_Bytes );
 		zero_sensitive( ciphertext, Block_Bytes );
+#ifdef __SSC_memlocking__
+		unlock_os_memory( ciphertext, sizeof(ciphertext) );
+		unlock_os_memory( buffer    , sizeof(buffer)     );
+#endif
 		return size_in - count_iso_iec_7816_padding_bytes_( bytes_out, size_in );
 	}
         template <typename Block_Cipher_t, size_t Block_Bits>
