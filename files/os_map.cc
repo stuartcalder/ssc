@@ -52,7 +52,7 @@ namespace ssc {
 		os_map.win64_filemapping = CreateFileMappingA( os_map.os_file, NULL, page_readwrite_flag, high_bits, low_bits, NULL );
 
 		if (os_map.win64_filemapping == NULL) {
-			fputs( "Error: Unalbe to memory-map file\n", stderr );
+			fputs( "Error: Failed during CreateFileMappingA()\n", stderr );
 			exit( EXIT_FAILURE );
 		}
 		os_map.ptr = static_cast<u8_t *>(MapViewOfFile( os_map.win64_filemapping, map_readwrite_flag, 0, 0, os_map.size ));
