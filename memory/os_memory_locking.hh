@@ -12,50 +12,62 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 */
 #pragma once
 
-#include <ssc/general/symbols.hh>
 #include <ssc/general/integers.hh>
+#include <ssc/general/symbols.hh>
 
-#if defined(__Unix_Like__) // For now, only support memory-locking on unix-like operating systems.
+#if defined(__Unix_Like__)		// For now, only support memory-locking on unix-like operating systems.
 #define	__SSC_memlocking__	1	// If this macro is defined, consider memory locking to be supported.
 
 #include <cstdlib>
 #include <cstdio>
 
-#include <ssc/general/symbols.hh>
-#include <ssc/general/integers.hh>
-
 // Get OS-specific headers needed for locking memory.
 extern "C" {
 #if defined(__Unix_Like__)
 #	include <sys/mman.h>
+#elif defined(_WIN64)
+#	include <windows.h>
+#	include <memoryapi.h>
 #else
-#	error	"Only implemented on Unix-like systems."
+#	error	"Only implemented on Unix-like systems and 64-bit Windows."
 #endif
 }/* extern "C" */
 
 namespace ssc {
 	inline void
 	lock_os_memory (void const *addr, size_t const length) {
+		using namespace std;
 #if defined(__Unix_Like__)
 		if (mlock( addr, length ) != 0) {
-			std::fputs( "Error: Failed to mlock()\n", stderr );
-			std::exit( EXIT_FAILURE );
+			fputs( "Error: Failed to mlock()\n", stderr );
+			exit( EXIT_FAILURE );
+		}
+#elif defined(_WIN64)
+		if (VirtualLock( addr, length ) == 0) {
+			fputs( "Error: Failed to VirtualLock()\n", stderr );
+			exit( EXIT_FAILURE );
 		}
 #else
 #	error	"lock_memory only implemented on unix-like operating systems."
 #endif
-	}/* lock_memory */
+	}/* lock_os_memory */
 
 	inline void
 	unlock_os_memory (void const *addr, size_t const length) {
+		using namespace std;
 #if defined(__Unix_Like__)
 		if (munlock( addr, length ) != 0) {
-			std::fputs( "Error: Failed to munlock()\n", stderr );
-			std::exit( EXIT_FAILURE );
+			fputs( "Error: Failed to munlock()\n", stderr );
+			exit( EXIT_FAILURE );
+		}
+#elif defined(_WIN64)
+		if (VirtualUnlock( addr, length ) == 0) {
+			fputs( "Error: Failed to VirtualUnlock()\n", stderr );
+			exit( EXIT_FAILURE );
 		}
 #else
 #	error	"unlock_memory only implemented on unix-like operating systems."
 #endif
-	}/* unlock_memory */
+	}/* unlock_os_memory */
 }/* ! namespace ssc */
 #endif /* #if defined(__Unix_Like__) */

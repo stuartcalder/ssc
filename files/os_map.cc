@@ -22,7 +22,7 @@ extern "C" {
 #	include <windows.h>
 #	include <memoryapi.h>
 #else
-#	error "Only defined for Gnu/Linux and Win64"
+#	error "Only defined for OpenBSD, GNU/Linux, and Win64"
 #endif
 }/* extern "C" */
 

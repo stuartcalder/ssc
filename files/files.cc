@@ -216,9 +216,8 @@ namespace ssc {
 	close_os_file	(OS_File_t const os_file) {
 		using namespace std;
 #if defined(__Unix_Like__)
-		int ret_code = close( os_file );
-		if (ret_code == -1) {
-			fprintf( stderr, "Error: Wasn't able to close file descriptor %d\n", ret_code );
+		if (close( os_file ) == -1) {
+			fprintf( stderr, "Error: Wasn't able to close file descriptor %d\n", os_file );
 			exit( EXIT_FAILURE );
 		}
 #elif defined(_WIN64)
