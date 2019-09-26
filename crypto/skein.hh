@@ -27,7 +27,9 @@ namespace ssc {
 		               State_Bits ==  512 ||
 		               State_Bits == 1024),
 		               "Skein is only defined for 256, 512, 1024 bit states.");
-		using UBI_t = UBI<Threefish<State_Bits>, State_Bits>;
+		// Use Threefish with a block size of (State_Bits/8), and do NOT memory lock on key expansion operations.
+		using Threefish_t = Threefish<State_Bits, false>;
+		using UBI_t       = UBI<Threefish_t, State_Bits>;
 		using Type_Mask_e = typename UBI_t::Type_Mask_e;
 		static constexpr const size_t State_Bytes = State_Bits / 8;
 
