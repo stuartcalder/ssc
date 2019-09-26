@@ -22,24 +22,26 @@ namespace ssc {
 	template <size_t State_Bits>
 	class Skein {
 	public:
-		/* PUBLIC CONSTANTS AND COMPILE-TIME CHECKS */
+		/* PUBLIC CONSTANTS and COMPILE-TIME CHECKS */
 		static_assert((State_Bits ==  256 ||
 		               State_Bits ==  512 ||
 		               State_Bits == 1024),
 		               "Skein is only defined for 256, 512, 1024 bit states.");
-		// Use Threefish with a block size of (State_Bits/8), and do NOT memory lock on key expansion operations.
+		// Use Threefish with a block size of (State_Bits/8) and do NOT memory lock on key expansion operations.
 		using Threefish_t = Threefish<State_Bits, false>;
 		using UBI_t       = UBI<Threefish_t, State_Bits>;
 		using Type_Mask_e = typename UBI_t::Type_Mask_e;
 		static constexpr const size_t State_Bytes = State_Bits / 8;
-
 		/* PUBLIC INTERFACE */
+		/* Receive output bytes and output pseudorandom bytes 
+		   from the hash function. */
 		void
 		hash (u8_t * const       bytes_out,
 		      u8_t const * const bytes_in,
 		      u64_t const        num_bytes_in,
 		      u64_t const        num_bytes_out = State_Bytes);
 
+		// Authenticate the input bytes with the input key.
 		void
 		message_auth_code (u8_t * const       bytes_out,
 		                   u8_t const * const bytes_in,
@@ -48,6 +50,7 @@ namespace ssc {
 		                   u64_t const        num_key_bytes_in,
 		                   u64_t const        num_bytes_out = State_Bytes);
 
+		// Hash the input bytes, outputting State_Bytes pseudorandom bytes.
 		void
 		hash_native (u8_t * const       bytes_out,
 		             u8_t const * const bytes_in,
@@ -72,18 +75,18 @@ namespace ssc {
 	template <size_t State_Bits>
 	void
 	Skein<State_Bits>::process_config_block_ (u64_t const num_output_bits) {
-		/* Setup configuration string */
+		/* Setup configuration string. */
 		u8_t config [32] = {
-			/* first 4 bytes */
-			0x53, 0x48, 0x41, 0x33, /* schema identifier "SHA3" */
-			/* next 2 bytes */
-			0x01, 0x00,             /* version number (1) */
-			// next 2 bytes
-			0x00, 0x00,             // reserved (0)
-			// next 8 bytes
-			0x00, 0x00, 0x00, 0x00, // output length
+			// First 4 bytes
+			0x53, 0x48, 0x41, 0x33, // Schema identifier "SHA3"
+			// Next 2 bytes
+			0x01, 0x00,             // Version number (1)
+			// Next 2 bytes
+			0x00, 0x00,             // Reserved (0)
+			// Next 8 bytes
+			0x00, 0x00, 0x00, 0x00, // Output length
 			0x00, 0x00, 0x00, 0x00,
-			// remaining 16 bytes
+			// Remaining 16 bytes
 			0x00, 0x00, 0x00, 0x00,
 			0x00, 0x00, 0x00, 0x00,
 			0x00, 0x00, 0x00, 0x00,
