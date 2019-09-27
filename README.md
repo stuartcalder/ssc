@@ -33,7 +33,7 @@ Little Endian only!
 ```
 
 ### Building on a Microsoft Windows(c) system
-1. Create the following directories...
+1. Create the following directories if they do not exist:
 	- __C:/include__
 	- __C:/lib__
 2. git clone [ssc](https://github.com/stuartcalder/ssc) into __C:/include__
