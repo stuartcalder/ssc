@@ -95,7 +95,7 @@ namespace ssc {
 		}
 #elif defined(_WIN64)
 		if (FlushViewOfFile( static_cast<LPCVOID>(os_map.ptr), os_map.size ) == 0) {
-			fputs( "Error: Failed to FlushViewOfFile()\n", stderr )
+			fputs( "Error: Failed to FlushViewOfFile()\n", stderr );
 			exit( EXIT_FAILURE );
 		}
 #else
