@@ -48,7 +48,7 @@ namespace ssc {
 			exit( EXIT_FAILURE );
 		}
 #else
-#	error	"lock_memory only implemented on unix-like operating systems."
+#	error	"lock_memory only implemented on win64 and unix-like operating systems."
 #endif
 	}/* lock_os_memory */
 
@@ -66,7 +66,7 @@ namespace ssc {
 			exit( EXIT_FAILURE );
 		}
 #else
-#	error	"unlock_memory only implemented on unix-like operating systems."
+#	error	"unlock_memory only implemented on win64 and unix-like operating systems."
 #endif
 	}/* unlock_os_memory */
 }/* ! namespace ssc */

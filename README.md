@@ -33,15 +33,18 @@ Little Endian only!
 ```
 
 ### Building on a Microsoft Windows(c) system
-1. git clone [ssc](https://github.com/stuartcalder/ssc) into __C:/include__
-2. Open a command-prompt, specifically open __"x64 Native Tools Command Prompt for VS 2019"__
-2. cd into __C:/include__ and do the following:
+1. Create the following directories...
+	- __C:/include__
+	- __C:/lib__
+2. git clone [ssc](https://github.com/stuartcalder/ssc) into __C:/include__
+3. Open a command-prompt, specifically open __"x64 Native Tools Command Prompt for VS 2019"__
+4. cd into __C:/include__ and do the following:
 ```
 	mkdir builddir
 	meson --backend ninja builddir
 	cd builddir
 	ninja
 ```
-3. Assuming success, ninja should have outputted a file __libssc.a__
-4. Rename __libssc.a__ to __ssc.lib__
-5. Manually copy __ssc.lib__ to __C:/lib__
+5. Assuming success, ninja should have outputted a file __libssc.a__
+6. Rename __libssc.a__ to __ssc.lib__
+7. Manually copy __ssc.lib__ to __C:/lib__
