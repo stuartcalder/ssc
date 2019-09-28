@@ -20,6 +20,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/crypto/operations.hh>
 #include <ssc/general/integers.hh>
 #include <ssc/general/symbols.hh>
+#include <ssc/memory/os_memory_locking.hh>
 
 namespace ssc {
         template <std::size_t State_Bits>
@@ -63,12 +64,18 @@ namespace ssc {
 
         template<std::size_t State_Bits>
         Skein_PRNG<State_Bits>::Skein_PRNG (void) {
+#ifdef __SSC_memlocking__
+		lock_os_memory( state, sizeof(state) );
+#endif
                 this->os_reseed( sizeof(state) );
         } /* Skein_PRNG (void) */
 
         template <std::size_t State_Bits>
         Skein_PRNG<State_Bits>::Skein_PRNG (u8_t const * const seed,
                                             u64_t const        seed_bytes) {
+#ifdef __SSC_memlocking__
+		lock_os_memory( state, sizeof(state) );
+#endif
                 this->reseed( seed, seed_bytes );
         } /* Skein_PRNG (u8_t*,u64_t) */
 
@@ -76,6 +83,9 @@ namespace ssc {
         Skein_PRNG<State_Bits>::~Skein_PRNG (void) {
                 // Securely zero the buffer on destruction.
                 zero_sensitive( state, sizeof(state) );
+#ifdef __SSC_memlocking__
+		unlock_os_memory( state, sizeof(state) );
+#endif
         } /* ~Skein_PRNG */
 
         template <std::size_t State_Bits>
