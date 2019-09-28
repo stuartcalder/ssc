@@ -24,17 +24,27 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/general/symbols.hh>
 #include <ssc/general/error_conditions.hh>
 
-extern "C" {
 #if defined(__Unix_Like__)
 #	include <unistd.h>
 #elif defined(_WIN64)
-#	include <windows.h>
-#	include <ntstatus.h>
-#	include <bcrypt.h>
+#	ifndef WIN64_WINDOWS_H
+#		include <windows.h>
+#		define WIN64_WINDOWS_H
+#	endif
+
+#	ifndef WIN64_NTSTATUS_H
+#		include <ntstatus.h>
+#		define WIN64_NTSTATUS_H
+#	endif
+
+#	ifndef WIN64_BCRYPT_H
+#		include <bcrypt.h>
+#		define WIN64_BCRYPT_H
+#	endif
+
 #else
-#	error "Operations.hh only implemented for GNU/Linux and 64-bit Microsoft Windows"
+#	error "Operations.hh only implemented for OpenBSD, GNU/Linux, and 64-bit Microsoft Windows"
 #endif
-} /* ! extern "C" */
 
 namespace ssc {
 	static_assert(CHAR_BIT == 8);

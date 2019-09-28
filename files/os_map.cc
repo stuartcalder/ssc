@@ -19,8 +19,16 @@ extern "C" {
 #if defined(__Unix_Like__)
 #	include <sys/mman.h>
 #elif defined(_WIN64)
-#	include <windows.h>
-#	include <memoryapi.h>
+#	ifndef WIN64_WINDOWS_H
+#		include <windows.h>
+#		define WIN64_WINDOWS_H
+#	endif
+
+#	ifndef WIN64_MEMORYAPI_H
+#		include <memoryapi.h>
+#		define WIN64_MEMORYAPI_H
+#	endif
+
 #else
 #	error "Only defined for OpenBSD, GNU/Linux, and Win64"
 #endif

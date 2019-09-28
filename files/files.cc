@@ -21,7 +21,11 @@ extern "C" {
 #	include <unistd.h>
 #	include <fcntl.h>
 #elif defined(_WIN64)
-#	include <windows.h>
+#	ifndef WIN64_WINDOWS_H
+#		include <windows.h>
+#		define WIN64_WINDOWS_H
+#	endif
+
 #else
 #	error "Only defined for OpenBSD, GNU/Linux, and Win64"
 #endif

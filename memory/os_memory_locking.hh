@@ -22,16 +22,22 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <cstdio>
 
 // Get OS-specific headers needed for locking memory.
-extern "C" {
 #if defined(__Unix_Like__)
 #	include <sys/mman.h>
 #elif defined(_WIN64)
-#	include <windows.h>
-#	include <memoryapi.h>
+#	ifndef WIN64_WINDOWS_H
+#		include <windows.h>
+#		define WIN64_WINDOWS_H
+#	endif
+
+#	ifndef WIN64_MEMORYAPI_H
+#		include <memoryapi.h>
+#		define WIN64_MEMORYAPI_H
+#	endif
+
 #else
 #	error	"Only implemented on Unix-like systems and 64-bit Windows."
 #endif
-}/* extern "C" */
 
 namespace ssc {
 	inline void

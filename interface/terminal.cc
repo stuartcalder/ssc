@@ -19,16 +19,21 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/general/symbols.hh>
 #include <ssc/interface/terminal.hh>
 
-extern "C" {
 #if defined(__Unix_Like__)
 #	include <ncurses.h>
 #elif defined(_WIN64)
-#	include <conio.h>
-#	include <windows.h>
+#	ifndef WIN64_WINDOWS_H
+#		include <windows.h>
+#		define WIN64_WINDOWS_H
+#	endif
+
+#	ifndef WIN64_CONIO_H
+#		include <conio.h>
+#		define WIN64_CONIO_H
+#	endif
 #else
 #	error "ssc/interface/terminal.cc only defined for OpenBSD, GNU/Linux, and 64-bit MS Windows"
 #endif
-}/* ! extern "C" */
 
 namespace ssc {
     Terminal::Terminal()
