@@ -6,7 +6,8 @@ host_os = host_machine.system()
 
 ssc_src = ['general/arg_mapping.cc', 'general/base64.cc', 'general/print.cc',
            'files/files.cc', 'interface/terminal.cc', 'crypto/sspkdf.cc',
-           'general/parse_string.cc', 'files/os_map.cc']
+           'general/parse_string.cc', 'files/os_map.cc',
+	   'crypto/implementation/cbc_v2.cc']
 lib_deps = []
 
 if host_os == 'openbsd'

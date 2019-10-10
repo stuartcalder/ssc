@@ -34,8 +34,8 @@ namespace ssc
         void notify(char const * notice);
     private:
 #if defined(__Unix_Like__)
-        DLL_LOCAL int std_height;
-        DLL_LOCAL int std_width;
+        int DLL_LOCAL std_height;
+        int DLL_LOCAL std_width;
 #elif !defined(_WIN64)
     #error "ssc::Terminal only defined for OpenBSD, GNU/Linux, and MS Windows"
 #endif
