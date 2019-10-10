@@ -27,19 +27,19 @@ namespace ssc
 		 u32_t const            number_iterations,
 		 u32_t const            number_concatenations) {
 	using std::memcpy;
-	constexpr int const State_Bits = 512;
-	constexpr int const State_Bytes = State_Bits / 8;
-	constexpr int const Salt_Bits = 128;
-	constexpr int const Salt_Bytes = Salt_Bits / 8;
+	static constexpr auto const State_Bits = 512;
+	static constexpr auto const State_Bytes = State_Bits / 8;
+	static constexpr auto const Salt_Bits = 128;
+	static constexpr auto const Salt_Bytes = Salt_Bits / 8;
 	Skein<State_Bits> skein;
 	using Index_t = u32_t;
-	const u64_t concat_size = (static_cast<u64_t>(password_length) + Salt_Bytes + sizeof(Index_t)) * number_concatenations;
+	u64_t const concat_size = (static_cast<u64_t>(password_length) + Salt_Bytes + sizeof(Index_t)) * number_concatenations;
 	auto concat_buffer = std::make_unique<u8_t[]>( concat_size );
 
 	{
 		Index_t index = 0;
 		auto buf_ptr = concat_buffer.get();
-		const auto buf_end = buf_ptr + concat_size;
+		auto const buf_end = buf_ptr + concat_size;
 		while (buf_ptr < buf_end) {
 			memcpy( buf_ptr, password, password_length );
 			buf_ptr += password_length;
