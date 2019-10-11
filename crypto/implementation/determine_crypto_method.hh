@@ -43,7 +43,7 @@ namespace ssc {
 	}/*Biggest_ID_String_Size*/
 	inline constexpr size_t DLL_PUBLIC
 	Smallest_ID_String_Size (void) {
-		s = Biggest_ID_String_Size();
+		size_t s = Biggest_ID_String_Size();
 #ifdef __SSC_CBC_V2__
 		if (sizeof(cbc_v2::CBC_V2_ID) < s)
 			s = sizeof(cbc_v2::CBC_V2_ID);
@@ -69,8 +69,12 @@ namespace ssc {
 #ifdef __SSC_CBC_V2__
 		{
 			using namespace cbc_v2;
-			static_assert (sizeof(CBC_V2_ID) >= Smallest_ID_String_Size());
-			static_assert (sizeof(CBC_V2_ID) <= Biggest_ID_String_Size());
+			{
+				static constexpr auto const Smallest_ID = Smallest_ID_String_Size();
+				static constexpr auto const Biggest_ID  = Biggest_ID_String_Size();
+				static_assert (sizeof(CBC_V2_ID) >= Smallest_ID);
+				static_assert (sizeof(CBC_V2_ID) <= Biggest_ID);
+			}
 			if ((method == Crypto_Method_e::None) && (memcmp( os_map.ptr, CBC_V2_ID, sizeof(CBC_V2_ID) ) == 0)) {
 				method = Crypto_Method_e::CBC_V2;
 			}
