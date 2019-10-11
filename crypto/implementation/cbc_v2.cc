@@ -42,9 +42,9 @@ namespace ssc::cbc_v2 {
 		OS_Map input_map, output_map;
 
 		// Open input file
-		input_map.os_file = open_existing_os_file( encr_input.input_filename, true );
+		input_map.os_file = open_existing_os_file( encr_input.input_filename.c_str(), true );
 		// Create output file
-		output_map.os_file = create_os_file( encr_input.output_filename );
+		output_map.os_file = create_os_file( encr_input.output_filename.c_str() );
 		// Determine input file size
 		input_map.size = get_file_size( input_map.os_file );
 		// Calculate output file size

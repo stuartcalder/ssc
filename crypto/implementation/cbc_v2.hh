@@ -45,8 +45,8 @@ namespace ssc::cbc_v2 {
 	using CBC_t       = CipherBlockChaining<Threefish_t, Block_Bits>;
 
 	struct DLL_PUBLIC Encrypt_Input {
-		char const *input_filename;
-		char const *output_filename;
+		std::string input_filename;
+		std::string output_filename;
 		u32_t       number_iterations;
 		u32_t       number_concatenations;
 	};/*struct Encrypt_Input */
