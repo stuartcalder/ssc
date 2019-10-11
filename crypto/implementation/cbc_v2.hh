@@ -19,6 +19,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include <cstring>
 #include <cstdlib>
+#include <string>
 
 #include <ssc/general/symbols.hh>
 #include <ssc/general/integers.hh>
