@@ -43,19 +43,19 @@ namespace ssc {
                  *      Copies in ${seed_bytes} bytes into the state, and
                  *      hashes them. */
                 void
-                reseed (u8_t const * const seed,
+                reseed (void const * const seed,
                         u64_t const        seed_bytes);
 
                 /* void os_reseed(seed_bytes)
                  *      Reseeds the state using ${seed_bytes} bytes of entropy
                  *      received from the operating system. */
                 void
-                os_reseed (u64_t const seed_bytes);
+                os_reseed (u64_t const seed_bytes = State_Bytes);
 
                 /* void get(output_buffer,requested_bytes)
                  *      Writes ${requested_bytes} pseudorandom bytes into the ${output_buffer}. */
                 void
-                get (u8_t * const output_buffer,
+                get (void * const output_buffer,
                      u64_t const  requested_bytes);
         private:
                 u8_t    state [State_Bytes];
@@ -67,7 +67,7 @@ namespace ssc {
 #ifdef __SSC_memlocking__
 		lock_os_memory( state, sizeof(state) );
 #endif
-                this->os_reseed( sizeof(state) );
+		this->os_reseed();
         } /* Skein_PRNG (void) */
 
         template <std::size_t State_Bits>
@@ -90,7 +90,7 @@ namespace ssc {
 
         template <std::size_t State_Bits>
         void
-        Skein_PRNG<State_Bits>::reseed (u8_t const * const seed,
+        Skein_PRNG<State_Bits>::reseed (void const * const seed,
                                         u64_t const        seed_bytes) {
                 // Enough bytes for the current state and new bytes.
                 u64_t const buffer_size = sizeof(state) + seed_bytes;   
@@ -123,7 +123,7 @@ namespace ssc {
 
         template <std::size_t State_Bits>
         void
-        Skein_PRNG<State_Bits>::get (u8_t * const output_buffer,
+        Skein_PRNG<State_Bits>::get (void * const output_buffer,
                                      u64_t const  requested_bytes) {
                 // Enough bytes for the current state and requested bytes.
                 u64_t const buffer_size = sizeof(state) + requested_bytes;
