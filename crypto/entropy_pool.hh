@@ -123,7 +123,7 @@ namespace ssc {
 			--prng_calls_left;
 		}
 		reset_thread_status = Thread_Status_e::Finished;
-	}/*reset_pool()*/
+	}/*reset_pool_()*/
 
 	template <typename PRNG_t, size_t Pool_Bits, size_t Max_Bits_Per_Call>
 	void
@@ -134,7 +134,7 @@ namespace ssc {
 			prng_calls_left = Num_Consec_Prng_Calls;
 		}
 		prng_thread_status = Thread_Status_e::Finished;
-	}
+	}/*reset_prng_()*/
 
 	template <typename PRNG_t, size_t Pool_Bits, size_t Max_Bits_Per_Call>
 	u8_t *
