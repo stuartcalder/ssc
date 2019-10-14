@@ -36,13 +36,14 @@ namespace ssc {
 			static_assert (Pool_Bits % CHAR_BIT == 0);		// Pool_Bits must be divisible into bytes. 
 			static_assert (Max_Bits_Per_Call % CHAR_BIT == 0);	// Max_Bits_Per_call must be divisibile into bytes.
 			static_assert (Pool_Bits >= (5 * Max_Bits_Per_Call));	// Must Have at 64 bytes of headroom between the size of the pool
+			static_assert (Pool_Bits % Max_Bits_Per_Call == 0);
 
 			enum class Thread_Status_e {
 				None, Running, Finished
 			};
 			static constexpr size_t const Pool_Bytes = Pool_Bits / CHAR_BIT;
 			static constexpr size_t const Max_Bytes_Per_Call = Max_Bits_Per_Call / CHAR_BIT;
-			static constexpr size_t const Num_Calls_Ahead = 8;
+			static constexpr size_t const Num_Calls_Ahead = 5;
 			static constexpr int    const Num_Consec_Prng_Calls = 100;
 			static constexpr size_t const Bytes_Left_Before_Reset = Max_Bytes_Per_Call * Num_Calls_Ahead;
 			static_assert (Pool_Bytes > Bytes_Left_Before_Reset);
@@ -56,7 +57,7 @@ namespace ssc {
 			u8_t *reset_buffer;
 			u8_t *current;
 			u8_t *to_return;
-			std::mutex pool_reset_mutex
+			std::mutex pool_reset_mutex;
 			std::mutex prng_mutex;
 			std::atomic<Thread_Status_e> reset_thread_status;
 			std::atomic<Thread_Status_e> prng_thread_status;
@@ -76,13 +77,13 @@ namespace ssc {
 		  prng_thread_status{ Thread_Status_e::None }, prng_calls_left{ Num_Consec_Prng_Calls }
 	{
 		// Dynamically allocate space for the pool.
-		pool = new(nothrow) u8_t [Pool_Bytes];
+		pool = new(std::nothrow) u8_t [Pool_Bytes];
 		if (pool == nullptr) {
 			std::fputs( "Failed to dynamically allocate Entropy_Pool buffer memory\n", stderr );
 			std::exit( EXIT_FAILURE );
 		}
 		// Dynamically allocate space for the reset buffer.
-		reset_buffer = new(nothrow) u8_t [Pool_Bytes];
+		reset_buffer = new(std::nothrow) u8_t [Pool_Bytes];
 		if (reset_buffer == nullptr) {
 			std::fputs( "Failed to dynamically allocate Entropy_Pool buffer memory\n", stderr );
 			std::exit( EXIT_FAILURE );
@@ -111,18 +112,22 @@ namespace ssc {
 	void
 	Entropy_Pool<PRNG_t,Pool_Bits,Max_Bits_Per_Call>::reset_pool_ (void) {
 		{
-			std::scoped_lock lock{ pool_reset_mutex };
-			std::swap( pool, reset_buffer ); 
-			current = pool;
-			to_return = current;
-			bytes_left = Pool_Bytes;
+			{
+				std::scoped_lock pool_lock{ pool_reset_mutex };
+
+				std::swap( pool, reset_buffer ); 
+				current = pool;
+				to_return = pool;
+				bytes_left = Pool_Bytes;
+			}
+			{
+				std::scoped_lock prng_lock{ prng_mutex };
+
+				prng.get( reset_buffer, Pool_Bytes );
+				--prng_calls_left;
+				reset_thread_status = Thread_Status_e::Finished;
+			}
 		}
-		{
-			std::scoped_lock lock{ prng_mutex };
-			prng.get( reset_buffer, Pool_Bytes );
-			--prng_calls_left;
-		}
-		reset_thread_status = Thread_Status_e::Finished;
 	}/*reset_pool_()*/
 
 	template <typename PRNG_t, size_t Pool_Bits, size_t Max_Bits_Per_Call>
@@ -132,13 +137,13 @@ namespace ssc {
 			std::scoped_lock lock{ prng_mutex };
 			prng.os_reseed();
 			prng_calls_left = Num_Consec_Prng_Calls;
+			prng_thread_status = Thread_Status_e::Finished;
 		}
-		prng_thread_status = Thread_Status_e::Finished;
 	}/*reset_prng_()*/
 
 	template <typename PRNG_t, size_t Pool_Bits, size_t Max_Bits_Per_Call>
 	u8_t *
-	get (int const requested_bytes) {
+	Entropy_Pool<PRNG_t,Pool_Bits,Max_Bits_Per_Call>::get (int const requested_bytes) {
 		bool enough_bytes;
 		{
 			std::scoped_lock lock{ pool_reset_mutex };
@@ -156,10 +161,10 @@ namespace ssc {
 				}
 				// Open a new thread to reset the pool.
 				reset_thread_status = Thread_Status_e::Running;
-				reset_thread = std::thread{ reset_pool_ };
+				reset_thread = std::thread{ &Entropy_Pool<PRNG_t,Pool_Bits,Max_Bits_Per_Call>::reset_pool_, this };
 			}
 			// If there are not enough bytes to complete the call...
-			if (bytes_left < Max_Bytes_Per_Call) {
+			if (bytes_left <= Max_Bytes_Per_Call) {
 				//If the reset thread is currently executing, or has finished executing, then join the reset thread,
 				//guaranteeing that there will be `Max_Bytes_Per_Call` bytes available.
 				if (reset_thread.joinable()) {
@@ -174,7 +179,7 @@ namespace ssc {
 					prng_thread.join();
 				}
 				prng_thread_status = Thread_Status_e::Running;
-				prng_thread = std::thread{ reset_prng_ };
+				prng_thread = std::thread{ &Entropy_Pool<PRNG_t,Pool_Bits,Max_Bits_Per_Call>::reset_prng_, this };
 			}
 		}
 		{

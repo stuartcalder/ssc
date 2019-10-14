@@ -33,7 +33,7 @@ namespace ssc {
                 static constexpr const size_t State_Bytes = State_Bits / 8;
                 using Skein_t = Skein<State_Bits>;
 
-                Skein_PRNG (void)
+                Skein_PRNG (void);
                 Skein_PRNG (u8_t const * const seed,
                             u64_t const        seed_bytes);
                 ~Skein_PRNG (void);
