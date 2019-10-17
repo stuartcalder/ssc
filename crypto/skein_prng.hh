@@ -23,7 +23,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/memory/os_memory_locking.hh>
 
 namespace ssc {
-        template <std::size_t State_Bits>
+        template <size_t State_Bits>
         class Skein_PRNG {
         public:
                 static_assert (State_Bits == 256 ||
@@ -62,33 +62,38 @@ namespace ssc {
                 Skein_t skein;
         }; /* ! class Skein_PRNG */
 
-        template<std::size_t State_Bits>
+        template<size_t State_Bits>
         Skein_PRNG<State_Bits>::Skein_PRNG (void) {
 #ifdef __SSC_memlocking__
+		// Lock the state into memory on construction.
 		lock_os_memory( state, sizeof(state) );
 #endif
+		// With no arguments, seed the state with operating system entropy on construction.
 		this->os_reseed();
         } /* Skein_PRNG (void) */
 
-        template <std::size_t State_Bits>
+        template <size_t State_Bits>
         Skein_PRNG<State_Bits>::Skein_PRNG (u8_t const * const seed,
                                             u64_t const        seed_bytes) {
 #ifdef __SSC_memlocking__
+		// Lock the state into memory on construction.
 		lock_os_memory( state, sizeof(state) );
 #endif
+		// With arguments, seed the state with the provided seed bytes.
                 this->reseed( seed, seed_bytes );
         } /* Skein_PRNG (u8_t*,u64_t) */
 
-        template <std::size_t State_Bits>
+        template <size_t State_Bits>
         Skein_PRNG<State_Bits>::~Skein_PRNG (void) {
                 // Securely zero the buffer on destruction.
                 zero_sensitive( state, sizeof(state) );
 #ifdef __SSC_memlocking__
+		// Unlock the OS memory on destruction (if supported).
 		unlock_os_memory( state, sizeof(state) );
 #endif
         } /* ~Skein_PRNG */
 
-        template <std::size_t State_Bits>
+        template <size_t State_Bits>
         void
         Skein_PRNG<State_Bits>::reseed (void const * const seed,
                                         u64_t const        seed_bytes) {
@@ -105,7 +110,7 @@ namespace ssc {
                 zero_sensitive( buffer.get(), buffer_size );
         } /* reseed (u8_t*,u64_t) */
 
-        template <std::size_t State_Bits>
+        template <size_t State_Bits>
         void
         Skein_PRNG<State_Bits>::os_reseed (u64_t const seed_bytes) {
                 // Enough bytes for the current state and seed bytes.
@@ -121,7 +126,7 @@ namespace ssc {
                 zero_sensitive( buffer.get(), buffer_size );
         } /* os_reseed (u64_t) */
 
-        template <std::size_t State_Bits>
+        template <size_t State_Bits>
         void
         Skein_PRNG<State_Bits>::get (void * const output_buffer,
                                      u64_t const  requested_bytes) {
