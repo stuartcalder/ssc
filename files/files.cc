@@ -171,7 +171,7 @@ namespace ssc {
 
 		if ((file_d = open( filename, read_write_rights, static_cast<mode_t>(0600) )) == -1) {
 			fputs( "Error: Unable to open existing file\n", stderr );
-			perror();
+			perror(nullptr);
 			exit( EXIT_FAILURE );
 		}
 		return file_d;
@@ -202,7 +202,7 @@ namespace ssc {
 		int file_d;
 		if ((file_d = open( filename, (O_RDWR|O_TRUNC|O_CREAT), static_cast<mode_t>(0600) )) == -1) {
 			fputs( "Error: Unable to create new file\n", stderr );
-			perror();
+			perror(nullptr);
 			exit( EXIT_FAILURE );
 		}
 		return file_d;
