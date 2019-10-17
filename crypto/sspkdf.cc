@@ -60,19 +60,21 @@ namespace ssc
 
 		skein.hash( key, concat_buffer.get(), concat_size, sizeof(key) );
 		skein.message_auth_code( buffer, concat_buffer.get(), key, concat_size, sizeof(key), sizeof(buffer) );
+		zero_sensitive( concat_buffer.get(), concat_size );
 		xor_block<State_Bits>( key, buffer );
+
 		for (u32_t i = 1; i < number_iterations; ++i) {
 			skein.message_auth_code( buffer, buffer, key, sizeof(buffer), sizeof(key), sizeof(buffer) );
 			xor_block<State_Bits>( key, buffer );
 		}
 		skein.hash( derived_key, buffer, sizeof(buffer), State_Bytes );
-		zero_sensitive( key   , sizeof(key) );
+
+		zero_sensitive( key   , sizeof(key)    );
 		zero_sensitive( buffer, sizeof(buffer) );
 #ifdef __SSC_memlocking__
-		unlock_os_memory( key, sizeof(key) );
+		unlock_os_memory( key   , sizeof(key)    );
 		unlock_os_memory( buffer, sizeof(buffer) );
 #endif
 	}
-	zero_sensitive( concat_buffer.get(), concat_size );
     } /* sspkdf */
 } /* ! namespace ssc */
