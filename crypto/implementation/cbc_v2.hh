@@ -43,12 +43,12 @@ namespace ssc::cbc_v2 {
 	// OS-Specific Compile-Time Constants
 #if defined(__Unix_Like__)
 	static_assert (Max_Password_Length == 120);
-	static constexpr auto const Password_Prompt = "Please input a password (max length 120 characters).\n";
-	static constexpr auto const Password_Reentry_Prompt = "Good. Please input the same password again (max length 120 characters).\n";
+	static constexpr auto const Password_Prompt = "Please input a password (max length 120 characters).\n> ";
+	static constexpr auto const Password_Reentry_Prompt = "Good. Please input the same password again (max length 120 characters).\n> ";
 #elif defined(_WIN64)
 	static_assert (Max_Password_Length == 120);
-	static constexpr auto const Password_Prompt = "Please input a password (max length 120 characters).\n\r";
-	static constexpr auto const Password_Reentry_Prompt = "Good. Please input the same password again (max length 120 characters).\n\r";
+	static constexpr auto const Password_Prompt = "Please input a password (max length 120 characters).\n\r> ";
+	static constexpr auto const Password_Reentry_Prompt = "Good. Please input the same password again (max length 120 characters).\n\r> ";
 #endif
 	// Compile-Time Type Aliases
 	using Threefish_t = Threefish<Block_Bits>;
