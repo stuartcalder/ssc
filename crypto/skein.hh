@@ -13,7 +13,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 */
 #pragma once
 #include <ssc/crypto/threefish.hh>
-#include <ssc/crypto/ubi.hh>
+#include <ssc/crypto/unique_block_iteration.hh>
 #include <ssc/general/integers.hh>
 #include <ssc/general/symbols.hh>
 
@@ -29,7 +29,7 @@ namespace ssc {
 		               "Skein is only defined for 256, 512, 1024 bit states.");
 		// Use Threefish with a block size of (State_Bits/8) and do NOT memory lock on key expansion operations.
 		using Threefish_t = Threefish<State_Bits, false>;
-		using UBI_t       = UBI<Threefish_t, State_Bits>;
+		using UBI_t       = Unique_Block_Iteration<Threefish_t, State_Bits>;
 		using Type_Mask_e = typename UBI_t::Type_Mask_e;
 		static constexpr const size_t State_Bytes = State_Bits / 8;
 		/* PUBLIC INTERFACE */

@@ -20,7 +20,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 namespace ssc {
 	template <typename Tweakable_Block_Cipher_t, size_t State_Bits>
-	class UBI {
+	class Unique_Block_Iteration {
 	public:
 		/* Compile-Time checks, Constants, and Aliases */
 		static_assert( State_Bits % 8 == 0, "Must be divisible into 8-bit bytes" );
@@ -83,11 +83,11 @@ namespace ssc {
 	u64_t
 	read_msg_block_		(u8_t const * const message_offset,
 				 u64_t const        bytes_left);
-	}; /* class UBI */
+	}; /* class Unique_Block_Iteration */
 
 	template <typename Tweakable_Block_Cipher_t, size_t State_Bits>
 	void
-	UBI<Tweakable_Block_Cipher_t,State_Bits>::chain		(Type_Mask_e const  type_mask,
+	Unique_Block_Iteration<Tweakable_Block_Cipher_t,State_Bits>::chain		(Type_Mask_e const  type_mask,
 								 u8_t const * const message,
 								 const u64_t        message_size) {
 		using namespace std;
@@ -138,49 +138,49 @@ namespace ssc {
 
 	template <typename Tweakable_Block_Cipher_t, size_t State_Bits>
 	void
-	UBI<Tweakable_Block_Cipher_t,State_Bits>::set_tweak_first_	(void) {
+	Unique_Block_Iteration<Tweakable_Block_Cipher_t,State_Bits>::set_tweak_first_	(void) {
 		tweak_state[ sizeof(tweak_state) - 1 ] |= 0b0100'0000;
 	}
 
 	template <typename Tweakable_Block_Cipher_t, size_t State_Bits>
 	void
-	UBI<Tweakable_Block_Cipher_t,State_Bits>::set_tweak_last_	(void) {
+	Unique_Block_Iteration<Tweakable_Block_Cipher_t,State_Bits>::set_tweak_last_	(void) {
 		tweak_state[ sizeof(tweak_state) - 1 ] |= 0b1000'0000;
 	}
 
 	template <typename Tweakable_Block_Cipher_t, size_t State_Bits>
 	void
-	UBI<Tweakable_Block_Cipher_t,State_Bits>::clear_tweak_first_	(void) {
+	Unique_Block_Iteration<Tweakable_Block_Cipher_t,State_Bits>::clear_tweak_first_	(void) {
 		tweak_state[ sizeof(tweak_state) - 1 ] &= 0b1011'1111;
 	}
 
 	template <typename Tweakable_Block_Cipher_t, size_t State_Bits>
 	void
-	UBI<Tweakable_Block_Cipher_t,State_Bits>::clear_tweak_last_	(void) {
+	Unique_Block_Iteration<Tweakable_Block_Cipher_t,State_Bits>::clear_tweak_last_	(void) {
 		tweak_state[ sizeof(tweak_state) - 1 ] &= 0b0111'1111;
 	}
 
 	template <typename Tweakable_Block_Cipher_t, size_t State_Bits>
 	void
-	UBI<Tweakable_Block_Cipher_t,State_Bits>::clear_tweak_all_	(void) {
+	Unique_Block_Iteration<Tweakable_Block_Cipher_t,State_Bits>::clear_tweak_all_	(void) {
 		std::memset( tweak_state, 0, sizeof(tweak_state) );
 	}
 
 	template <typename Tweakable_Block_Cipher_t, size_t State_Bits>
 	void
-	UBI<Tweakable_Block_Cipher_t,State_Bits>::set_tweak_type_	(Type_Mask_e const type_mask) {
+	Unique_Block_Iteration<Tweakable_Block_Cipher_t,State_Bits>::set_tweak_type_	(Type_Mask_e const type_mask) {
 		tweak_state[ sizeof(tweak_state) - 1 ] |= static_cast<u8_t>(type_mask);
 	}
 
 	template <typename Tweakable_Block_Cipher_t, size_t State_Bits>
 	void
-	UBI<Tweakable_Block_Cipher_t,State_Bits>::clear_msg_		(void) {
+	Unique_Block_Iteration<Tweakable_Block_Cipher_t,State_Bits>::clear_msg_		(void) {
 		std::memset( msg_state, 0, sizeof(msg_state) );
 	}
 
 	template <typename Tweakable_Block_Cipher_t, size_t State_Bits>
 	u64_t
-	UBI<Tweakable_Block_Cipher_t,State_Bits>::read_msg_block_	(u8_t const * const message_offset,
+	Unique_Block_Iteration<Tweakable_Block_Cipher_t,State_Bits>::read_msg_block_	(u8_t const * const message_offset,
 									 u64_t const bytes_left) {
 		u64_t bytes_read;
 
@@ -197,13 +197,13 @@ namespace ssc {
 
 	template <typename Tweakable_Block_Cipher_t, size_t State_Bits>
 	u8_t*
-	UBI<Tweakable_Block_Cipher_t,State_Bits>::get_key_state		(void) {
+	Unique_Block_Iteration<Tweakable_Block_Cipher_t,State_Bits>::get_key_state		(void) {
 		return key_state;
 	}
 
 	template <typename Tweakable_Block_Cipher_t, size_t State_Bits>
 	void
-	UBI<Tweakable_Block_Cipher_t,State_Bits>::clear_key_state	(void) {
+	Unique_Block_Iteration<Tweakable_Block_Cipher_t,State_Bits>::clear_key_state	(void) {
 		std::memset( key_state, 0, sizeof(key_state) );
 	}
 }/* ! namespace ssc */
