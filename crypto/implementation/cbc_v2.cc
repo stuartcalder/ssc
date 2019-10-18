@@ -70,8 +70,8 @@ namespace ssc::cbc_v2 {
 				static_assert (sizeof(pwcheck)  == Password_Buffer_Bytes);
 				memset( password, 0, Password_Buffer_Bytes );
 				memset( pwcheck , 0, Password_Buffer_Bytes );
-				password_length = term.get_pw( password, Max_Password_Length, 1 );
-				static_cast<void>(term.get_pw( pwcheck , Max_Password_Length, 1 ));
+				password_length = term.get_pw( password, Max_Password_Length, 1, Password_Prompt );
+				static_cast<void>(term.get_pw( pwcheck , Max_Password_Length, 1, Password_Reentry_Prompt ));
 				if (memcmp( password, pwcheck, Password_Buffer_Bytes ) == 0)
 					break;
 				term.notify( "Passwords don't match." );
@@ -236,7 +236,7 @@ namespace ssc::cbc_v2 {
 #endif
 		{
 			Terminal term;
-			password_length = term.get_pw( password, Max_Password_Length, 1 );
+			password_length = term.get_pw( password, Max_Password_Length, 1, Password_Prompt );
 		}
 		// Generate a 512-bit symmetric key from the given password.
 		u8_t derived_key [Block_Bytes];
