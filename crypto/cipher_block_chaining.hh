@@ -55,10 +55,10 @@ namespace ssc {
 		~Cipher_Block_Chaining (void);			/* Destruct a Cipher_Block_Chaining object. (zero sensitive memory) */
 
 		void	manually_set_state (u8_t const *__restrict const state_bytes);
-		void	encrypt_no_padding (u8_t const *bytes_in, u8_t *bytes_out, size_t const size_in, u8_t const *__restrict iv = nullptr);
-		void	decrypt_no_padding (u8_t const *bytes_in, u8_t *bytes_out, size_t const size_in, u8_t const *__restrict iv = nullptr);
-		size_t	decrypt (u8_t const *bytes_in, u8_t *bytes_out, size_t const size_in, u8_t const *__restrict iv = nullptr);
-		size_t	encrypt (u8_t const *bytes_in, u8_t *bytes_out, size_t const size_in, u8_t const *__restrict iv = nullptr);
+		void	encrypt_no_padding (u8_t const *bytes_in, u8_t *bytes_out, size_t const size_in, u8_t const *__restrict iv);
+		void	decrypt_no_padding (u8_t const *bytes_in, u8_t *bytes_out, size_t const size_in, u8_t const *__restrict iv);
+		size_t	decrypt (u8_t const *bytes_in, u8_t *bytes_out, size_t const size_in, u8_t const *__restrict iv);
+		size_t	encrypt (u8_t const *bytes_in, u8_t *bytes_out, size_t const size_in, u8_t const *__restrict iv);
 	private:
 		/* PRIVATE STATE */
 		Block_Cipher_t  blk_cipher;
