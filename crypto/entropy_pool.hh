@@ -38,7 +38,7 @@ namespace ssc {
 			static_assert (Pool_Bits >= (5 * Max_Bits_Per_Call));	// Must Have at 64 bytes of headroom between the size of the pool
 			static_assert (Pool_Bits % Max_Bits_Per_Call == 0);
 
-			enum class Thread_Status_e {
+			enum class Thread_Status_E {
 				None, Running, Finished
 			};
 			static constexpr size_t const Pool_Bytes = Pool_Bits / CHAR_BIT;
@@ -59,8 +59,8 @@ namespace ssc {
 			u8_t *to_return;
 			std::mutex pool_reset_mutex;
 			std::mutex prng_mutex;
-			std::atomic<Thread_Status_e> reset_thread_status;
-			std::atomic<Thread_Status_e> prng_thread_status;
+			std::atomic<Thread_Status_E> reset_thread_status;
+			std::atomic<Thread_Status_E> prng_thread_status;
 			std::atomic_int bytes_left;
 			std::atomic_int prng_calls_left;
 			std::thread reset_thread;
@@ -73,8 +73,8 @@ namespace ssc {
 
 	template <typename PRNG_t, size_t Pool_Bits, size_t Max_Bits_Per_Call>
 	Entropy_Pool<PRNG_t,Pool_Bits,Max_Bits_Per_Call>::Entropy_Pool(PRNG_t &&rng)
-		: prng{ rng }, bytes_left{ Pool_Bytes }, reset_thread_status{ Thread_Status_e::None },
-		  prng_thread_status{ Thread_Status_e::None }, prng_calls_left{ Num_Consec_Prng_Calls }
+		: prng{ rng }, bytes_left{ Pool_Bytes }, reset_thread_status{ Thread_Status_E::None },
+		  prng_thread_status{ Thread_Status_E::None }, prng_calls_left{ Num_Consec_Prng_Calls }
 	{
 		// Dynamically allocate space for the pool.
 		pool = new(std::nothrow) u8_t [Pool_Bytes];
@@ -125,7 +125,7 @@ namespace ssc {
 
 				prng.get( reset_buffer, Pool_Bytes );
 				--prng_calls_left;
-				reset_thread_status = Thread_Status_e::Finished;
+				reset_thread_status = Thread_Status_E::Finished;
 			}
 		}
 	}/*reset_pool_()*/
@@ -137,7 +137,7 @@ namespace ssc {
 			std::scoped_lock lock{ prng_mutex };
 			prng.os_reseed();
 			prng_calls_left = Num_Consec_Prng_Calls;
-			prng_thread_status = Thread_Status_e::Finished;
+			prng_thread_status = Thread_Status_E::Finished;
 		}
 	}/*reset_prng_()*/
 
@@ -152,15 +152,15 @@ namespace ssc {
 		}
 		if (!enough_bytes) {
 			// We will switch the pointers `pool` and `reset_buffer` soon. Running out of entropy in `pool`.
-			if (reset_thread_status != Thread_Status_e::Running) {
+			if (reset_thread_status != Thread_Status_E::Running) {
 				// If the thread is not running... (It has either finished, or it was never started)
-				if (reset_thread_status == Thread_Status_e::Finished) {
+				if (reset_thread_status == Thread_Status_E::Finished) {
 					// If the thread finished, join it.
 					if (reset_thread.joinable())
 						reset_thread.join();
 				}
 				// Open a new thread to reset the pool.
-				reset_thread_status = Thread_Status_e::Running;
+				reset_thread_status = Thread_Status_E::Running;
 				reset_thread = std::thread{ &Entropy_Pool<PRNG_t,Pool_Bits,Max_Bits_Per_Call>::reset_pool_, this };
 			}
 			// If there are not enough bytes to complete the call...
@@ -174,11 +174,11 @@ namespace ssc {
 		}
 		//At this point there is guaranteed to be enough bytes to finish the get() call.
 		if (prng_calls_left <= 0) {
-			if (prng_thread_status != Thread_Status_e::Running) {
+			if (prng_thread_status != Thread_Status_E::Running) {
 				if (prng_thread.joinable()) {
 					prng_thread.join();
 				}
-				prng_thread_status = Thread_Status_e::Running;
+				prng_thread_status = Thread_Status_E::Running;
 				prng_thread = std::thread{ &Entropy_Pool<PRNG_t,Pool_Bits,Max_Bits_Per_Call>::reset_prng_, this };
 			}
 		}

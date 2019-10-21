@@ -28,7 +28,7 @@ namespace ssc {
 		static_assert( State_Bytes % 8 == 0, "Must be divisible into 64-bit words" );
 		static constexpr size_t const Tweak_Bits  = 128;
 		static constexpr size_t const Tweak_Bytes = Tweak_Bits / 8;
-		enum class Type_Mask_e : u8_t {
+		enum class Type_Mask_E : u8_t {
 			T_key = 0,
 			T_cfg = 4,
 			T_prs = 8,
@@ -41,7 +41,7 @@ namespace ssc {
 		/* Constructor(s) */
 		/* Public Interface */
 		void
-		chain	(Type_Mask_e const  type_mask,
+		chain	(Type_Mask_E const  type_mask,
 		  	 u8_t const * const message,
 			 u64_t const        message_size);
 
@@ -75,7 +75,7 @@ namespace ssc {
 	clear_tweak_all_	(void);
 
 	inline void
-	set_tweak_type_		(Type_Mask_e const t_mask);
+	set_tweak_type_		(Type_Mask_E const t_mask);
 
 	inline void
 	clear_msg_		(void);
@@ -87,7 +87,7 @@ namespace ssc {
 
 	template <typename Tweakable_Block_Cipher_t, size_t State_Bits>
 	void
-	Unique_Block_Iteration<Tweakable_Block_Cipher_t,State_Bits>::chain		(Type_Mask_e const  type_mask,
+	Unique_Block_Iteration<Tweakable_Block_Cipher_t,State_Bits>::chain		(Type_Mask_E const  type_mask,
 								 u8_t const * const message,
 								 const u64_t        message_size) {
 		using namespace std;
@@ -168,7 +168,7 @@ namespace ssc {
 
 	template <typename Tweakable_Block_Cipher_t, size_t State_Bits>
 	void
-	Unique_Block_Iteration<Tweakable_Block_Cipher_t,State_Bits>::set_tweak_type_	(Type_Mask_e const type_mask) {
+	Unique_Block_Iteration<Tweakable_Block_Cipher_t,State_Bits>::set_tweak_type_	(Type_Mask_E const type_mask) {
 		tweak_state[ sizeof(tweak_state) - 1 ] |= static_cast<u8_t>(type_mask);
 	}
 

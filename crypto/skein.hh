@@ -30,7 +30,7 @@ namespace ssc {
 		// Use Threefish with a block size of (State_Bits/8) and do NOT memory lock on key expansion operations.
 		using Threefish_t = Threefish<State_Bits, false>;
 		using UBI_t       = Unique_Block_Iteration<Threefish_t, State_Bits>;
-		using Type_Mask_e = typename UBI_t::Type_Mask_e;
+		using Type_Mask_E = typename UBI_t::Type_Mask_E;
 		static constexpr const size_t State_Bytes = State_Bits / 8;
 		/* PUBLIC INTERFACE */
 		/* Receive output bytes and output pseudorandom bytes 
@@ -93,19 +93,19 @@ namespace ssc {
 			0x00, 0x00, 0x00, 0x00
 		};
 		*(reinterpret_cast<u64_t *>(config + 8)) = num_output_bits;
-		ubi.chain( Type_Mask_e::T_cfg, config, sizeof(config) );
+		ubi.chain( Type_Mask_E::T_cfg, config, sizeof(config) );
 	} /* process_config_block_ */
     
 	template <size_t State_Bits>
 	void
 	Skein<State_Bits>::process_key_block_ (u8_t const * const key_in, u64_t const key_size) {
-		ubi.chain( Type_Mask_e::T_key, key_in, key_size );
+		ubi.chain( Type_Mask_E::T_key, key_in, key_size );
 	}
     
 	template <size_t State_Bits>
 	void
 	Skein<State_Bits>::process_message_block_ (u8_t const * const message_in, u64_t const message_size) {
-		ubi.chain( Type_Mask_e::T_msg, message_in, message_size );
+		ubi.chain( Type_Mask_E::T_msg, message_in, message_size );
 	}
     
 	template <size_t State_Bits>
@@ -114,7 +114,7 @@ namespace ssc {
 		u64_t bytes_left = num_output_bytes;
 		u64_t i = 0;
 		for (;;) {
-			ubi.chain( Type_Mask_e::T_out, reinterpret_cast<u8_t *>(&i), sizeof(i) );
+			ubi.chain( Type_Mask_E::T_out, reinterpret_cast<u8_t *>(&i), sizeof(i) );
 			++i;
 			if (bytes_left >= State_Bytes) {
 				std::memcpy( out, ubi.get_key_state(), State_Bytes );

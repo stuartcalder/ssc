@@ -23,7 +23,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 namespace ssc {
 
 	// Enums
-	enum class Crypto_Method_e {
+	enum class Crypto_Method_E {
 		None,
 #ifdef __SSC_CBC_V2__
 		CBC_V2,
@@ -31,7 +31,7 @@ namespace ssc {
 #	error	"CBC_V2 is the only supported Crypto_Method, but isn't here."
 #endif
 		Terminating_Enum
-	};/*enum class Crypto_Method_e*/
+	};/*enum class Crypto_Method_E*/
 
 	// Compile-Time constants
 	inline constexpr size_t DLL_PUBLIC
@@ -54,9 +54,9 @@ namespace ssc {
 	}/*Smallest_ID_String_Size*/
 
 	// Functions
-	inline Crypto_Method_e DLL_PUBLIC
+	inline Crypto_Method_E DLL_PUBLIC
 	determine_crypto_method (char const *filename) {
-		auto method = Crypto_Method_e::None;
+		auto method = Crypto_Method_E::None;
 		// Memory map the file.
 		OS_Map os_map;
 		os_map.os_file = open_existing_os_file( filename, true );
@@ -77,8 +77,8 @@ namespace ssc {
 				static_assert (sizeof(CBC_V2_ID) >= Smallest_ID);
 				static_assert (sizeof(CBC_V2_ID) <= Biggest_ID);
 			}
-			if ((method == Crypto_Method_e::None) && (memcmp( os_map.ptr, CBC_V2_ID, sizeof(CBC_V2_ID) ) == 0)) {
-				method = Crypto_Method_e::CBC_V2;
+			if ((method == Crypto_Method_E::None) && (memcmp( os_map.ptr, CBC_V2_ID, sizeof(CBC_V2_ID) ) == 0)) {
+				method = Crypto_Method_E::CBC_V2;
 			}
 		}
 #else
