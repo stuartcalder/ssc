@@ -87,11 +87,6 @@ namespace ssc {
 			memset( buffer.get(), 0, buffer_size ); // Zero the buffer
 			wclear( w );                         // Clear the new window
 			wmove( w, 1, 0 );                    // Move the cursor into position
-#if 0
-			waddstr( w, "Please input a password (max length " );
-			waddstr( w, mpl );
-			waddstr( w, " characters)\n> " );
-#endif
 			waddstr( w, prompt );
 			inner = true;
 			// Input loop
@@ -161,20 +156,6 @@ namespace ssc {
 		while (repeat_ui) {
 			memset( buffer.get(), 0, buffer_size );
 			system( "cls" );
-#if 0
-			if (_cputs( "Please input a password (max length " ) != 0) {
-				fputs( "Failed to _cputs\n", stderr );
-				exit( EXIT_FAILURE );
-			}
-			if (_cputs( mpl ) != 0) {
-				fputs( "Failed to _cputs\n", stderr );
-				exit( EXIT_FAILURE );
-			}
-			if (_cputs( " characters)\r\n> " ) != 0) {
-				fputs( "Failed to _cputs\n", stderr );
-				exit( EXIT_FAILURE );
-			}
-#endif
 			if (_cputs( prompt ) != 0) {
 				fputs( "Failed to _cputs\n", stderr );
 				exit( EXIT_FAILURE );
