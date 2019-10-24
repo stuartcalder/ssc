@@ -29,12 +29,14 @@ namespace ssc {
 		               "Skein is only defined for 256, 512, 1024 bit states.");
 		// Use Threefish with a block size of (State_Bits/8) and do NOT memory lock on key expansion operations.
 		using Threefish_t = Threefish<State_Bits, false>;
+		// Skein is based upon the Unique Block Iteration mode for the Threefish tweakable block cipher.
 		using UBI_t       = Unique_Block_Iteration<Threefish_t, State_Bits>;
+		// Use the "type mask" defined by UBI_t when processing config blocks, key blocks, etc.
 		using Type_Mask_E = typename UBI_t::Type_Mask_E;
 		static constexpr const size_t State_Bytes = State_Bits / 8;
+
 		/* PUBLIC INTERFACE */
-		/* Receive output bytes and output pseudorandom bytes 
-		   from the hash function. */
+		// Receive output bytes and output pseudorandom bytes from the hash function.
 		void
 		hash (u8_t * const       bytes_out,
 		      u8_t const * const bytes_in,
@@ -58,6 +60,7 @@ namespace ssc {
 	private:
 		/* PRIVATE DATA */
 		UBI_t ubi;
+		
 		/* PRIVATE INTERFACE */
 		void
 		process_config_block_ (u64_t const num_output_bits);
@@ -92,7 +95,10 @@ namespace ssc {
 			0x00, 0x00, 0x00, 0x00,
 			0x00, 0x00, 0x00, 0x00
 		};
+#if 0
 		*(reinterpret_cast<u64_t *>(config + 8)) = num_output_bits;
+#endif
+		std::memcpy( config + 8, &num_output_bits, sizeof(num_output_bits) );
 		ubi.chain( Type_Mask_E::T_cfg, config, sizeof(config) );
 	} /* process_config_block_ */
     
