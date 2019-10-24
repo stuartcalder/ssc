@@ -13,6 +13,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 */
 #include <ssc/files/files.hh>
 #include <ssc/general/integers.hh>
+#include <ssc/general/error_conditions.hh>
 
 extern "C" {
 #if defined(__Unix_Like__)
@@ -39,15 +40,21 @@ namespace ssc {
 #if defined(__Unix_Like__)
 		struct stat s;
 		if (fstat( os_file, &s ) == -1) {
+			errx( "Error: Unable to fstat file descriptor #%d\n", os_file );
+#if 0
 			fprintf( stderr, "Error: Unable to fstat file descriptor #%d\n", os_file );
 			exit( EXIT_FAILURE );
+#endif
 		}
 		return static_cast<size_t>(s.st_size);
 #elif defined(_WIN64)
 		LARGE_INTEGER large_int;
 		if (GetFileSizeEx( os_file, &large_int ) == 0) {
+			errx( "Error: GetFileSizeEx() failed\n" );
+#if 0
 			fputs( "Error: GetFileSizeEx() failed\n", stderr );
 			exit( EXIT_FAILURE );
+#endif
 		}
 		return static_cast<size_t>(large_int.QuadPart);
 #else
@@ -62,14 +69,20 @@ namespace ssc {
 		size_t num_bytes = 0;
 		fpos_t position;
 		if (fgetpos( file, &position ) == -1) {
+			errx( "Error: Failed to get file position with fgetpos()\n" );
+#if 0
 			fprintf( stderr, "Failed to get file position\n" );
 			exit( EXIT_FAILURE );
+#endif
 		}
 		while (fgetc( file ) != EOF)
 			++num_bytes;
 		if (fsetpos( file, &position ) == -1) {
+			errx( "Error: Failed to set file position to its original position with fsetpos()\n" );
+#if 0
 			fprintf( stderr, "Failed to set file position to its original position\n" );
 			exit( EXIT_FAILURE );
+#endif
 		}
 		return num_bytes;
 	}
@@ -80,8 +93,11 @@ namespace ssc {
 #if defined(__Unix_Like__)
 		struct stat s;
 		if (stat( filename, &s) != 0 ) {
+			errx( "Error: Failed to stat() info about %s\n", filename );
+#if 0
 			fprintf( stderr, "Failed to stat info about %s\n", filename );
 			exit( EXIT_FAILURE );
+#endif
 		}
 		return static_cast<size_t>(s.st_size);
 #elif defined(_WIN64)
@@ -93,14 +109,20 @@ namespace ssc {
 		size_t num_bytes = 0;
 		FILE * stream = fopen( filename, "rb" );
 		if (stream == nullptr) {
+			errx( "Error: Failed to open file %s with fopen()\n", filename );
+#if 0
 			fprintf( stderr, "Failed to open file %s\n", filename );
 			exit( EXIT_FAILURE );
+#endif
 		}
 		while (fgetc( stream ) != EOF)
 			++num_bytes;
 		if (fclose( stream ) == -1) {
+			errx( "Error: Failed to close file %s with fclose()\n", filename );
+#if 0
 			fprintf( stderr, "Failed to close file %s\n", filename );
 			exit( EXIT_FAILURE );
+#endif
 		}
 		return num_bytes;
 #endif
@@ -111,7 +133,7 @@ namespace ssc {
 		using namespace std;
 
 		bool exists = false;
-		FILE * test = fopen( filename, "rb" );
+		FILE *test = fopen( filename, "rb" );
 		if (test != nullptr) {
 			fclose( test );
 			exists = true;
@@ -123,9 +145,13 @@ namespace ssc {
 	check_file_name_sanity	(std::string const & str,
 				 size_t const        min_size) {
 		if (str.size() < min_size) {
+			errx( "Error: Filename `%s` must have at least %zu character(s)\n",
+			       str.c_str(), min_size );
+#if 0
 			std::fprintf( stderr, "Error: Filename %s must have at least %zu character(s)\n",
 				      str.c_str(), min_size );
 			std::exit( EXIT_FAILURE );
+#endif
 		}
 	}
 
@@ -170,9 +196,12 @@ namespace ssc {
 			read_write_rights = O_RDWR;
 
 		if ((file_d = open( filename, read_write_rights, static_cast<mode_t>(0600) )) == -1) {
+			errx( "Error: Unable to open existing file `%s` with open()\n", filename );
+#if 0
 			fputs( "Error: Unable to open existing file\n", stderr );
 			perror(nullptr);
 			exit( EXIT_FAILURE );
+#endif
 		}
 		return file_d;
 #elif defined(_WIN64)
@@ -185,8 +214,11 @@ namespace ssc {
 			read_write_rights = (GENERIC_READ | GENERIC_WRITE);
 
 		if ((file_h  = CreateFileA( filename, read_write_rights, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL )) == INVALID_HANDLE_VALUE) {
+			errx( "Error: Unable to open existing file `%s` with CreateFileA()\n", filename );
+#if 0
 			fputs( "Error: Unable to open file\n", stderr );
 			exit( EXIT_FAILURE );
+#endif
 		}
 		return file_h;
 #else
@@ -201,16 +233,22 @@ namespace ssc {
 #if defined(__Unix_Like__)
 		int file_d;
 		if ((file_d = open( filename, (O_RDWR|O_TRUNC|O_CREAT), static_cast<mode_t>(0600) )) == -1) {
+			errx( "Error: Unable to create new file `%s` with open()\n", filename );
+#if 0
 			fputs( "Error: Unable to create new file\n", stderr );
 			perror(nullptr);
 			exit( EXIT_FAILURE );
+#endif
 		}
 		return file_d;
 #elif defined(_WIN64)
 		HANDLE file_h;
 		if ((file_h = CreateFileA( filename, (GENERIC_READ|GENERIC_WRITE), 0, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL )) == INVALID_HANDLE_VALUE) {
+			errx( "Error: Unable to create file `%s` with CreateFileA()\n", filename );
+#if 0
 			fputs( "Error: Unable to create file\n", stderr );
 			exit( EXIT_FAILURE );
+#endif
 		}
 		return file_h;
 #else
@@ -223,13 +261,19 @@ namespace ssc {
 		using namespace std;
 #if defined(__Unix_Like__)
 		if (close( os_file ) == -1) {
+			errx( "Error: Wasn't able to close file descriptor %d\n", os_file );
+#if 0
 			fprintf( stderr, "Error: Wasn't able to close file descriptor %d\n", os_file );
 			exit( EXIT_FAILURE );
+#endif
 		}
 #elif defined(_WIN64)
 		if (CloseHandle( os_file ) == 0) {
+			errx( "Error: Wasn't able to close file handle\n" );
+#if 0
 			fputs( "Error: Was not able to close file\n", stderr );
 			exit( EXIT_FAILURE );
+#endif
 		}
 #else
 #	error "Only defined for OpenBSD, GNU/Linux, and Win64"
@@ -241,19 +285,28 @@ namespace ssc {
 		using namespace std;
 #if defined(__Unix_Like__)
 		if (ftruncate( os_file, new_size ) == -1) {
+			errx( "Error: Failed to set size of file descriptor `%d` to `%zu`\n", os_file, new_size );
+#if 0
 			fputs( "Error: Failed to set file size\n", stderr );
 			exit( EXIT_FAILURE );
+#endif
 		}
 #elif defined(_WIN64)
 		LARGE_INTEGER large_int;
 		large_int.QuadPart = static_cast<decltype(large_int.QuadPart)>(new_size);
 		if (SetFilePointerEx( os_file, large_int, NULL, FILE_BEGIN ) == 0) {
+			errx( "Error: Failed to SetFilePointerEx()\n" );
+#if 0
 			fputs( "Error: Failed to SetFilePointerEx()\n", stderr );
 			exit( EXIT_FAILURE );
+#endif
 		}
 		if (SetEndOfFile( os_file ) == 0) {
+			errx( "Error: Failed to SetEndOfFile()\n" );
+#if 0
 			fputs( "Error: Failed to SetEndOfFile()\n", stderr );
 			exit( EXIT_FAILURE );
+#endif
 		}
 #else
 #	error "set_os_file_size only defined for OpenBSD, GNU/Linux, and Win64"

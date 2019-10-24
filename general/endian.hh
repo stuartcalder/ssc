@@ -15,6 +15,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <cstdint>
 #include <cstdlib>
 #include <cstdio>
+#include <ssc/general/error_conditions.hh>
 #if defined(__gnu_linux__)
 extern "C" {
 #   include <endian.h>
@@ -56,8 +57,11 @@ namespace ssc
                               return htole64( h );
         else
             {
+		    errx( "Error: Illegal sized uint_t in host_to_le\n" );
+#if 0
                 std::fprintf( stderr, "Illegal sized uint_t in host_to_le\n" );
                 std::exit( EXIT_FAILURE );
+#endif
             }
     }
     template< typename uint_t >
@@ -76,8 +80,11 @@ namespace ssc
                               return htobe64( h );
         else
             {
+		    errx( "Error: Illegal sized uint_t in host_to_be\n" );
+#if 0
                 std::fprintf( stderr, "Illegal sized uint_t in host_to_be\n" );
                 std::exit   ( EXIT_FAILURE );
+#endif
             }
     }
     template< typename uint_t >
@@ -96,8 +103,11 @@ namespace ssc
                               return be64toh( b );
         else
             {
+		    errx( "Error: Illegal sized uint_t in be_to_host\n" );
+#if 0
                 std::fprintf( stderr, "Illegal sized uint_t in be_to_host\n" );
                 std::exit   ( EXIT_FAILURE );
+#endif
             }
     }
     template< typename uint_t >
@@ -116,8 +126,11 @@ namespace ssc
                               return le64toh( l );
         else
             {
+		    errx( "Error: Illegal sized uint_t in le_to_host\n" );
+#if 0
                 std::fprintf( stderr, "Illegal sized uint_t in le_to_host\n" );
                 std::exit   ( EXIT_FAILURE );
+#endif
             }
     }
 }
