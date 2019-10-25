@@ -119,37 +119,22 @@ namespace ssc {
                 while (num_bytes >= Max_Bytes) {
                         if (getentropy( buffer, Max_Bytes ) != 0)
 				errx( "Error: Failed to getentropy()\n" );
-#if 0 //deprecate
-                                die_fputs( "Failed to getentropy()\n" );
-#endif
 			num_bytes -= Max_Bytes;
 			buffer    += Max_Bytes;
 		}
 		if (getentropy( buffer, num_bytes ) != 0)
 			errx( "Error: Failed to getentropy()\n" );
-#if 0 //deprecate
-			die_fputs( "Failed to getentropy()\n" );
-#endif
 #elif defined(_WIN64)
 		BCRYPT_ALG_HANDLE cng_provider_handle;
 		// Open algorithm provider.
 		if (BCryptOpenAlgorithmProvider( &cng_provider_handle, L"RNG", NULL, 0 ) != STATUS_SUCCESS)
 			errx( "Error: BCryptOpenAlgorithmProvider() failed\n" );
-#if 0
-			die_fputs( "BCryptOpenAlgorithmProvider() failed\n" );
-#endif
 		// Generate randomness.
 		if (BCryptGenRandom( cng_provider_handle, buffer, num_bytes, 0 ) != STATUS_SUCCESS)
 			errx( "Error: BCryptGenRandom() failed\n" );
-#if 0
-			die_fputs( "BCryptGenRandom() failed\n" );
-#endif
 		// Close algorithm provider.
 		if (BCryptCloseAlgorithmProvider( cng_provider_handle, 0 ) != STATUS_SUCCESS)
 			errx( "Error: BCryptCloseAlgorithmProvider() failed\n" );
-#if 0
-			die_fputs( "BCryptCloseAlgorithmProvider() failed\n" );
-#endif
 #else
 #	error "ssc::obtain_os_entropy defined for OpenBSD, GNU/Linux, and MS Windows"
 #endif

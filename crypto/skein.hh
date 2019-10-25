@@ -95,9 +95,6 @@ namespace ssc {
 			0x00, 0x00, 0x00, 0x00,
 			0x00, 0x00, 0x00, 0x00
 		};
-#if 0
-		*(reinterpret_cast<u64_t *>(config + 8)) = num_output_bits;
-#endif
 		std::memcpy( config + 8, &num_output_bits, sizeof(num_output_bits) );
 		ubi.chain( Type_Mask_E::T_cfg, config, sizeof(config) );
 	} /* process_config_block_ */

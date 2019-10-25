@@ -43,10 +43,6 @@ namespace ssc {
 		os_map.ptr = static_cast<u8_t *>(mmap( nullptr, os_map.size, readwrite_flag, MAP_SHARED, os_map.os_file, 0 ));
 		if ( os_map.ptr == MAP_FAILED ) {
 			errx( "Error: Failed to mmap() the file descriptor `%d`\n", os_map.os_file );
-#if 0
-			fputs( "Error: Failed to open map\n", stderr );
-			exit( EXIT_FAILURE );
-#endif
 		}
 #elif defined(_WIN64)
 		decltype(PAGE_READONLY) page_readwrite_flag;
@@ -65,18 +61,10 @@ namespace ssc {
 
 		if (os_map.win64_filemapping == NULL) {
 			errx( "Error: Failed during CreateFileMapping()\n" );
-#if 0
-			fputs( "Error: Failed during CreateFileMappingA()\n", stderr );
-			exit( EXIT_FAILURE );
-#endif
 		}
 		os_map.ptr = static_cast<u8_t *>(MapViewOfFile( os_map.win64_filemapping, map_readwrite_flag, 0, 0, os_map.size ));
 		if (os_map.ptr == NULL) {
 			errx( "Error: Failed during MapViewOfFile()\n" );
-#if 0
-			fputs( "Error: Failed to MapViewOfFile()\n", stderr );
-			exit( EXIT_FAILURE );
-#endif
 		}
 #else
 #	error "map_file only defined for OpenBSD, GNU/Linux, and Win64"

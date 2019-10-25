@@ -115,9 +115,6 @@ namespace ssc {
 			if (bytes[ i ] == 0x80)
 				return count;
 		}
-#if 0 // deprecating
-		die_fputs( "Error: Invalid Cipher_Block_Chaining Padding!\n" );
-#endif
 		errx( "Error: Invalid Cipher_Block_Chaining padding\n" );
 	}
 
