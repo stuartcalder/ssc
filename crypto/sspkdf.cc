@@ -11,6 +11,7 @@ the following disclaimer in the documentation and/or other materials provided wi
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
+#include <cstdlib>
 #include <ssc/crypto/sspkdf.hh>
 #include <ssc/crypto/skein.hh>
 #include <ssc/crypto/operations.hh>
@@ -19,6 +20,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 namespace ssc
 {
+	static_assert (CHAR_BIT == 8);
 	void
 	sspkdf	(u8_t *__restrict const derived_key,
 		 char const *__restrict password,
@@ -28,9 +30,9 @@ namespace ssc
 		 u32_t const            number_concatenations) {
 	using std::memcpy;
 	static constexpr auto const State_Bits = 512;
-	static constexpr auto const State_Bytes = State_Bits / 8;
+	static constexpr auto const State_Bytes = State_Bits / CHAR_BIT;
 	static constexpr auto const Salt_Bits = 128;
-	static constexpr auto const Salt_Bytes = Salt_Bits / 8;
+	static constexpr auto const Salt_Bytes = Salt_Bits / CHAR_BIT;
 	Skein<State_Bits> skein;
 	using Index_t = u32_t;
 	u64_t const concat_size = (static_cast<u64_t>(password_length) + Salt_Bytes + sizeof(Index_t)) * number_concatenations;
