@@ -89,18 +89,19 @@ namespace ssc {
 
 	template <typename Block_Cipher_t, size_t Block_Bits>
 	void
-	Cipher_Block_Chaining<Block_Cipher_t,Block_Bits>::manually_set_state (u8_t const * const __restrict state_bytes) {
+	Cipher_Block_Chaining<Block_Cipher_t,Block_Bits>::manually_set_state (u8_t const *__restrict const state_bytes) {
 		std::memcpy( state, state_bytes, sizeof(state) );
 	}
 
 	template <typename Block_Cipher_t, size_t Block_Bits>
 	size_t
 	Cipher_Block_Chaining<Block_Cipher_t,Block_Bits>::apply_iso_iec_7816_padding_ (u8_t *bytes, size_t const prepadding_size) {
-		/* Here, bytes_to_add is pre-emptively decremented by 1, as padding
-		   at least one byte is necessary for this padding scheme. */
+		// Here, bytes_to_add is pre-emptively decremented by 1, as padding t least one byte is necessary for this padding scheme.
 		using namespace std;
 		size_t const bytes_to_add = (Block_Bytes - (prepadding_size % Block_Bytes) - 1);
-		bytes[ prepadding_size ] = 0x80u; // The byte 0x80 precedes any null bytes (if any) that make up the padding.
+		// The byte 0x80 precedes any null bytes (if any) that make up the padding.
+		bytes[ prepadding_size ] = 0x80u;
+		// Set the rest of the state to zero (if there is any state left to zero).
 		memset( (bytes + prepadding_size + 1), 0x00u, bytes_to_add );
 		return prepadding_size + 1 + bytes_to_add;
 	}
@@ -109,8 +110,8 @@ namespace ssc {
 	size_t
 	Cipher_Block_Chaining<Block_Cipher_t,Block_Bits>::count_iso_iec_7816_padding_bytes_ (u8_t const * const bytes, size_t const padded_size) {
 		using namespace std;
-		size_t count = 0;
-		for (size_t i = padded_size - 1; padded_size > 0; --i) {
+		size_t i = padded_size, count = 0;
+		for (; i <= padded_size; --i) {
 			++count;
 			if (bytes[ i ] == 0x80)
 				return count;
@@ -150,8 +151,8 @@ namespace ssc {
 		if (iv != nullptr)
 			memcpy( state, iv, sizeof(state) );
 		size_t bytes_left = size_in;
-		u8_t const * in  = bytes_in;
-		u8_t * out = bytes_out;
+		u8_t const *in  = bytes_in;
+		u8_t       *out = bytes_out;
 
 		u8_t buffer [Block_Bytes];
 #ifdef __SSC_memlocking__
@@ -206,7 +207,7 @@ namespace ssc {
 		static_assert(sizeof(ciphertext) == Block_Bytes);
 		static_assert(sizeof(buffer)     == Block_Bytes);
 		for (size_t b_off = 0; b_off <= last_block_offset; b_off += Block_Bytes) {
-			const u8_t *block_in  = bytes_in  + b_off;
+			u8_t const *block_in  = bytes_in  + b_off;
 			u8_t       *block_out = bytes_out + b_off;
 			memcpy( ciphertext, block_in, Block_Bytes );
 			blk_cipher.inverse_cipher( ciphertext, buffer );
