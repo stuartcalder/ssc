@@ -115,7 +115,7 @@ namespace ssc {
 	obtain_os_entropy (u8_t *buffer, size_t num_bytes) {
                 using namespace std;
 #if defined(__Unix_Like__)
-                static constexpr auto const Max_Bytes = 256;
+                static constexpr size_t const Max_Bytes = 256;
                 while (num_bytes >= Max_Bytes) {
                         if (getentropy( buffer, Max_Bytes ) != 0)
 				errx( "Error: Failed to getentropy()\n" );
