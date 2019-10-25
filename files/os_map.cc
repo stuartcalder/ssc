@@ -73,7 +73,7 @@ namespace ssc {
 	unmap_file	(OS_Map const & os_map) {
 		using namespace std;
 #if defined(__Unix_Like__)
-		if (munmap( os_map.ptr, os_map.sie ) == -1)
+		if (munmap( os_map.ptr, os_map.size ) == -1)
 			errx( "Error: Failed to munmap()\n" );
 #elif defined(_WIN64)
 		if (UnmapViewOfFile( static_cast<LPCVOID>(os_map.ptr) ) == 0)
