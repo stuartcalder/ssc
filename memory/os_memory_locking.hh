@@ -12,7 +12,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 */
 #pragma once
 
-#include <ssc/general/integers.hh>
 #include <ssc/general/symbols.hh>
 
 #if defined(__Unix_Like__)		// For now, only support memory-locking on unix-like operating systems.
@@ -20,6 +19,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include <cstdlib>
 #include <cstdio>
+#include <ssc/general/integers.hh>
+#include <ssc/general/error_conditions.hh>
 
 // Get OS-specific headers needed for locking memory.
 #if defined(__Unix_Like__)
@@ -44,15 +45,11 @@ namespace ssc {
 	lock_os_memory (void const *addr, size_t const length) {
 		using namespace std;
 #if defined(__Unix_Like__)
-		if (mlock( addr, length ) != 0) {
-			fputs( "Error: Failed to mlock()\n", stderr );
-			exit( EXIT_FAILURE );
-		}
+		if (mlock( addr, length ) != 0)
+			errx( "Error: Failed to mlock()\n" );
 #elif defined(_WIN64)
-		if (VirtualLock( addr, length ) == 0) {
-			fputs( "Error: Failed to VirtualLock()\n", stderr );
-			exit( EXIT_FAILURE );
-		}
+		if (VirtualLock( addr, length ) == 0)
+			errx( "Error: Failed to VirtualLock()\n" );
 #else
 #	error	"lock_memory only implemented on win64 and unix-like operating systems."
 #endif
@@ -62,15 +59,11 @@ namespace ssc {
 	unlock_os_memory (void const *addr, size_t const length) {
 		using namespace std;
 #if defined(__Unix_Like__)
-		if (munlock( addr, length ) != 0) {
-			fputs( "Error: Failed to munlock()\n", stderr );
-			exit( EXIT_FAILURE );
-		}
+		if (munlock( addr, length ) != 0)
+			errx( "Error: Failed to munlock()\n" );
 #elif defined(_WIN64)
-		if (VirtualUnlock( addr, length ) == 0) {
-			fputs( "Error: Failed to VirtualUnlock()\n", stderr );
-			exit( EXIT_FAILURE );
-		}
+		if (VirtualUnlock( addr, length ) == 0)
+			errx( "Error: Failed to VirtualUnlock()\n" );
 #else
 #	error	"unlock_memory only implemented on win64 and unix-like operating systems."
 #endif
