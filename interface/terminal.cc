@@ -17,6 +17,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <memory>
 
 #include <ssc/general/symbols.hh>
+#include <ssc/general/error_conditions.hh>
 #include <ssc/interface/terminal.hh>
 #include <ssc/memory/os_memory_locking.hh>
 
@@ -156,10 +157,8 @@ namespace ssc {
 		while (repeat_ui) {
 			memset( buffer.get(), 0, buffer_size );
 			system( "cls" );
-			if (_cputs( prompt ) != 0) {
-				fputs( "Failed to _cputs\n", stderr );
-				exit( EXIT_FAILURE );
-			}
+			if (_cputs( prompt ) != 0)
+				errx( "Error: Failed to _cputs()\n" );
 			repeat_input = true;
 			while (repeat_input) {
 				int ch = _getch();
@@ -169,20 +168,16 @@ namespace ssc {
 						if ((index <= max_pw_size - 1) &&
 						    (ch >= 32) && (ch <= 126))
 						{
-							if (_putch( '*' ) == EOF) {
-								fputs( "Failed to _putch\n", stderr );
-								exit( EXIT_FAILURE );
-							}
+							if (_putch( '*' ) == EOF)
+								errx( "Error: Failed to _putch()\n" );
 							buffer[ index++ ] = static_cast<char>(ch);
 						}
 						break;
 					// Backspace was pushed
 					case ( '\b' ):
 						if (index > 0) {
-							if (_cputs( "\b \b" ) != 0) {
-								fputs( "Failed to _cputs\n", stderr );
-								exit( EXIT_FAILURE );
-							}
+							if (_cputs( "\b \b" ) != 0)
+								errx( "Error: Failed to _cputs()\n" );
 							buffer[ --index ] = '\0';
 						}
 						break;
@@ -233,10 +228,8 @@ namespace ssc {
         delwin( w );
 #elif defined(_WIN64)
         system( "cls" );
-        if (_cputs( notice ) != 0) {
-	    fputs( "Failed to _cputs\n", stderr );
-            exit( EXIT_FAILURE );
-        }
+	if (_cputs( notice ) != 0)
+		errx( "Error: Failed to _cputs()\n" );
         system( "pause" );
         system( "cls" );
 #else

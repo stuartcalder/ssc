@@ -40,9 +40,8 @@ errx (int error_code, char const *format, Arg_Pack... args) {
 template <typename... Arg_Pack>
 inline void
 errx (char const *format, Arg_Pack... args) {
-	if constexpr(sizeof...(args) == 0) {
+	if constexpr(sizeof...(args) == 0)
 		errx( static_cast<int>(EXIT_FAILURE), format );
-	} else {
+	else
 		errx( static_cast<int>(EXIT_FAILURE), format, args... );
-	}
 }/*errx(char const*,Arg_Pack...)*/

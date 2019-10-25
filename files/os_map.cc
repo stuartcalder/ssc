@@ -41,9 +41,8 @@ namespace ssc {
 #if defined(__Unix_Like__)
 		decltype(PROT_READ) const readwrite_flag = (readonly ? PROT_READ : (PROT_READ | PROT_WRITE));
 		os_map.ptr = static_cast<u8_t *>(mmap( nullptr, os_map.size, readwrite_flag, MAP_SHARED, os_map.os_file, 0 ));
-		if ( os_map.ptr == MAP_FAILED ) {
+		if ( os_map.ptr == MAP_FAILED )
 			errx( "Error: Failed to mmap() the file descriptor `%d`\n", os_map.os_file );
-		}
 #elif defined(_WIN64)
 		decltype(PAGE_READONLY) page_readwrite_flag;
 		decltype(FILE_MAP_READ) map_readwrite_flag;
@@ -57,15 +56,13 @@ namespace ssc {
 
 		DWORD high_bits = static_cast<DWORD>(os_map.size >> 32);
 		DWORD low_bits  = static_cast<DWORD>(os_map.size);
-		os_map.win64_filemapping = CreateFileMappingA( os_map.os_file, NULL, page_readwrite_flag, high_bits, low_bits, NULL );
+		os_map.win64_filemapping = CreateFileMappingA( os_map.os_file, nullptr, page_readwrite_flag, high_bits, low_bits, nullptr );
 
-		if (os_map.win64_filemapping == NULL) {
+		if (os_map.win64_filemapping == nullptr)
 			errx( "Error: Failed during CreateFileMapping()\n" );
-		}
 		os_map.ptr = static_cast<u8_t *>(MapViewOfFile( os_map.win64_filemapping, map_readwrite_flag, 0, 0, os_map.size ));
-		if (os_map.ptr == NULL) {
+		if (os_map.ptr == nullptr)
 			errx( "Error: Failed during MapViewOfFile()\n" );
-		}
 #else
 #	error "map_file only defined for OpenBSD, GNU/Linux, and Win64"
 #endif
@@ -76,15 +73,11 @@ namespace ssc {
 	unmap_file	(OS_Map const & os_map) {
 		using namespace std;
 #if defined(__Unix_Like__)
-		if (munmap( os_map.ptr, os_map.size ) == -1) {
-			fputs( "Error: Failed to unmap file\n", stderr );
-			exit( EXIT_FAILURE );
-		}
+		if (munmap( os_map.ptr, os_map.sie ) == -1)
+			errx( "Error: Failed to munmap()\n" );
 #elif defined(_WIN64)
-		if (UnmapViewOfFile( static_cast<LPCVOID>(os_map.ptr) ) == 0) {
-			fputs( "Error: Failed to unmap file\n", stderr );
-			exit( EXIT_FAILURE );
-		}
+		if (UnmapViewOfFile( static_cast<LPCVOID>(os_map.ptr) ) == 0)
+			errx( "Error: Failed to UnmapViewOfFile()\n" );
 		close_os_file( os_map.win64_filemapping );
 #else
 #	error "unmap_file only defined for OpenBSD, GNU/Linux, and Win64"
@@ -95,15 +88,11 @@ namespace ssc {
 	sync_map	(OS_Map const & os_map) {
 		using namespace std;
 #if defined(__Unix_Like__)
-		if (msync( os_map.ptr, os_map.size, MS_SYNC ) == -1) {
-			fputs( "Error: Failed to sync mmap()\n", stderr );
-			exit( EXIT_FAILURE );
-		}
+		if (msync( os_map.ptr, os_map.size, MS_SYNC ) == -1)
+			errx( "Error: Failed to msync()\n" );
 #elif defined(_WIN64)
-		if (FlushViewOfFile( static_cast<LPCVOID>(os_map.ptr), os_map.size ) == 0) {
-			fputs( "Error: Failed to FlushViewOfFile()\n", stderr );
-			exit( EXIT_FAILURE );
-		}
+		if (FlushViewOfFile( static_cast<LPCVOID>(os_map.ptr), os_map.size ) == 0)
+			errx( "Error: Failed to FlushViewOfFile()\n" );
 #else
 #	error "sync_map only defined for OpenBSD, GNU/Linux, and Win64"
 #endif

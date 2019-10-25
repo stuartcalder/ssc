@@ -39,15 +39,13 @@ namespace ssc {
 		using namespace std;
 #if defined(__Unix_Like__)
 		struct stat s;
-		if (fstat( os_file, &s ) == -1) {
+		if (fstat( os_file, &s ) == -1)
 			errx( "Error: Unable to fstat file descriptor #%d\n", os_file );
-		}
 		return static_cast<size_t>(s.st_size);
 #elif defined(_WIN64)
 		LARGE_INTEGER large_int;
-		if (GetFileSizeEx( os_file, &large_int ) == 0) {
+		if (GetFileSizeEx( os_file, &large_int ) == 0)
 			errx( "Error: GetFileSizeEx() failed\n" );
-		}
 		return static_cast<size_t>(large_int.QuadPart);
 #else
 #	error "OpenBSD, GNU/Linux, and Win64 are the only supported supported platforms."
@@ -60,14 +58,12 @@ namespace ssc {
 
 		size_t num_bytes = 0;
 		fpos_t position;
-		if (fgetpos( file, &position ) == -1) {
+		if (fgetpos( file, &position ) == -1)
 			errx( "Error: Failed to get file position with fgetpos()\n" );
-		}
 		while (fgetc( file ) != EOF)
 			++num_bytes;
-		if (fsetpos( file, &position ) == -1) {
+		if (fsetpos( file, &position ) == -1)
 			errx( "Error: Failed to set file position to its original position with fsetpos()\n" );
-		}
 		return num_bytes;
 	}
 
@@ -76,9 +72,8 @@ namespace ssc {
 	using namespace std;
 #if defined(__Unix_Like__)
 		struct stat s;
-		if (stat( filename, &s) != 0 ) {
+		if (stat( filename, &s) != 0 )
 			errx( "Error: Failed to stat() info about %s\n", filename );
-		}
 		return static_cast<size_t>(s.st_size);
 #elif defined(_WIN64)
 		OS_File_t file = open_existing_os_file( filename, true );
@@ -88,14 +83,12 @@ namespace ssc {
 #else // All other platforms
 		size_t num_bytes = 0;
 		FILE * stream = fopen( filename, "rb" );
-		if (stream == nullptr) {
+		if (stream == nullptr)
 			errx( "Error: Failed to open file %s with fopen()\n", filename );
-		}
 		while (fgetc( stream ) != EOF)
 			++num_bytes;
-		if (fclose( stream ) == -1) {
+		if (fclose( stream ) == -1)
 			errx( "Error: Failed to close file %s with fclose()\n", filename );
-		}
 		return num_bytes;
 #endif
 	} /* ! get_file_size(const char * filename) */
@@ -116,10 +109,8 @@ namespace ssc {
 	void
 	check_file_name_sanity	(std::string const & str,
 				 size_t const        min_size) {
-		if (str.size() < min_size) {
-			errx( "Error: Filename `%s` must have at least %zu character(s)\n",
-			       str.c_str(), min_size );
-		}
+		if (str.size() < min_size)
+			errx( "Error: Filename `%s` must have at least %zu character(s)\n", str.c_str(), min_size );
 	}
 
 	void
@@ -162,9 +153,8 @@ namespace ssc {
 		else
 			read_write_rights = O_RDWR;
 
-		if ((file_d = open( filename, read_write_rights, static_cast<mode_t>(0600) )) == -1) {
+		if ((file_d = open( filename, read_write_rights, static_cast<mode_t>(0600) )) == -1)
 			errx( "Error: Unable to open existing file `%s` with open()\n", filename );
-		}
 		return file_d;
 #elif defined(_WIN64)
 		HANDLE file_h;
@@ -175,9 +165,8 @@ namespace ssc {
 		else
 			read_write_rights = (GENERIC_READ | GENERIC_WRITE);
 
-		if ((file_h  = CreateFileA( filename, read_write_rights, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL )) == INVALID_HANDLE_VALUE) {
+		if ((file_h  = CreateFileA( filename, read_write_rights, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL )) == INVALID_HANDLE_VALUE)
 			errx( "Error: Unable to open existing file `%s` with CreateFileA()\n", filename );
-		}
 		return file_h;
 #else
 #	error "open_existing_os_file only defined for OpenBSD, GNU/Linux, & Win64"
@@ -190,15 +179,13 @@ namespace ssc {
 		enforce_file_existence( filename, false );
 #if defined(__Unix_Like__)
 		int file_d;
-		if ((file_d = open( filename, (O_RDWR|O_TRUNC|O_CREAT), static_cast<mode_t>(0600) )) == -1) {
+		if ((file_d = open( filename, (O_RDWR|O_TRUNC|O_CREAT), static_cast<mode_t>(0600) )) == -1)
 			errx( "Error: Unable to create new file `%s` with open()\n", filename );
-		}
 		return file_d;
 #elif defined(_WIN64)
 		HANDLE file_h;
-		if ((file_h = CreateFileA( filename, (GENERIC_READ|GENERIC_WRITE), 0, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL )) == INVALID_HANDLE_VALUE) {
+		if ((file_h = CreateFileA( filename, (GENERIC_READ|GENERIC_WRITE), 0, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL )) == INVALID_HANDLE_VALUE)
 			errx( "Error: Unable to create file `%s` with CreateFileA()\n", filename );
-		}
 		return file_h;
 #else
 #	error "create_os_file defined for OpenBSD, GNU/Linux, and Win64"
@@ -209,13 +196,11 @@ namespace ssc {
 	close_os_file	(OS_File_t const os_file) {
 		using namespace std;
 #if defined(__Unix_Like__)
-		if (close( os_file ) == -1) {
+		if (close( os_file ) == -1)
 			errx( "Error: Wasn't able to close file descriptor %d\n", os_file );
-		}
 #elif defined(_WIN64)
-		if (CloseHandle( os_file ) == 0) {
+		if (CloseHandle( os_file ) == 0)
 			errx( "Error: Wasn't able to close file handle\n" );
-		}
 #else
 #	error "Only defined for OpenBSD, GNU/Linux, and Win64"
 #endif
@@ -225,18 +210,15 @@ namespace ssc {
 	set_os_file_size	(OS_File_t const os_file, size_t const new_size) {
 		using namespace std;
 #if defined(__Unix_Like__)
-		if (ftruncate( os_file, new_size ) == -1) {
+		if (ftruncate( os_file, new_size ) == -1)
 			errx( "Error: Failed to set size of file descriptor `%d` to `%zu`\n", os_file, new_size );
-		}
 #elif defined(_WIN64)
 		LARGE_INTEGER large_int;
 		large_int.QuadPart = static_cast<decltype(large_int.QuadPart)>(new_size);
-		if (SetFilePointerEx( os_file, large_int, NULL, FILE_BEGIN ) == 0) {
+		if (SetFilePointerEx( os_file, large_int, NULL, FILE_BEGIN ) == 0)
 			errx( "Error: Failed to SetFilePointerEx()\n" );
-		}
-		if (SetEndOfFile( os_file ) == 0) {
+		if (SetEndOfFile( os_file ) == 0)
 			errx( "Error: Failed to SetEndOfFile()\n" );
-		}
 #else
 #	error "set_os_file_size only defined for OpenBSD, GNU/Linux, and Win64"
 #endif
