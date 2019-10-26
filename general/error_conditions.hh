@@ -27,7 +27,7 @@ template <typename... Arg_Pack>
 inline void
 errx (int error_code, char const *format, Arg_Pack... args) {
 	if constexpr(sizeof...(args) == 0) {
-		std::fprintf( stderr, format );
+		std::fputs( format, stderr );
 		std::exit( error_code );
 	} else {
 		std::fprintf( stderr, format, args... );

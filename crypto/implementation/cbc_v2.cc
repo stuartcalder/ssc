@@ -17,6 +17,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include <ssc/general/symbols.hh>
 #include <ssc/general/print.hh>
+#include <ssc/general/error_conditions.hh>
 #include <ssc/files/files.hh>
 #include <ssc/files/os_map.hh>
 #include <ssc/interface/terminal.hh>
@@ -169,11 +170,10 @@ namespace ssc::cbc_v2 {
 		// Check to see if the input file is too small to have possibly been 3CRYPT_CBC_V2 encrypted.
 		static constexpr auto const Minimum_Possible_File_Size = CBC_V2_Header_t::Total_Size + Block_Bytes + MAC_Bytes;
 		if (input_map.size < Minimum_Possible_File_Size) {
-			fputs( "Error: Input file doesn't appear to be large enough to be a 3CRYPT_CBC_V2 encrypted file\n", stderr );
 			close_os_file( input_map.os_file );
 			close_os_file( output_map.os_file );
 			remove( output_filename );
-			exit( EXIT_FAILURE );
+			errx( "Error: Input file doesn't appear to be large enought to be a 3CRYPT_CBC_V2 encrypted file\n" );
 		}
 		// Set the output file to be `output_map.size` bytes.
 		set_os_file_size( output_map.os_file, output_map.size );
@@ -209,24 +209,21 @@ namespace ssc::cbc_v2 {
 		// Check for the magic "3CRYPT_CBC_V2" at the beginning of the file header.
 		static_assert (sizeof(header.id) == sizeof(CBC_V2_ID));
 		if (memcmp( header.id, CBC_V2_ID, sizeof(CBC_V2_ID) ) != 0) {
-			fputs( "Error: The input file doesn't appear to be a 3CRYPT_CBC_V2 encrypted file.\n", stderr );
 			unmap_file( input_map );
 			unmap_file( output_map );
 			close_os_file( input_map.os_file );
 			close_os_file( output_map.os_file );
 			remove( output_filename );
-			exit( EXIT_FAILURE );
+			errx( "Error: The input file doesn't appear to be a 3CRYPT_CBC_V2 encrypted file.\n" );
 		}
 		// Check that the input file is the same size as specified by the file header.
 		if (header.total_size != static_cast<decltype(header.total_size)>(input_map.size)) {
-			fprintf( stderr, "Error: Input file size (%zu) does not equal file size in the file header of the input file (%zu)\n",
-				 input_map.size, header.total_size );
 			unmap_file( input_map );
 			unmap_file( output_map );
 			close_os_file( input_map.os_file );
 			close_os_file( output_map.os_file );
 			remove( output_filename );
-			exit( EXIT_FAILURE );
+			errx( "Error: Input file size (%zu) does not equal file size in the file header of the input file (%zu)\n", input_map.size, header.total_size );
 		}
 		// Get the password
 		char password [Max_Password_Length + 1] = { 0 };
@@ -266,14 +263,13 @@ namespace ssc::cbc_v2 {
 #ifdef __SSC_memlocking__
 				unlock_os_memory( derived_key, sizeof(derived_key) );
 #endif
-				fputs( "Error: Authentication failed.\n"
-				       "Possibilities: Wrong password, the file is corrupted, or it has been somehow tampered with.\n", stderr );
 				unmap_file( input_map );
 				unmap_file( output_map );
 				close_os_file( input_map.os_file );
 				close_os_file( output_map.os_file );
 				remove( output_filename );
-				exit( EXIT_FAILURE );
+				errx( "Error: Authentication failed.\n"
+				      "Possibilities: Wrong password, the file is corrupted, or it has been somehow tampered with.\n" );
 			}
 		}
 		size_t plaintext_size;
@@ -313,8 +309,7 @@ namespace ssc::cbc_v2 {
 		static constexpr auto const Minimum_Size = CBC_V2_Header_t::Total_Size + Block_Bytes + MAC_Bytes;
 		if (os_map.size < Minimum_Size) {
 			close_os_file( os_map.os_file );
-			fprintf( stderr, "File %s looks too small to be CBC_V2 encrypted\n", filename );
-			exit( EXIT_FAILURE );
+			errx( "File `%s` looks too small to be CBC_V2 encrypted\n", filename );
 		}
 		map_file( os_map, true );
 
