@@ -2,7 +2,7 @@
 C++17 Cryptographic & File I/O Library for OpenBSD, GNU/Linux, and Microsoft Windows.
 Little Endian only!
 ## Dependencies
--	meson Build System
+-	[meson](https://mesonbuild.com) Build system
 ### Linux Dependencies
 -	__ncurses__
 -	__tinfo__
