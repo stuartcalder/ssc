@@ -110,7 +110,7 @@ namespace ssc {
 	size_t
 	Cipher_Block_Chaining<Block_Cipher_t,Block_Bits>::count_iso_iec_7816_padding_bytes_ (u8_t const * const bytes, size_t const padded_size) {
 		using namespace std;
-		size_t i = padded_size, count = 0;
+		size_t i = padded_size - 1, count = 0;
 		for (; i <= padded_size; --i) {
 			++count;
 			if (bytes[ i ] == 0x80)
