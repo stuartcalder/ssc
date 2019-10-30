@@ -30,7 +30,8 @@ namespace ssc {
                                State_Bits == 512 ||
                                State_Bits == 1024,
                                "Skein_PRNG only defined for state sizes of 256,512,1024 bits");
-                static constexpr const size_t State_Bytes = State_Bits / 8;
+                static constexpr size_t const State_Bytes = State_Bits / 8;
+		static constexpr size_t const Max_Lockable_Bytes = 256;
                 using Skein_t = Skein<State_Bits>;
 
                 Skein_PRNG (void);
@@ -101,6 +102,10 @@ namespace ssc {
                 // Enough bytes for the current state and new bytes.
                 u64_t const buffer_size = sizeof(state) + seed_bytes;   
                 auto buffer = std::make_unique<u8_t[]>( buffer_size );
+#ifdef __SSC_memlocking__
+		if (buffer_size <= Max_Lockable_Bytes)
+			lock_os_memory( buffer.get(), buffer_size );
+#endif
                 // Copy the state into the beginning of the temp buffer.
                 std::memcpy( buffer.get(), state, sizeof(state) );
                 // Copy the seed into the buffer immediately after the end of the copied-in state.
@@ -109,6 +114,10 @@ namespace ssc {
                 skein.hash_native( state, buffer.get(), buffer_size );
                 // Securely zero over the used buffer.
                 zero_sensitive( buffer.get(), buffer_size );
+#ifdef __SSC_memlocking__
+		if (buffer_size <= Max_Lockable_Bytes)
+			unlock_os_memory( buffer.get(), buffer_size );
+#endif
         } /* reseed (u8_t*,u64_t) */
 
         template <size_t State_Bits>
@@ -117,6 +126,10 @@ namespace ssc {
                 // Enough bytes for the current state and seed bytes.
                 u64_t const buffer_size = sizeof(state) + seed_bytes;
                 auto buffer = std::make_unique<u8_t[]>( buffer_size );
+#ifdef __SSC_memlocking__
+		if (buffer_size <= Max_Lockable_Bytes)
+			lock_os_memory( buffer.get(), buffer_size );
+#endif
                 // Copy the state into the beginning of the temp buffer.
                 std::memcpy( buffer.get(), state, sizeof(state) );
                 // Write ${seed_bytes} bytes of entropy after the end of the copied-in state.
@@ -125,6 +138,10 @@ namespace ssc {
                 skein.hash_native( state, buffer.get(), buffer_size );
                 // Securely zero over the used buffer.
                 zero_sensitive( buffer.get(), buffer_size );
+#ifdef __SSC_memlocking__
+		if (buffer_size <= Max_Lockable_Bytes)
+			unlock_os_memory( buffer.get(), buffer_size );
+#endif
         } /* os_reseed (u64_t) */
 
         template <size_t State_Bits>
@@ -134,6 +151,10 @@ namespace ssc {
                 // Enough bytes for the current state and requested bytes.
                 u64_t const buffer_size = sizeof(state) + requested_bytes;
                 auto buffer = std::make_unique<u8_t[]>( buffer_size );
+#ifdef __SSC_memlocking__
+		if (buffer_size <= Max_Lockable_Bytes)
+			lock_os_memory( buffer.get(), buffer_size );
+#endif
                 // Hash the state, writing ${buffer_size} bytes of pseudorandomness to ${buffer.get()}
                 skein.hash( buffer.get(), state, sizeof(state), buffer_size );
                 // Copy sizeof(state) bytes into the state.
@@ -142,5 +163,9 @@ namespace ssc {
                 std::memcpy( output_buffer, (buffer.get() + sizeof(state)), requested_bytes );
                 // Securely zero over the used buffer.
                 zero_sensitive( buffer.get(), buffer_size );
+#ifdef __SSC_memlocking__
+		if (buffer_size <= Max_Lockable_Bytes)
+			unlock_os_memory( buffer.get(), buffer_size );
+#endif
         } /* get (u8_t*,u64_t) */
 }/* ! namespace ssc */

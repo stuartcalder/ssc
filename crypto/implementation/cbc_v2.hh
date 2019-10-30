@@ -25,6 +25,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/general/integers.hh>
 #include <ssc/crypto/threefish.hh>
 #include <ssc/crypto/skein.hh>
+#include <ssc/crypto/skein_prng.hh>
 #include <ssc/crypto/cipher_block_chaining.hh>
 #include <ssc/crypto/sspkdf.hh>
 
@@ -56,6 +57,7 @@ namespace ssc::cbc_v2 {
 	using Threefish_t = Threefish<Block_Bits>;
 	using Skein_t     = Skein    <Block_Bits>;
 	using CBC_t	  = Cipher_Block_Chaining<Threefish_t, Block_Bits>;
+	using PRNG_t	  = Skein_PRNG<Block_Bits>;
 
 	struct DLL_PUBLIC Encrypt_Input {
 		std::string input_filename;

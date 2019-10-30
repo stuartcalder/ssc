@@ -40,6 +40,7 @@ namespace ssc::cbc_v2 {
 	encrypt	(Encrypt_Input const & encr_input) {
 		using namespace std;
 
+		PRNG_t prng;
 		OS_Map input_map, output_map;
 
 		// Open input file
@@ -87,9 +88,9 @@ namespace ssc::cbc_v2 {
 		static_assert (sizeof(header.id) == sizeof(CBC_V2_ID));
 		memcpy( header.id, CBC_V2_ID, sizeof(header.id) );
 		header.total_size = static_cast<decltype(header.total_size)>(output_map.size);
-		obtain_os_entropy( header.tweak      , sizeof(header.tweak)       );
-		obtain_os_entropy( header.sspkdf_salt, sizeof(header.sspkdf_salt) );
-		obtain_os_entropy( header.cbc_iv     , sizeof(header.cbc_iv)      );
+		prng.get( header.tweak      , sizeof(header.tweak)       );
+		prng.get( header.sspkdf_salt, sizeof(header.sspkdf_salt) );
+		prng.get( header.cbc_iv     , sizeof(header.cbc_iv)      );
 		header.num_iter   = encr_input.number_iterations;
 		header.num_concat = encr_input.number_concatenations;
 		// Copy header into the file, field at a time, advancing the pointer
