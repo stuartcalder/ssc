@@ -69,7 +69,7 @@ namespace ssc {
 		lock_os_memory( state, sizeof(state) );
 #endif
 		// With no arguments, seed the state with operating system entropy on construction.
-		this->os_reseed();
+		obtain_os_entropy( state, sizeof(state) );
         } /* Skein_PRNG (void) */
 
         template <size_t State_Bits>
@@ -80,6 +80,7 @@ namespace ssc {
 		lock_os_memory( state, sizeof(state) );
 #endif
 		// With arguments, seed the state with the provided seed bytes.
+		std::memset( state, 0, sizeof(state) );
                 this->reseed( seed, seed_bytes );
         } /* Skein_PRNG (u8_t*,u64_t) */
 
