@@ -41,15 +41,20 @@ namespace ssc::cbc_v2 {
 	static constexpr auto const Block_Bytes = Block_Bits / CHAR_BIT;
 	static constexpr auto const MAC_Bytes = Block_Bytes;
 	static constexpr auto const Max_Password_Length = 120;
+	static constexpr auto const Max_Supplementary_Entropy_Chars = 120;
 	// OS-Specific Compile-Time Constants
 #if defined(__Unix_Like__)
 	static_assert (Max_Password_Length == 120);
 	static constexpr auto const Password_Prompt = "Please input a password (max length 120 characters).\n> ";
 	static constexpr auto const Password_Reentry_Prompt = "Good. Please input the same password again (max length 120 characters).\n> ";
+	static_assert (Max_Supplementary_Entropy_Chars == 120);
+	static constexpr auto const Supplementary_Entropy_Prompt = "Please input up to 120 random characters.\n> ";
 #elif defined(_WIN64)
 	static_assert (Max_Password_Length == 120);
 	static constexpr auto const Password_Prompt = "Please input a password (max length 120 characters).\n\r> ";
 	static constexpr auto const Password_Reentry_Prompt = "Good. Please input the same password again (max length 120 characters).\n\r> ";
+	static_assert (Max_Supplementary_Entropy_Chars == 120);
+	static constexpr auto const Supplementary_Entropy_Prompt = "Please input up to 120 random characters.\n\r> ";
 #else
 #	error "Only defined for Unix-like operating system and 64-bit MS windows"
 #endif
@@ -64,6 +69,7 @@ namespace ssc::cbc_v2 {
 		std::string output_filename;
 		u32_t       number_iterations;
 		u32_t       number_concatenations;
+		bool        supplement_os_entropy;
 	};/*struct Encrypt_Input */
 
 	template <size_t ID_Bytes>

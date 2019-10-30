@@ -83,6 +83,28 @@ namespace ssc::cbc_v2 {
 			unlock_os_memory( pwcheck, Password_Buffer_Bytes );
 #endif
 		}
+		// Mix in additional entropy from the keyboard if specified
+		if (encr_input.supplement_os_entropy) {
+			u8_t hash       [Block_Bytes];
+			char char_input [Max_Supplementary_Entropy_Chars + 1];
+			int num_input_chars;
+			Skein_t skein;
+			Terminal term;
+#ifdef __SSC_memlocking__
+			lock_os_memory( hash      , sizeof(hash)       );
+			lock_os_memory( char_input, sizeof(char_input) );
+#endif
+			num_input_chars = term.get_pw( char_input, Max_Supplementary_Entropy_Chars, 1, Supplementary_Entropy_Prompt );
+			static_assert (Skein_t::State_Bytes == sizeof(hash));
+			skein.hash_native( hash, reinterpret_cast<u8_t *>(char_input), num_input_chars );
+			prng.reseed( hash, sizeof(hash) );
+#ifdef __SSC_memlocking__
+			unlock_os_memory( hash      , sizeof(hash)       );
+			unlock_os_memory( char_input, sizeof(char_input) );
+#endif
+			zero_sensitive( hash      , sizeof(hash)       );
+			zero_sensitive( char_input, sizeof(char_input) );
+		}
 		// Create a header
 		CBC_V2_Header_t header;
 		static_assert (sizeof(header.id) == sizeof(CBC_V2_ID));
