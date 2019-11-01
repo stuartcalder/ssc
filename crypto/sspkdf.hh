@@ -21,7 +21,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 namespace ssc
 {
-	static_assert(sizeof(int) >= sizeof(u32_t));
+	static_assert (sizeof(int) >= sizeof(u32_t));
 	void DLL_PUBLIC
 	sspkdf	(u8_t *__restrict const       derived_key,
 		 char const *__restrict const password,

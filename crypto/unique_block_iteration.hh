@@ -23,9 +23,9 @@ namespace ssc {
 	class Unique_Block_Iteration {
 	public:
 		/* Compile-Time checks, Constants, and Aliases */
-		static_assert( State_Bits % 8 == 0, "Must be divisible into 8-bit bytes" );
+		static_assert ( State_Bits % 8 == 0, "Must be divisible into 8-bit bytes" );
 		static constexpr size_t const State_Bytes = State_Bits / 8;
-		static_assert( State_Bytes % 8 == 0, "Must be divisible into 64-bit words" );
+		static_assert ( State_Bytes % 8 == 0, "Must be divisible into 64-bit words" );
 		static constexpr size_t const Tweak_Bits  = 128;
 		static constexpr size_t const Tweak_Bytes = Tweak_Bits / 8;
 		enum class Type_Mask_E : u8_t {

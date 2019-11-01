@@ -25,8 +25,8 @@ namespace ssc {
 	class Threefish {
 	public:
 		/* Static Checks */
-		static_assert((Key_Bits == 256 || Key_Bits == 512 || Key_Bits == 1024), "Invalid keysize");
-		static_assert((CHAR_BIT == 8), "This implementation needs 8-bit chars");
+		static_assert ((Key_Bits == 256 || Key_Bits == 512 || Key_Bits == 1024), "Invalid keysize");
+		static_assert ((CHAR_BIT == 8), "This implementation needs 8-bit chars");
 		/* Public Constants */
 		static constexpr int const   Number_Words   = Key_Bits / 64;
 		static constexpr int const   Number_Rounds  = [](auto nw) {
@@ -124,7 +124,7 @@ namespace ssc {
 	template <size_t Key_Bits, bool Expansion_Memlocking>
 	u64_t
 	Threefish<Key_Bits,Expansion_Memlocking>::get_rotate_constant_	(int const round, int const index) {
-		static_assert(Number_Words == 4 || Number_Words == 8 || Number_Words == 16, "Invalid Number_Words. 4, 8, 16 only.");
+		static_assert (Number_Words == 4 || Number_Words == 8 || Number_Words == 16, "Invalid Number_Words. 4, 8, 16 only.");
 		if constexpr(Number_Words == 4) {
 			static constexpr const u64_t rc [8][2] = {
 				{ 14, 16 }, //d = 0
@@ -336,7 +336,7 @@ namespace ssc {
 	template <size_t Key_Bits, bool Expansion_Memlocking>
 	void
 	Threefish<Key_Bits,Expansion_Memlocking>::inverse_permute_state_	(void) {
-		static_assert(Number_Words == 4 || Number_Words == 8 || Number_Words == 16);
+		static_assert (Number_Words == 4 || Number_Words == 8 || Number_Words == 16);
 		if constexpr(Number_Words == 4) {
 			permute_state_();  // here, permute_state() and inverse_permute_state() are the same operation
 		} else if constexpr(Number_Words == 8) {

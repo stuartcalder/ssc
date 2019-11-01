@@ -47,7 +47,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #endif
 
 namespace ssc {
-	static_assert(CHAR_BIT == 8);
+	static_assert (CHAR_BIT == 8);
 	template <typename uint_t>
 	uint_t
 	rotate_left (uint_t value, uint_t count) {

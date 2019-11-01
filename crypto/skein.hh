@@ -23,10 +23,10 @@ namespace ssc {
 	class Skein {
 	public:
 		/* PUBLIC CONSTANTS and COMPILE-TIME CHECKS */
-		static_assert((State_Bits ==  256 ||
-		               State_Bits ==  512 ||
-		               State_Bits == 1024),
-		               "Skein is only defined for 256, 512, 1024 bit states.");
+		static_assert ((State_Bits ==  256 ||
+		                State_Bits ==  512 ||
+		                State_Bits == 1024),
+		                "Skein is only defined for 256, 512, 1024 bit states.");
 		// Use Threefish with a block size of (State_Bits/8) and do NOT memory lock on key expansion operations.
 		using Threefish_t = Threefish<State_Bits, false>;
 		// Skein is based upon the Unique Block Iteration mode for the Threefish tweakable block cipher.
@@ -137,7 +137,7 @@ namespace ssc {
 				 u64_t const num_bytes_in,
 				 u64_t const num_bytes_out) {
 		ubi.clear_key_state();
-		static_assert(CHAR_BIT == 8);
+		static_assert (CHAR_BIT == 8);
 		process_config_block_( num_bytes_out * CHAR_BIT );
 		process_message_block_( bytes_in, num_bytes_in );
 		output_transform_( bytes_out, num_bytes_out );
@@ -153,7 +153,7 @@ namespace ssc {
 						 u64_t const        num_bytes_out) {
 		ubi.clear_key_state();
 		process_key_block_( key_in, num_key_bytes_in );
-		static_assert(CHAR_BIT == 8);
+		static_assert (CHAR_BIT == 8);
 		process_config_block_( num_bytes_out * CHAR_BIT );
 		process_message_block_( bytes_in, num_bytes_in );
 		output_transform_( bytes_out, num_bytes_out );
@@ -164,10 +164,10 @@ namespace ssc {
 	Skein<State_Bits>::hash_native	(u8_t * const       bytes_out,
 					 u8_t const * const bytes_in,
 					 u64_t const        num_bytes_in) {
-		static_assert(State_Bits == 256 ||
-		              State_Bits == 512 ||
-		              State_Bits == 1024,
-		              "Skein is only defined for 256, 512, 1024 bit-widths");
+		static_assert (State_Bits == 256 ||
+		               State_Bits == 512 ||
+		               State_Bits == 1024,
+		               "Skein is only defined for 256, 512, 1024 bit-widths");
 		if constexpr(State_Bits == 256) {
 			static constexpr u64_t const init_chain [4] = {
 				0xfc9d'a860'd048'b449,

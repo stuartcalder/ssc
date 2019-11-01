@@ -45,8 +45,8 @@ namespace ssc {
 	class Cipher_Block_Chaining {
 	public:
 		/* COMPILE TIME CHECKS */
-		static_assert((Block_Bits >= 128)                     , "Modern block ciphers have at least 128-bit blocks!");
-		static_assert((Block_Bits % 8 == 0) && (CHAR_BIT == 8), "Block size must be a multiple of 8! A 'byte' must be 8 bits here.");
+		static_assert ((Block_Bits >= 128)                     , "Modern block ciphers have at least 128-bit blocks!");
+		static_assert ((Block_Bits % 8 == 0) && (CHAR_BIT == 8), "Block size must be a multiple of 8! A 'byte' must be 8 bits here.");
 		/* COMPILE TIME CONSTANTS */
 		static constexpr size_t const Block_Bytes = (Block_Bits / 8);
 		/* PUBLIC INTERFACE */
@@ -159,8 +159,8 @@ namespace ssc {
 		lock_os_memory( buffer, sizeof(buffer) );
 #endif
 
-		static_assert(sizeof(state)  == Block_Bytes);
-		static_assert(sizeof(buffer) == Block_Bytes);
+		static_assert (sizeof(state)  == Block_Bytes);
+		static_assert (sizeof(buffer) == Block_Bytes);
 		while (bytes_left >= Block_Bytes) {
 			memcpy( buffer, in, Block_Bytes );
 			xor_block<Block_Bits>( buffer, state );
@@ -203,9 +203,9 @@ namespace ssc {
 		lock_os_memory( ciphertext, sizeof(ciphertext) );
 		lock_os_memory( buffer    , sizeof(buffer)     );
 #endif
-		static_assert(sizeof(state)      == Block_Bytes);
-		static_assert(sizeof(ciphertext) == Block_Bytes);
-		static_assert(sizeof(buffer)     == Block_Bytes);
+		static_assert (sizeof(state)      == Block_Bytes);
+		static_assert (sizeof(ciphertext) == Block_Bytes);
+		static_assert (sizeof(buffer)     == Block_Bytes);
 		for (size_t b_off = 0; b_off <= last_block_offset; b_off += Block_Bytes) {
 			u8_t const *block_in  = bytes_in  + b_off;
 			u8_t       *block_out = bytes_out + b_off;
@@ -233,9 +233,9 @@ namespace ssc {
 		size_t const last_block_offset = size_in - Block_Bytes;
 		u8_t ciphertext [Block_Bytes];
 		u8_t buffer     [Block_Bytes];
-		static_assert(sizeof(state)      == Block_Bytes);
-		static_assert(sizeof(ciphertext) == Block_Bytes);
-		static_assert(sizeof(buffer)     == Block_Bytes);
+		static_assert (sizeof(state)      == Block_Bytes);
+		static_assert (sizeof(ciphertext) == Block_Bytes);
+		static_assert (sizeof(buffer)     == Block_Bytes);
 		for (size_t b_off = 0; b_off <= last_block_offset; b_off += Block_Bytes) {
 			u8_t const *block_in  = bytes_in  + b_off;
 			u8_t       *block_out = bytes_out + b_off;
