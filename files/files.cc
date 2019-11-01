@@ -165,7 +165,7 @@ namespace ssc {
 		else
 			read_write_rights = (GENERIC_READ | GENERIC_WRITE);
 
-		if ((file_h  = CreateFileA( filename, read_write_rights, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL )) == INVALID_HANDLE_VALUE)
+		if ((file_h  = CreateFileA( filename, read_write_rights, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr )) == INVALID_HANDLE_VALUE)
 			errx( "Error: Unable to open existing file `%s` with CreateFileA()\n", filename );
 		return file_h;
 #else
@@ -184,7 +184,7 @@ namespace ssc {
 		return file_d;
 #elif defined(_WIN64)
 		HANDLE file_h;
-		if ((file_h = CreateFileA( filename, (GENERIC_READ|GENERIC_WRITE), 0, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL )) == INVALID_HANDLE_VALUE)
+		if ((file_h = CreateFileA( filename, (GENERIC_READ|GENERIC_WRITE), 0, nullptr, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, nullptr )) == INVALID_HANDLE_VALUE)
 			errx( "Error: Unable to create file `%s` with CreateFileA()\n", filename );
 		return file_h;
 #else
@@ -215,7 +215,7 @@ namespace ssc {
 #elif defined(_WIN64)
 		LARGE_INTEGER large_int;
 		large_int.QuadPart = static_cast<decltype(large_int.QuadPart)>(new_size);
-		if (SetFilePointerEx( os_file, large_int, NULL, FILE_BEGIN ) == 0)
+		if (SetFilePointerEx( os_file, large_int, nullptr, FILE_BEGIN ) == 0)
 			errx( "Error: Failed to SetFilePointerEx()\n" );
 		if (SetEndOfFile( os_file ) == 0)
 			errx( "Error: Failed to SetEndOfFile()\n" );
