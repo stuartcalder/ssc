@@ -14,8 +14,10 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include <ssc/general/symbols.hh>
 
-#if defined(__Unix_Like__)		// For now, only support memory-locking on unix-like operating systems.
-#define	__SSC_memlocking__	1	// If this macro is defined, consider memory locking to be supported.
+// For now, only support memory-locking on unixlike operating systems, unless specified to disable.
+#if defined (__Unix_Like__)
+// If this macro is defined, consider memory locking to be supported.
+#define	__SSC_memlocking__	1
 
 #include <cstdlib>
 #include <cstdio>
