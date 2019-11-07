@@ -98,12 +98,13 @@ namespace ssc::cbc_v2 {
 			static_assert (Skein_t::State_Bytes == sizeof(hash));
 			skein.hash_native( hash, reinterpret_cast<u8_t *>(char_input), num_input_chars );
 			prng.reseed( hash, sizeof(hash) );
+
+			zero_sensitive( hash      , sizeof(hash)       );
+			zero_sensitive( char_input, sizeof(char_input) );
 #ifdef __SSC_memlocking__
 			unlock_os_memory( hash      , sizeof(hash)       );
 			unlock_os_memory( char_input, sizeof(char_input) );
 #endif
-			zero_sensitive( hash      , sizeof(hash)       );
-			zero_sensitive( char_input, sizeof(char_input) );
 		}
 		// Create a header
 		CBC_V2_Header_t header;
