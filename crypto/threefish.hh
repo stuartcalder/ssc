@@ -30,7 +30,7 @@ namespace ssc {
 		/* Public Constants */
 		static constexpr size_t const   Number_Words   = Key_Bits / 64;
 		static constexpr size_t const   Number_Rounds  = [](size_t bits) {
-									if (Key_Bits == 1024)
+									if (bits == 1024)
 										return 80;
 									return 72;
 							        }(Key_Bits);
