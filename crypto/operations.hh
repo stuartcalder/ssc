@@ -24,9 +24,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/general/symbols.hh>
 #include <ssc/general/error_conditions.hh>
 
-#if defined(__Unix_Like__)
+#if   defined (__UnixLike__)
 #	include <unistd.h>
-#elif defined(_WIN64)
+#elif defined (_WIN64)
 #	ifndef WIN64_WINDOWS_H
 #		include <windows.h>
 #		define WIN64_WINDOWS_H
@@ -114,7 +114,7 @@ namespace ssc {
 	inline void
 	obtain_os_entropy (u8_t *buffer, size_t num_bytes) {
                 using namespace std;
-#if defined(__Unix_Like__)
+#if   defined (__UnixLike__)
                 static constexpr size_t const Max_Bytes = 256;
                 while (num_bytes >= Max_Bytes) {
                         if (getentropy( buffer, Max_Bytes ) != 0)
@@ -124,7 +124,7 @@ namespace ssc {
 		}
 		if (getentropy( buffer, num_bytes ) != 0)
 			errx( "Error: Failed to getentropy()\n" );
-#elif defined(_WIN64)
+#elif defined (_WIN64)
 		BCRYPT_ALG_HANDLE cng_provider_handle;
 		// Open algorithm provider.
 		if (BCryptOpenAlgorithmProvider( &cng_provider_handle, L"RNG", nullptr, 0 ) != STATUS_SUCCESS)
@@ -143,9 +143,9 @@ namespace ssc {
 	inline void
 	zero_sensitive (void *buffer, size_t num_bytes) {
 		using namespace std;
-#if defined(__Unix_Like__)
+#if   defined (__UnixLike__)
 		explicit_bzero( buffer, num_bytes );
-#elif defined(_WIN64)
+#elif defined (_WIN64)
 		SecureZeroMemory( buffer, num_bytes );
 #else
 #	error "ssc::zero_sensitive defined for OpenBSD, GNU/Linux, and MS Windows"

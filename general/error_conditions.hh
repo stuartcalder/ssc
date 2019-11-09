@@ -16,7 +16,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <cstdio>
 #include <ssc/general/symbols.hh>
 
-#ifdef __Unix_Like__
+#ifdef __UnixLike__
 // For unix-like operating systems (that provide err.h), we can simply include err.h for error handling functions.
 #	include <err.h>
 #else
@@ -34,7 +34,7 @@ errx (int error_code, char const *format, Arg_Pack... args) {
 		std::exit( error_code );
 	}
 }/*errx(int,char const*,Arg_Pack...)*/
-#endif/*#ifdef __Unix_Like__*/
+#endif/*#ifdef __UnixLike__*/
 
 // This overload allows for not specifying an exit code when it is irrelevant.
 template <typename... Arg_Pack>

@@ -15,13 +15,12 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/general/integers.hh>
 #include <ssc/general/error_conditions.hh>
 
-extern "C" {
-#if defined(__Unix_Like__)
+#if   defined (__UnixLike__)
 #	include <sys/types.h>
 #	include <sys/stat.h>
 #	include <unistd.h>
 #	include <fcntl.h>
-#elif defined(_WIN64)
+#elif defined (_WIN64)
 #	ifndef WIN64_WINDOWS_H
 #		include <windows.h>
 #		define WIN64_WINDOWS_H
@@ -30,19 +29,18 @@ extern "C" {
 #else
 #	error "Only defined for OpenBSD, GNU/Linux, and Win64"
 #endif
-}/* extern "C" */
 
 namespace ssc {
 
 	size_t
 	get_file_size	(OS_File_t const os_file) {
 		using namespace std;
-#if defined(__Unix_Like__)
+#if   defined (__UnixLike__)
 		struct stat s;
 		if (fstat( os_file, &s ) == -1)
 			errx( "Error: Unable to fstat file descriptor #%d\n", os_file );
 		return static_cast<size_t>(s.st_size);
-#elif defined(_WIN64)
+#elif defined (_WIN64)
 		LARGE_INTEGER large_int;
 		if (GetFileSizeEx( os_file, &large_int ) == 0)
 			errx( "Error: GetFileSizeEx() failed\n" );
@@ -70,12 +68,12 @@ namespace ssc {
 	size_t
 	get_file_size	(char const * filename) {
 	using namespace std;
-#if defined(__Unix_Like__)
+#if   defined (__UnixLike__)
 		struct stat s;
 		if (stat( filename, &s) != 0 )
 			errx( "Error: Failed to stat() info about %s\n", filename );
 		return static_cast<size_t>(s.st_size);
-#elif defined(_WIN64)
+#elif defined (_WIN64)
 		OS_File_t file = open_existing_os_file( filename, true );
 		size_t const size = get_file_size( file );
 		close_os_file( file );
@@ -144,7 +142,7 @@ namespace ssc {
 	open_existing_os_file	(char const * filename, bool const readonly) {
 		using namespace std;
 		enforce_file_existence( filename, true );
-#if defined(__Unix_Like__)
+#if   defined (__UnixLike__)
 		int file_d;
 		decltype(O_RDWR) read_write_rights;
 
@@ -156,7 +154,7 @@ namespace ssc {
 		if ((file_d = open( filename, read_write_rights, static_cast<mode_t>(0600) )) == -1)
 			errx( "Error: Unable to open existing file `%s` with open()\n", filename );
 		return file_d;
-#elif defined(_WIN64)
+#elif defined (_WIN64)
 		HANDLE file_h;
 		decltype(GENERIC_READ) read_write_rights;
 
@@ -177,12 +175,12 @@ namespace ssc {
 	create_os_file	(char const * filename) {
 		using namespace std;
 		enforce_file_existence( filename, false );
-#if defined(__Unix_Like__)
+#if   defined (__UnixLike__)
 		int file_d;
 		if ((file_d = open( filename, (O_RDWR|O_TRUNC|O_CREAT), static_cast<mode_t>(0600) )) == -1)
 			errx( "Error: Unable to create new file `%s` with open()\n", filename );
 		return file_d;
-#elif defined(_WIN64)
+#elif defined (_WIN64)
 		HANDLE file_h;
 		if ((file_h = CreateFileA( filename, (GENERIC_READ|GENERIC_WRITE), 0, nullptr, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, nullptr )) == INVALID_HANDLE_VALUE)
 			errx( "Error: Unable to create file `%s` with CreateFileA()\n", filename );
@@ -195,10 +193,10 @@ namespace ssc {
 	void
 	close_os_file	(OS_File_t const os_file) {
 		using namespace std;
-#if defined(__Unix_Like__)
+#if   defined (__UnixLike__)
 		if (close( os_file ) == -1)
 			errx( "Error: Wasn't able to close file descriptor %d\n", os_file );
-#elif defined(_WIN64)
+#elif defined (_WIN64)
 		if (CloseHandle( os_file ) == 0)
 			errx( "Error: Wasn't able to close file handle\n" );
 #else
@@ -209,10 +207,10 @@ namespace ssc {
 	void
 	set_os_file_size	(OS_File_t const os_file, size_t const new_size) {
 		using namespace std;
-#if defined(__Unix_Like__)
+#if   defined (__UnixLike__)
 		if (ftruncate( os_file, new_size ) == -1)
 			errx( "Error: Failed to set size of file descriptor `%d` to `%zu`\n", os_file, new_size );
-#elif defined(_WIN64)
+#elif defined (_WIN64)
 		LARGE_INTEGER large_int;
 		large_int.QuadPart = static_cast<decltype(large_int.QuadPart)>(new_size);
 		if (SetFilePointerEx( os_file, large_int, nullptr, FILE_BEGIN ) == 0)

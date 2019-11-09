@@ -15,60 +15,60 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/general/symbols.hh>
 
 // For now, only support memory-locking on unixlike operating systems, unless specified to disable.
-#if defined (__Unix_Like__)
+#if defined (__UnixLike__)
 // If this macro is defined, consider memory locking to be supported.
-#define	__SSC_memlocking__	1
+#	define	__SSC_memlocking__
 
-#include <cstdlib>
-#include <cstdio>
-#include <ssc/general/integers.hh>
-#include <ssc/general/error_conditions.hh>
+#	include <cstdlib>
+#	include <cstdio>
+#	include <ssc/general/integers.hh>
+#	include <ssc/general/error_conditions.hh>
 
 // Get OS-specific headers needed for locking memory.
-#if defined(__Unix_Like__)
-#	include <sys/mman.h>
-#elif defined(_WIN64)
-#	ifndef WIN64_WINDOWS_H
-#		include <windows.h>
-#		define WIN64_WINDOWS_H
-#	endif
+#	if   defined (__UnixLike__)
+#		include <sys/mman.h>
+#	elif defined (_WIN64)
+#		ifndef WIN64_WINDOWS_H
+#			include <windows.h>
+#			define WIN64_WINDOWS_H
+#		endif
 
-#	ifndef WIN64_MEMORYAPI_H
-#		include <memoryapi.h>
-#		define WIN64_MEMORYAPI_H
-#	endif
+#		ifndef WIN64_MEMORYAPI_H
+#			include <memoryapi.h>
+#			define WIN64_MEMORYAPI_H
+#		endif
 
-#else
-#	error	"Only implemented on Unix-like systems and 64-bit Windows."
-#endif
+#	else
+#		error "Only implemented on Unix-like systems and 64-bit Windows."
+#	endif
 
 namespace ssc {
 	inline void
 	lock_os_memory (void const *addr, size_t const length) {
 		using namespace std;
-#if defined(__Unix_Like__)
+#	if   defined (__UnixLike__)
 		if (mlock( addr, length ) != 0)
 			errx( "Error: Failed to mlock()\n" );
-#elif defined(_WIN64)
+#	elif defined (_WIN64)
 		if (VirtualLock( addr, length ) == 0)
 			errx( "Error: Failed to VirtualLock()\n" );
-#else
-#	error	"lock_memory only implemented on win64 and unix-like operating systems."
-#endif
+#	else
+#		error "lock_memory only implemented on win64 and unix-like operating systems."
+#	endif
 	}/* lock_os_memory */
 
 	inline void
 	unlock_os_memory (void const *addr, size_t const length) {
 		using namespace std;
-#if defined(__Unix_Like__)
+#	if   defined (__UnixLike__)
 		if (munlock( addr, length ) != 0)
 			errx( "Error: Failed to munlock()\n" );
-#elif defined(_WIN64)
+#	elif defined (_WIN64)
 		if (VirtualUnlock( addr, length ) == 0)
 			errx( "Error: Failed to VirtualUnlock()\n" );
-#else
-#	error	"unlock_memory only implemented on win64 and unix-like operating systems."
-#endif
+#	else
+#		error "unlock_memory only implemented on win64 and unix-like operating systems."
+#	endif
 	}/* unlock_os_memory */
 }/* ! namespace ssc */
-#endif /* #if defined(__Unix_Like__) */
+#endif /* #if defined(__UnixLike__) */

@@ -34,11 +34,11 @@ namespace ssc
 		   char const * prompt);
         void notify(char const * notice);
     private:
-#if defined(__Unix_Like__)
+#if     defined (__UnixLike__)
         int DLL_LOCAL std_height;
         int DLL_LOCAL std_width;
-#elif !defined(_WIN64)
-    #error "ssc::Terminal only defined for OpenBSD, GNU/Linux, and MS Windows"
+#elif ! defined (_WIN64)
+	#error "ssc::Terminal only defined for OpenBSD, GNU/Linux, and MS Windows"
 #endif
     };/* ! class ssc::Terminal */
 }/* ! namespace ssc */

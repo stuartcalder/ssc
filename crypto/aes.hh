@@ -18,14 +18,11 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/crypto/operations.hh>
 #include <ssc/general/integers.hh>
 
-extern "C"
-{
-#if defined( __gnu_linux__ )
-#   include <endian.h>
+#if   defined (__gnu_linux__)
+#	include <endian.h>
 #else
-#   error "Unimplemented on anything but Gnu/Linux"
+#	error "Unimplemented on anything but Gnu/Linux"
 #endif
-}/* ! extern "C" */
 
 #if 0 // Disable AES code for now
 namespace ssc

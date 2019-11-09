@@ -45,8 +45,9 @@ namespace ssc {
 	class Cipher_Block_Chaining {
 	public:
 		/* COMPILE TIME CHECKS */
-		static_assert ((Block_Bits >= 128)                     , "Modern block ciphers have at least 128-bit blocks!");
-		static_assert ((Block_Bits % 8 == 0) && (CHAR_BIT == 8), "Block size must be a multiple of 8! A 'byte' must be 8 bits here.");
+		static_assert (CHAR_BIT == 8             , "A byte must be 8 bits");
+		static_assert (Block_Bits % CHAR_BIT == 0, "Block size must be a multiple of bytes.");
+		static_assert ((Block_Bits >= 128)       , "Modern block ciphers have at least 128-bit blocks!");
 		/* COMPILE TIME CONSTANTS */
 		static constexpr size_t const Block_Bytes = (Block_Bits / 8);
 		/* PUBLIC INTERFACE */

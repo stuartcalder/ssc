@@ -21,9 +21,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/interface/terminal.hh>
 #include <ssc/memory/os_memory_locking.hh>
 
-#if defined(__Unix_Like__)
+#if   defined (__UnixLike__)
 #	include <ncurses.h>
-#elif defined(_WIN64)
+#elif defined (_WIN64)
 #	ifndef WIN64_WINDOWS_H
 #		include <windows.h>
 #		define WIN64_WINDOWS_H
@@ -39,20 +39,20 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 namespace ssc {
 	Terminal::Terminal (void) {
-#if defined(__Unix_Like__)
+#if   defined (__UnixLike__)
 		initscr();
 		getmaxyx( stdscr, std_height, std_width );
 		clear();
-#elif defined(_WIN64)
+#elif defined (_WIN64)
 		system( "cls" );
 #else
 #	error "ssc::Terminal() only defined for OpenBSD, GNU/Linux and MS Windows"
 #endif
 	}/*ssc::Terminal::Terminal{}*/
 	Terminal::~Terminal (void) {
-#if defined(__Unix_Like__)
+#if   defined (__UnixLike__)
 		endwin();
-#elif defined(_WIN64)
+#elif defined (_WIN64)
 		system( "cls" );
 #else
 #	error "ssc::~Terminal() only defined for OpenBSD, GNU/Linux, and MS Windows"
@@ -64,7 +64,7 @@ namespace ssc {
 			 int const min_pw_size,
 			 char const * prompt) {
 		using namespace std;
-#if defined(__Unix_Like__)
+#if   defined (__UnixLike__)
 		// Screen setup
 		cbreak();               // Disable line buffering
 		noecho();               // Disable echoing
@@ -72,9 +72,9 @@ namespace ssc {
 		// Buffer and index setup
 		auto const buffer_size = max_pw_size + 1;
 		auto buffer = std::make_unique<char[]>( buffer_size );
-#ifdef __SSC_memlocking__
+#	ifdef __SSC_memlocking__
 		lock_os_memory( buffer.get(), buffer_size );
-#endif
+#	endif
 		int index = 0;                  // Start from the beginning
 		char mpl [4] = { 0 };           // max password length c-string
 		snprintf( mpl, sizeof(mpl), "%d", max_pw_size );
@@ -138,17 +138,17 @@ namespace ssc {
 		int const password_size = strlen( buffer.get() );
 		strncpy( pw_buffer, buffer.get(), password_size + 1 );
 		zero_sensitive( buffer.get(), buffer_size );
-#ifdef __SSC_memlocking__
+#	ifdef __SSC_memlocking__
 		unlock_os_memory( buffer.get(), buffer_size );
-#endif
+#	endif
 		delwin( w );
 		return password_size;
-#elif defined(_WIN64)
+#elif defined (_WIN64)
 		auto const buffer_size = max_pw_size + 1;
 		auto buffer = std::make_unique<char[]>( buffer_size );
-#ifdef __SSC_memlocking__
+#	ifdef __SSC_memlocking__
 		lock_os_memory( buffer.get(), buffer_size );
-#endif
+#	endif
 		int index = 0;
 		char mpl [4] = { 0 };
 		snprintf( mpl, sizeof(mpl), "%d", max_pw_size );
@@ -206,9 +206,9 @@ namespace ssc {
 		int const password_size = strlen( buffer.get() );
 		strncpy( pw_buffer, buffer.get(), password_size + 1 );
 		zero_sensitive( buffer.get(), buffer_size );
-#ifdef __SSC_memlocking__
+#	ifdef __SSC_memlocking__
 		unlock_os_memory( buffer.get(), buffer_size );
-#endif
+#	endif
 		system( "cls" );
 		return password_size;
 #else
@@ -218,7 +218,7 @@ namespace ssc {
     void Terminal::notify(char const *notice)
     {
         using namespace std;
-#if defined(__Unix_Like__)
+#if   defined (__UnixLike__)
         WINDOW * w = newwin( 1, strlen(notice) + 1, 0, 0 );
         wclear( w );
         wmove( w, 0, 0 );
@@ -226,7 +226,7 @@ namespace ssc {
         wrefresh( w );
         wgetch( w );
         delwin( w );
-#elif defined(_WIN64)
+#elif defined (_WIN64)
         system( "cls" );
 	if (_cputs( notice ) != 0)
 		errx( "Error: Failed to _cputs()\n" );
