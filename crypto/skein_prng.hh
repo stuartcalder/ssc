@@ -30,7 +30,8 @@ namespace ssc {
                                State_Bits == 512 ||
                                State_Bits == 1024,
                                "Skein_PRNG only defined for state sizes of 256,512,1024 bits");
-                static constexpr size_t const State_Bytes = State_Bits / 8;
+		static_assert (CHAR_BIT == 8);
+                static constexpr size_t const State_Bytes = State_Bits / CHAR_BIT;
 		static constexpr size_t const Max_Lockable_Bytes = 256;
                 using Skein_t = Skein<State_Bits>;
 
