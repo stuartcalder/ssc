@@ -87,14 +87,13 @@ namespace ssc::cbc_v2 {
 		if (encr_input.supplement_os_entropy) {
 			u8_t hash       [Block_Bytes];
 			char char_input [Max_Supplementary_Entropy_Chars + 1];
-			int num_input_chars;
-			Skein_t skein;
-			Terminal term;
 #ifdef __SSC_memlocking__
 			lock_os_memory( hash      , sizeof(hash)       );
 			lock_os_memory( char_input, sizeof(char_input) );
 #endif
-			num_input_chars = term.get_pw( char_input, Max_Supplementary_Entropy_Chars, 1, Supplementary_Entropy_Prompt );
+			Skein_t skein;
+			Terminal term;
+			int num_input_chars = term.get_pw( char_input, Max_Supplementary_Entropy_Chars, 1, Supplementary_Entropy_Prompt );
 			static_assert (Skein_t::State_Bytes == sizeof(hash));
 			skein.hash_native( hash, reinterpret_cast<u8_t *>(char_input), num_input_chars );
 			prng.reseed( hash, sizeof(hash) );
