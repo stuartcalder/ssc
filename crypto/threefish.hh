@@ -28,13 +28,13 @@ namespace ssc {
 		static_assert ((Key_Bits == 256 || Key_Bits == 512 || Key_Bits == 1024), "Invalid keysize");
 		static_assert ((CHAR_BIT == 8), "This implementation needs 8-bit chars");
 		/* Public Constants */
-		static constexpr int const   Number_Words   = Key_Bits / 64;
-		static constexpr int const   Number_Rounds  = [](size_t bits) {
+		static constexpr size_t const   Number_Words   = Key_Bits / 64;
+		static constexpr size_t const   Number_Rounds  = [](size_t bits) {
 									if (Key_Bits == 1024)
 										return 80;
 									return 72;
 							        }(Key_Bits);
-		static constexpr int const   Number_Subkeys = (Number_Rounds / 4) + 1;
+		static constexpr size_t const   Number_Subkeys = (Number_Rounds / 4) + 1;
 		static constexpr u64_t const Constant_240   = 0x1bd1'1bda'a9fc'1a22;
 		/* Constructors / Destructors */
 		Threefish (void) {
