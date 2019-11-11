@@ -35,7 +35,7 @@ namespace ssc {
 									return 72;
 							        }(Key_Bits);
 		static constexpr size_t const   Number_Subkeys = (Number_Rounds / 4) + 1;
-		static constexpr u64_t const Constant_240   = 0x1bd1'1bda'a9fc'1a22;
+		static constexpr u64_t const Constant_240   = 0x1b'd1'1b'da'a9'fc'1a'22;
 		/* Constructors / Destructors */
 		Threefish (void) {
 #ifdef __SSC_memlocking__
