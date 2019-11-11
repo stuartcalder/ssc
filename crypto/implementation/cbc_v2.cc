@@ -187,7 +187,7 @@ namespace ssc::cbc_v2 {
 		input_map.os_file  = open_existing_os_file( input_filename, true );
 		output_map.os_file = create_os_file( output_filename );
 		// Get the size of the input file.
-		input_map.size = ssc::get_file_size( input_map.os_file );
+		input_map.size = get_file_size( input_map.os_file );
 		// For now, assume the size of the output file will be the same size as the input file.
 		output_map.size = input_map.size;
 		// Check to see if the input file is too small to have possibly been 3CRYPT_CBC_V2 encrypted.
