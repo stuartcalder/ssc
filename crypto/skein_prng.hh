@@ -36,7 +36,7 @@ namespace ssc {
                 using Skein_t = Skein<State_Bits>;
 
                 Skein_PRNG (void);
-                Skein_PRNG (u8_t const * const seed,
+                Skein_PRNG (void const * const seed,
                             u64_t const        seed_bytes);
                 ~Skein_PRNG (void);
 
@@ -75,7 +75,7 @@ namespace ssc {
         } /* Skein_PRNG (void) */
 
         template <size_t State_Bits>
-        Skein_PRNG<State_Bits>::Skein_PRNG (u8_t const * const seed,
+        Skein_PRNG<State_Bits>::Skein_PRNG (void const * const seed,
                                             u64_t const        seed_bytes) {
 #ifdef __SSC_memlocking__
 		// Lock the state into memory on construction.
