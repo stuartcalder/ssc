@@ -21,7 +21,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/memory/os_memory_locking.hh>
 
 namespace ssc {
-	template <size_t Key_Bits, bool Expansion_Memlocking = true>
+	template <size_t Key_Bits, bool Expansion_MemoryLocking = true>
 	class Threefish {
 	public:
 		/* Static Checks */
@@ -89,15 +89,15 @@ namespace ssc {
 		void
 		inverse_permute_state_	(void);
 	}; /* class Threefish */
-	template <size_t Key_Bits, bool Expansion_Memlocking>
+	template <size_t Key_Bits, bool Expansion_MemoryLocking>
 	void
-	Threefish<Key_Bits,Expansion_Memlocking>::rekey	(u8_t const *__restrict new_key,
+	Threefish<Key_Bits,Expansion_MemoryLocking>::rekey	(u8_t const *__restrict new_key,
 							 u8_t const *__restrict new_tweak) {
 		expand_key_( new_key, new_tweak );
 	}
 
-	template <size_t Key_Bits, bool Expansion_Memlocking>
-	Threefish<Key_Bits,Expansion_Memlocking>::~Threefish	(void) {
+	template <size_t Key_Bits, bool Expansion_MemoryLocking>
+	Threefish<Key_Bits,Expansion_MemoryLocking>::~Threefish	(void) {
 		zero_sensitive( key_schedule, sizeof(key_schedule) );
 		zero_sensitive( state       , sizeof(state) );
 #ifdef __SSC_MemoryLocking__
@@ -106,24 +106,24 @@ namespace ssc {
 #endif
 	}
 
-	template <size_t Key_Bits, bool Expansion_Memlocking>
+	template <size_t Key_Bits, bool Expansion_MemoryLocking>
 	void
-	Threefish<Key_Bits,Expansion_Memlocking>::mix_		(u64_t *__restrict x0, u64_t *__restrict x1, int const round, int const index) {
+	Threefish<Key_Bits,Expansion_MemoryLocking>::mix_		(u64_t *__restrict x0, u64_t *__restrict x1, int const round, int const index) {
 		(*x0) = ((*x0) + (*x1));
 		(*x1) = ( rotate_left<u64_t>( (*x1), get_rotate_constant_( round, index ) ) ^ (*x0) );
 	}
 
-	template <size_t Key_Bits, bool Expansion_Memlocking>
+	template <size_t Key_Bits, bool Expansion_MemoryLocking>
 	void
-	Threefish<Key_Bits,Expansion_Memlocking>::inverse_mix_	(u64_t *__restrict x0, u64_t *__restrict x1, int const round, int const index) {
+	Threefish<Key_Bits,Expansion_MemoryLocking>::inverse_mix_	(u64_t *__restrict x0, u64_t *__restrict x1, int const round, int const index) {
 		(*x1) = ((*x0) ^ (*x1));
 		(*x1) = rotate_right<u64_t>( (*x1), get_rotate_constant_( round, index ) ) ;
 		(*x0) = (*x0) - (*x1);
 	}
 
-	template <size_t Key_Bits, bool Expansion_Memlocking>
+	template <size_t Key_Bits, bool Expansion_MemoryLocking>
 	u64_t
-	Threefish<Key_Bits,Expansion_Memlocking>::get_rotate_constant_	(int const round, int const index) {
+	Threefish<Key_Bits,Expansion_MemoryLocking>::get_rotate_constant_	(int const round, int const index) {
 		static_assert (Number_Words == 4 || Number_Words == 8 || Number_Words == 16, "Invalid Number_Words. 4, 8, 16 only.");
 		if constexpr(Number_Words == 4) {
 			static constexpr const u64_t rc [8][2] = {
@@ -164,14 +164,14 @@ namespace ssc {
 		}
 	}/* ! get_rotate_constant_ */
 
-	template <size_t Key_Bits, bool Expansion_Memlocking>
+	template <size_t Key_Bits, bool Expansion_MemoryLocking>
 	void
-	Threefish<Key_Bits,Expansion_Memlocking>::expand_key_	(u8_t const *__restrict k, u8_t const *__restrict tw) {
+	Threefish<Key_Bits,Expansion_MemoryLocking>::expand_key_	(u8_t const *__restrict k, u8_t const *__restrict tw) {
 		// key / tweak setup
 		u64_t key [Number_Words + 1]; // Big enough for the parity word
 		u64_t tweak [3];
 #ifdef __SSC_MemoryLocking__
-		if constexpr(Expansion_Memlocking) {
+		if constexpr(Expansion_MemoryLocking) {
 			lock_os_memory( key  , sizeof(key)   );
 			lock_os_memory( tweak, sizeof(tweak) );
 		}
@@ -203,34 +203,34 @@ namespace ssc {
 		zero_sensitive( key  , sizeof(key)   );
 		zero_sensitive( tweak, sizeof(tweak) );
 #ifdef __SSC_MemoryLocking__
-		if constexpr(Expansion_Memlocking) {
+		if constexpr(Expansion_MemoryLocking) {
 			unlock_os_memory( key  , sizeof(key)   );
 			unlock_os_memory( tweak, sizeof(tweak) );
 		}
 #endif
 	} /* expand_key_ */
 
-	template <size_t Key_Bits, bool Expansion_Memlocking>
+	template <size_t Key_Bits, bool Expansion_MemoryLocking>
 	void
-	Threefish<Key_Bits,Expansion_Memlocking>::add_subkey_	(int const round) {
+	Threefish<Key_Bits,Expansion_MemoryLocking>::add_subkey_	(int const round) {
 		int const subkey = round / 4;
 		int const offset = subkey * Number_Words;
 		for (int i = 0; i < Number_Words; ++i)
 			state[ i ] += key_schedule[ offset + i ];
 	}
 
-	template <size_t Key_Bits, bool Expansion_Memlocking>
+	template <size_t Key_Bits, bool Expansion_MemoryLocking>
 	void
-	Threefish<Key_Bits,Expansion_Memlocking>::subtract_subkey_	(int const round) {
+	Threefish<Key_Bits,Expansion_MemoryLocking>::subtract_subkey_	(int const round) {
 		int const subkey = round / 4;
 		int const offset = subkey * Number_Words;
 		for (int i = 0; i < Number_Words; ++i)
 			state[ i ] -= key_schedule[ offset + i ];
 	}
 
-	template <size_t Key_Bits, bool Expansion_Memlocking>
+	template <size_t Key_Bits, bool Expansion_MemoryLocking>
 	void
-	Threefish<Key_Bits,Expansion_Memlocking>::cipher	(u8_t const *in, u8_t *out) {
+	Threefish<Key_Bits,Expansion_MemoryLocking>::cipher	(u8_t const *in, u8_t *out) {
 		std::memcpy( state, in, sizeof(state) );
 		for (int round = 0; round < Number_Rounds; ++round) {
 			if (round % 4 == 0)		/* Adding subkeys */
@@ -243,9 +243,9 @@ namespace ssc {
 		std::memcpy( out, state, sizeof(state) );
 	} /* cipher */
 
-	template <size_t Key_Bits, bool Expansion_Memlocking>
+	template <size_t Key_Bits, bool Expansion_MemoryLocking>
 	void
-	Threefish<Key_Bits,Expansion_Memlocking>::inverse_cipher	(u8_t const *in, u8_t *out) {
+	Threefish<Key_Bits,Expansion_MemoryLocking>::inverse_cipher	(u8_t const *in, u8_t *out) {
 		std::memcpy( state, in, sizeof(state) );
 		subtract_subkey_( Number_Rounds );
 		for (int round = Number_Rounds - 1; round >= 0; --round) {
@@ -258,9 +258,9 @@ namespace ssc {
 		std::memcpy( out, state, sizeof(state) );
 	} /* inverse_cipher */
 
-	template <size_t Key_Bits, bool Expansion_Memlocking>
+	template <size_t Key_Bits, bool Expansion_MemoryLocking>
 	void
-	Threefish<Key_Bits,Expansion_Memlocking>::permute_state_	(void) {
+	Threefish<Key_Bits,Expansion_MemoryLocking>::permute_state_	(void) {
 		if constexpr(Number_Words == 4) {
 			u64_t w = state[ 1 ];
 			state[ 1 ] = state[ 3 ];
@@ -333,9 +333,9 @@ namespace ssc {
 		}
 	} /* permute_state_ */
 
-	template <size_t Key_Bits, bool Expansion_Memlocking>
+	template <size_t Key_Bits, bool Expansion_MemoryLocking>
 	void
-	Threefish<Key_Bits,Expansion_Memlocking>::inverse_permute_state_	(void) {
+	Threefish<Key_Bits,Expansion_MemoryLocking>::inverse_permute_state_	(void) {
 		static_assert (Number_Words == 4 || Number_Words == 8 || Number_Words == 16);
 		if constexpr(Number_Words == 4) {
 			permute_state_();  // here, permute_state() and inverse_permute_state() are the same operation
