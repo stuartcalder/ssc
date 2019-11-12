@@ -63,7 +63,7 @@ namespace ssc::cbc_v2 {
 		{
 			Terminal term;
 			char pwcheck [Password_Buffer_Bytes];
-#ifdef __SSC_memlocking__
+#ifdef __SSC_MemoryLocking__
 			lock_os_memory( password, Password_Buffer_Bytes );
 			lock_os_memory( pwcheck , Password_Buffer_Bytes );
 #endif
@@ -79,7 +79,7 @@ namespace ssc::cbc_v2 {
 				term.notify( "Passwords don't match." );
 			}
 			zero_sensitive( pwcheck, Password_Buffer_Bytes );
-#ifdef __SSC_memlocking__
+#ifdef __SSC_MemoryLocking__
 			unlock_os_memory( pwcheck, Password_Buffer_Bytes );
 #endif
 		}
@@ -87,7 +87,7 @@ namespace ssc::cbc_v2 {
 		if (encr_input.supplement_os_entropy) {
 			u8_t hash       [Block_Bytes];
 			char char_input [Max_Supplementary_Entropy_Chars + 1];
-#ifdef __SSC_memlocking__
+#ifdef __SSC_MemoryLocking__
 			lock_os_memory( hash      , sizeof(hash)       );
 			lock_os_memory( char_input, sizeof(char_input) );
 #endif
@@ -100,7 +100,7 @@ namespace ssc::cbc_v2 {
 
 			zero_sensitive( hash      , sizeof(hash)       );
 			zero_sensitive( char_input, sizeof(char_input) );
-#ifdef __SSC_memlocking__
+#ifdef __SSC_MemoryLocking__
 			unlock_os_memory( hash      , sizeof(hash)       );
 			unlock_os_memory( char_input, sizeof(char_input) );
 #endif
@@ -142,13 +142,13 @@ namespace ssc::cbc_v2 {
 
 		// Generate a 512-bit symmetric key using the password we got earlier as input
 		u8_t derived_key [Block_Bytes];
-#ifdef __SSC_memlocking__
+#ifdef __SSC_MemoryLocking__
 		lock_os_memory( derived_key, sizeof(derived_key) );
 #endif
 		sspkdf( derived_key, password, password_length, header.sspkdf_salt, header.num_iter, header.num_concat );
 		// Securely zero over the password buffer after we've used it to generate the symmetric key
 		zero_sensitive( password, sizeof(password) );
-#ifdef __SSC_memlocking__
+#ifdef __SSC_MemoryLocking__
 		unlock_os_memory( password, sizeof(password) );
 #endif
 		{
@@ -164,7 +164,7 @@ namespace ssc::cbc_v2 {
 		}
 		// Securely zero over the derived key
 		zero_sensitive( derived_key, sizeof(derived_key) );
-#ifdef __SSC_memlocking__
+#ifdef __SSC_MemoryLocking__
 		unlock_os_memory( derived_key, sizeof(derived_key) );
 #endif
 		// Synchronize everything written to the output file
@@ -251,7 +251,7 @@ namespace ssc::cbc_v2 {
 		// Get the password
 		char password [Max_Password_Length + 1] = { 0 };
 		int  password_length;
-#ifdef __SSC_memlocking__
+#ifdef __SSC_MemoryLocking__
 		lock_os_memory( password, sizeof(password) );
 #endif
 		{
@@ -260,13 +260,13 @@ namespace ssc::cbc_v2 {
 		}
 		// Generate a 512-bit symmetric key from the given password.
 		u8_t derived_key [Block_Bytes];
-#ifdef __SSC_memlocking__
+#ifdef __SSC_MemoryLocking__
 		lock_os_memory( derived_key, sizeof(derived_key) );
 #endif
 		sspkdf( derived_key, password, password_length, header.sspkdf_salt, header.num_iter, header.num_concat );
 		// Securely zero over the password now that we have the derived key.
 		zero_sensitive( password, sizeof(password) );
-#ifdef __SSC_memlocking__
+#ifdef __SSC_MemoryLocking__
 		unlock_os_memory( password, sizeof(password) );
 #endif
 		{
@@ -283,7 +283,7 @@ namespace ssc::cbc_v2 {
 			}
 			if (memcmp( generated_mac, (input_map.ptr + input_map.size - MAC_Bytes), MAC_Bytes) != 0) {
 				zero_sensitive( derived_key, sizeof(derived_key) );
-#ifdef __SSC_memlocking__
+#ifdef __SSC_MemoryLocking__
 				unlock_os_memory( derived_key, sizeof(derived_key) );
 #endif
 				unmap_file( input_map );
@@ -301,7 +301,7 @@ namespace ssc::cbc_v2 {
 			CBC_t cbc{ Threefish_t{ derived_key, header.tweak } };
 			// Securely zero over the derived key now that we're done with it.
 			zero_sensitive( derived_key, sizeof(derived_key) );
-#ifdef __SSC_memlocking__
+#ifdef __SSC_MemoryLocking__
 			unlock_os_memory( derived_key, sizeof(derived_key) );
 #endif
 			static constexpr auto const File_Metadata_Size = CBC_V2_Header_t::Total_Size + MAC_Bytes;
