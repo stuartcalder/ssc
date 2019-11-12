@@ -72,7 +72,7 @@ namespace ssc {
 		// Buffer and index setup
 		auto const buffer_size = max_pw_size + 1;
 		auto buffer = std::make_unique<char[]>( buffer_size );
-#	ifdef __SSC_memlocking__
+#	ifdef __SSC_MemoryLocking__
 		lock_os_memory( buffer.get(), buffer_size );
 #	endif
 		int index = 0;                  // Start from the beginning
@@ -138,7 +138,7 @@ namespace ssc {
 		int const password_size = strlen( buffer.get() );
 		strncpy( pw_buffer, buffer.get(), password_size + 1 );
 		zero_sensitive( buffer.get(), buffer_size );
-#	ifdef __SSC_memlocking__
+#	ifdef __SSC_MemoryLocking__
 		unlock_os_memory( buffer.get(), buffer_size );
 #	endif
 		delwin( w );
@@ -146,7 +146,7 @@ namespace ssc {
 #elif defined (_WIN64)
 		auto const buffer_size = max_pw_size + 1;
 		auto buffer = std::make_unique<char[]>( buffer_size );
-#	ifdef __SSC_memlocking__
+#	ifdef __SSC_MemoryLocking__
 		lock_os_memory( buffer.get(), buffer_size );
 #	endif
 		int index = 0;
@@ -206,7 +206,7 @@ namespace ssc {
 		int const password_size = strlen( buffer.get() );
 		strncpy( pw_buffer, buffer.get(), password_size + 1 );
 		zero_sensitive( buffer.get(), buffer_size );
-#	ifdef __SSC_memlocking__
+#	ifdef __SSC_MemoryLocking__
 		unlock_os_memory( buffer.get(), buffer_size );
 #	endif
 		system( "cls" );

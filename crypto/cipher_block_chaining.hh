@@ -75,7 +75,7 @@ namespace ssc {
 	Cipher_Block_Chaining<Block_Cipher_t,Block_Bits>::Cipher_Block_Chaining (Block_Cipher_t &&blk_c) 
 	    : blk_cipher{ std::move( blk_c ) }
 	{
-#ifdef __SSC_memlocking__
+#ifdef __SSC_MemoryLocking__
 		lock_os_memory( state, sizeof(state) );
 #endif
 	}
@@ -83,7 +83,7 @@ namespace ssc {
 	template <typename Block_Cipher_t, size_t Block_Bits>
 	Cipher_Block_Chaining<Block_Cipher_t,Block_Bits>::~Cipher_Block_Chaining (void) {
 		zero_sensitive( state, sizeof(state) );
-#ifdef __SSC_memlocking__
+#ifdef __SSC_MemoryLocking__
 		unlock_os_memory( state, sizeof(state) );
 #endif
 	}
@@ -156,7 +156,7 @@ namespace ssc {
 		u8_t       *out = bytes_out;
 
 		u8_t buffer [Block_Bytes];
-#ifdef __SSC_memlocking__
+#ifdef __SSC_MemoryLocking__
 		lock_os_memory( buffer, sizeof(buffer) );
 #endif
 
@@ -183,7 +183,7 @@ namespace ssc {
 		memcpy( state, buffer, Block_Bytes );
 		memcpy( out  , buffer, Block_Bytes );
 		zero_sensitive( buffer, Block_Bytes );
-#ifdef __SSC_memlocking__
+#ifdef __SSC_MemoryLocking__
 		unlock_os_memory( buffer, sizeof(buffer) );
 #endif
 		return calculate_padded_ciphertext_size_( size_in );
@@ -200,7 +200,7 @@ namespace ssc {
 
 		u8_t ciphertext [Block_Bytes];
 		u8_t buffer     [Block_Bytes];
-#ifdef __SSC_memlocking__
+#ifdef __SSC_MemoryLocking__
 		lock_os_memory( ciphertext, sizeof(ciphertext) );
 		lock_os_memory( buffer    , sizeof(buffer)     );
 #endif
@@ -218,7 +218,7 @@ namespace ssc {
 		}
 		zero_sensitive( buffer    , Block_Bytes );
 		zero_sensitive( ciphertext, Block_Bytes );
-#ifdef __SSC_memlocking__
+#ifdef __SSC_MemoryLocking__
 		unlock_os_memory( ciphertext, sizeof(ciphertext) );
 		unlock_os_memory( buffer    , sizeof(buffer)     );
 #endif

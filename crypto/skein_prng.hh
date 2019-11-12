@@ -66,7 +66,7 @@ namespace ssc {
 
         template<size_t State_Bits>
         Skein_PRNG<State_Bits>::Skein_PRNG (void) {
-#ifdef __SSC_memlocking__
+#ifdef __SSC_MemoryLocking__
 		// Lock the state into memory on construction.
 		lock_os_memory( state, sizeof(state) );
 #endif
@@ -77,7 +77,7 @@ namespace ssc {
         template <size_t State_Bits>
         Skein_PRNG<State_Bits>::Skein_PRNG (void const * const seed,
                                             u64_t const        seed_bytes) {
-#ifdef __SSC_memlocking__
+#ifdef __SSC_MemoryLocking__
 		// Lock the state into memory on construction.
 		lock_os_memory( state, sizeof(state) );
 #endif
@@ -90,7 +90,7 @@ namespace ssc {
         Skein_PRNG<State_Bits>::~Skein_PRNG (void) {
                 // Securely zero the buffer on destruction.
                 zero_sensitive( state, sizeof(state) );
-#ifdef __SSC_memlocking__
+#ifdef __SSC_MemoryLocking__
 		// Unlock the OS memory on destruction (if supported).
 		unlock_os_memory( state, sizeof(state) );
 #endif
@@ -103,7 +103,7 @@ namespace ssc {
                 // Enough bytes for the current state and new bytes.
                 u64_t const buffer_size = sizeof(state) + seed_bytes;   
                 auto buffer = std::make_unique<u8_t[]>( buffer_size );
-#ifdef __SSC_memlocking__
+#ifdef __SSC_MemoryLocking__
 		if (buffer_size <= Max_Lockable_Bytes)
 			lock_os_memory( buffer.get(), buffer_size );
 #endif
@@ -115,7 +115,7 @@ namespace ssc {
                 skein.hash_native( state, buffer.get(), buffer_size );
                 // Securely zero over the used buffer.
                 zero_sensitive( buffer.get(), buffer_size );
-#ifdef __SSC_memlocking__
+#ifdef __SSC_MemoryLocking__
 		if (buffer_size <= Max_Lockable_Bytes)
 			unlock_os_memory( buffer.get(), buffer_size );
 #endif
@@ -127,7 +127,7 @@ namespace ssc {
                 // Enough bytes for the current state and seed bytes.
                 u64_t const buffer_size = sizeof(state) + seed_bytes;
                 auto buffer = std::make_unique<u8_t[]>( buffer_size );
-#ifdef __SSC_memlocking__
+#ifdef __SSC_MemoryLocking__
 		if (buffer_size <= Max_Lockable_Bytes)
 			lock_os_memory( buffer.get(), buffer_size );
 #endif
@@ -139,7 +139,7 @@ namespace ssc {
                 skein.hash_native( state, buffer.get(), buffer_size );
                 // Securely zero over the used buffer.
                 zero_sensitive( buffer.get(), buffer_size );
-#ifdef __SSC_memlocking__
+#ifdef __SSC_MemoryLocking__
 		if (buffer_size <= Max_Lockable_Bytes)
 			unlock_os_memory( buffer.get(), buffer_size );
 #endif
@@ -152,7 +152,7 @@ namespace ssc {
                 // Enough bytes for the current state and requested bytes.
                 u64_t const buffer_size = sizeof(state) + requested_bytes;
                 auto buffer = std::make_unique<u8_t[]>( buffer_size );
-#ifdef __SSC_memlocking__
+#ifdef __SSC_MemoryLocking__
 		if (buffer_size <= Max_Lockable_Bytes)
 			lock_os_memory( buffer.get(), buffer_size );
 #endif
@@ -164,7 +164,7 @@ namespace ssc {
                 std::memcpy( output_buffer, (buffer.get() + sizeof(state)), requested_bytes );
                 // Securely zero over the used buffer.
                 zero_sensitive( buffer.get(), buffer_size );
-#ifdef __SSC_memlocking__
+#ifdef __SSC_MemoryLocking__
 		if (buffer_size <= Max_Lockable_Bytes)
 			unlock_os_memory( buffer.get(), buffer_size );
 #endif

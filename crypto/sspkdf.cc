@@ -55,7 +55,7 @@ namespace ssc
 	{
 		u8_t key    [State_Bytes];
 		u8_t buffer [State_Bytes];
-#ifdef __SSC_memlocking__
+#ifdef __SSC_MemoryLocking__
 		lock_os_memory( key   , sizeof(key)    );
 		lock_os_memory( buffer, sizeof(buffer) );
 #endif
@@ -73,7 +73,7 @@ namespace ssc
 
 		zero_sensitive( key   , sizeof(key)    );
 		zero_sensitive( buffer, sizeof(buffer) );
-#ifdef __SSC_memlocking__
+#ifdef __SSC_MemoryLocking__
 		unlock_os_memory( key   , sizeof(key)    );
 		unlock_os_memory( buffer, sizeof(buffer) );
 #endif

@@ -38,13 +38,13 @@ namespace ssc {
 		static constexpr u64_t const Constant_240   = 0x1b'd1'1b'da'a9'fc'1a'22;
 		/* Constructors / Destructors */
 		Threefish (void) {
-#ifdef __SSC_memlocking__
+#ifdef __SSC_MemoryLocking__
 			lock_os_memory( state       , sizeof(state)        );
 			lock_os_memory( key_schedule, sizeof(key_schedule) );
 #endif
 		}
 		Threefish (u8_t const *__restrict k, u8_t const *__restrict tw = nullptr) {
-#ifdef __SSC_memlocking__
+#ifdef __SSC_MemoryLocking__
 			lock_os_memory( state       , sizeof(state)        );
 			lock_os_memory( key_schedule, sizeof(key_schedule) );
 #endif
@@ -100,7 +100,7 @@ namespace ssc {
 	Threefish<Key_Bits,Expansion_Memlocking>::~Threefish	(void) {
 		zero_sensitive( key_schedule, sizeof(key_schedule) );
 		zero_sensitive( state       , sizeof(state) );
-#ifdef __SSC_memlocking__
+#ifdef __SSC_MemoryLocking__
 		unlock_os_memory( key_schedule, sizeof(key_schedule) );
 		unlock_os_memory( state       , sizeof(state)        );
 #endif
@@ -170,7 +170,7 @@ namespace ssc {
 		// key / tweak setup
 		u64_t key [Number_Words + 1]; // Big enough for the parity word
 		u64_t tweak [3];
-#ifdef __SSC_memlocking__
+#ifdef __SSC_MemoryLocking__
 		if constexpr(Expansion_Memlocking) {
 			lock_os_memory( key  , sizeof(key)   );
 			lock_os_memory( tweak, sizeof(tweak) );
@@ -202,7 +202,7 @@ namespace ssc {
 		// clear sensitive memory
 		zero_sensitive( key  , sizeof(key)   );
 		zero_sensitive( tweak, sizeof(tweak) );
-#ifdef __SSC_memlocking__
+#ifdef __SSC_MemoryLocking__
 		if constexpr(Expansion_Memlocking) {
 			unlock_os_memory( key  , sizeof(key)   );
 			unlock_os_memory( tweak, sizeof(tweak) );
