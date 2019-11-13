@@ -170,42 +170,42 @@ namespace ssc {
 		               "Skein is only defined for 256, 512, 1024 bit-widths");
 		if constexpr(State_Bits == 256) {
 			static constexpr u64_t const init_chain [4] = {
-				0xfc9d'a860'd048'b449,
-				0x2fca'6647'9fa7'd833,
-				0xb33b'c389'6656'840f,
-				0x6a54'e920'fde8'da69
+				0xfc'9d'a8'60'd0'48'b4'49,
+				0x2f'ca'66'47'9f'a7'd8'33,
+				0xb3'3b'c3'89'66'56'84'0f,
+				0x6a'54'e9'20'fd'e8'da'69
 			};
 			std::memcpy( ubi.get_key_state(), init_chain, sizeof(init_chain) );
 		} else if constexpr(State_Bits == 512) {
 			static constexpr u64_t const init_chain [8] = {
-				0x4903'adff'749c'51ce,
-				0x0d95'de39'9746'df03,
-				0x8fd1'9341'27c7'9bce,
-				0x9a25'5629'ff35'2cb1,
-				0x5db6'2599'df6c'a7b0,
-				0xeabe'394c'a9d5'c3f4,
-				0x9911'12c7'1a75'b523,
-				0xae18'a40b'660f'cc33
+				0x49'03'ad'ff'74'9c'51'ce,
+				0x0d'95'de'39'97'46'df'03,
+				0x8f'd1'93'41'27'c7'9b'ce,
+				0x9a'25'56'29'ff'35'2c'b1,
+				0x5d'b6'25'99'df'6c'a7'b0,
+				0xea'be'39'4c'a9'd5'c3'f4,
+				0x99'11'12'c7'1a'75'b5'23,
+				0xae'18'a4'0b'66'0f'cc'33
 			};
 			std::memcpy( ubi.get_key_state(), init_chain, sizeof(init_chain) );
 		} else if constexpr(State_Bits == 1024) {
 			static constexpr u64_t const init_chain[16] = {
-				0xd593'da07'41e7'2355, // 0
-				0x15b5'e511'ac73'e00c, // 1
-				0x5180'e5ae'baf2'c4f0, // 2
-				0x03bd'41d3'fcbc'afaf, // 3
-				0x1cae'c6fd'1983'a898, // 4
-				0x6e51'0b8b'cdd0'589f, // 5
-				0x77e2'bdfd'c639'4ada, // 6
-				0xc11e'1db5'24dc'b0a3, // 7
-				0xd6d1'4af9'c632'9ab5, // 8
-				0x6a9b'0bfc'6eb6'7e0d, // 9
-				0x9243'c60d'ccff'1332, //10
-				0x1a1f'1dde'743f'02d4, //11
-				0x0996'753c'10ed'0bb8, //12
-				0x6572'dd22'f2b4'969a, //13
-				0x61fd'3062'd00a'579a, //14
-				0x1de0'536e'8682'e539  //15
+				0xd5'93'da'07'41'e7'23'55, // 0
+				0x15'b5'e5'11'ac'73'e0'0c, // 1
+				0x51'80'e5'ae'ba'f2'c4'f0, // 2
+				0x03'bd'41'd3'fc'bc'af'af, // 3
+				0x1c'ae'c6'fd'19'83'a8'98, // 4
+				0x6e'51'0b'8b'cd'd0'58'9f, // 5
+				0x77'e2'bd'fd'c6'39'4a'da, // 6
+				0xc1'1e'1d'b5'24'dc'b0'a3, // 7
+				0xd6'd1'4a'f9'c6'32'9a'b5, // 8
+				0x6a'9b'0b'fc'6e'b6'7e'0d, // 9
+				0x92'43'c6'0d'cc'ff'13'32, //10
+				0x1a'1f'1d'de'74'3f'02'd4, //11
+				0x09'96'75'3c'10'ed'0b'b8, //12
+				0x65'72'dd'22'f2'b4'96'9a, //13
+				0x61'fd'30'62'd0'0a'57'9a, //14
+				0x1d'e0'53'6e'86'82'e5'39  //15
 			};
 			std::memcpy( ubi.get_key_state(), init_chain, sizeof(init_chain) );
 		}
