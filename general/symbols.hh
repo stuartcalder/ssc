@@ -45,6 +45,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #endif
 
 /* OS macros*/
-#if defined (__OpenBSD__) || defined (__gnu_linux__)
+#if    defined (__OpenBSD__) || defined (__gnu_linux__)
 #	define __UnixLike__
 #endif

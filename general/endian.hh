@@ -16,10 +16,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <cstdlib>
 #include <cstdio>
 #include <ssc/general/error_conditions.hh>
-#if defined(__gnu_linux__)
-extern "C" {
-#   include <endian.h>
-}
+#ifdef __gnu_linux__
+#	include <endian.h>
 #endif
 
 namespace ssc

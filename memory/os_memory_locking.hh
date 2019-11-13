@@ -46,10 +46,10 @@ namespace ssc {
 	inline void
 	lock_os_memory (void const *addr, size_t const length) {
 		using namespace std;
-#	if   defined (__UnixLike__)
+#	if    defined (__UnixLike__)
 		if (mlock( addr, length ) != 0)
 			errx( "Error: Failed to mlock()\n" );
-#	elif defined (_WIN64)
+#	elif  defined (_WIN64)
 		if (VirtualLock( addr, length ) == 0)
 			errx( "Error: Failed to VirtualLock()\n" );
 #	else
@@ -60,10 +60,10 @@ namespace ssc {
 	inline void
 	unlock_os_memory (void const *addr, size_t const length) {
 		using namespace std;
-#	if   defined (__UnixLike__)
+#	if    defined (__UnixLike__)
 		if (munlock( addr, length ) != 0)
 			errx( "Error: Failed to munlock()\n" );
-#	elif defined (_WIN64)
+#	elif  defined (_WIN64)
 		if (VirtualUnlock( addr, length ) == 0)
 			errx( "Error: Failed to VirtualUnlock()\n" );
 #	else

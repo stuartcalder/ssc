@@ -29,5 +29,5 @@ namespace ssc {
 		using i32_t = std::int32_t;
 		using i64_t = std::int64_t;
 	}/*namespace ssc::ints*/
-using namespace ints;
+	using namespace ints;
 }/*namespace ssc*/

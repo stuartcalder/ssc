@@ -18,7 +18,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/crypto/operations.hh>
 #include <ssc/general/integers.hh>
 
-#if   defined (__gnu_linux__)
+#if    defined (__gnu_linux__)
 #	include <endian.h>
 #else
 #	error "Unimplemented on anything but Gnu/Linux"

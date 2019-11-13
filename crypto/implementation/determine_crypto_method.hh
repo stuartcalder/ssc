@@ -28,7 +28,7 @@ namespace ssc {
 #ifdef __SSC_CBC_V2__
 		CBC_V2,
 #else
-#	error	"CBC_V2 is the only supported Crypto_Method, but isn't here."
+#	error "CBC_V2 is the only supported Crypto_Method, but isn't here."
 #endif
 		Terminating_Enum
 	};/*enum class Crypto_Method_E*/

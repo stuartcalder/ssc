@@ -27,9 +27,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 namespace ssc {
 
-#if   defined (__UnixLike__)
+#if    defined (__UnixLike__)
 	using OS_File_t = int;
-#elif defined (_WIN64)
+#elif  defined (_WIN64)
 	using OS_File_t = HANDLE;
 #else
 #	error "Unsupported platform"

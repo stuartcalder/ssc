@@ -21,9 +21,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/interface/terminal.hh>
 #include <ssc/memory/os_memory_locking.hh>
 
-#if   defined (__UnixLike__)
+#if    defined (__UnixLike__)
 #	include <ncurses.h>
-#elif defined (_WIN64)
+#elif  defined (_WIN64)
 #	ifndef WIN64_WINDOWS_H
 #		include <windows.h>
 #		define WIN64_WINDOWS_H
@@ -39,20 +39,20 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 namespace ssc {
 	Terminal::Terminal (void) {
-#if   defined (__UnixLike__)
+#if    defined (__UnixLike__)
 		initscr();
 		getmaxyx( stdscr, std_height, std_width );
 		clear();
-#elif defined (_WIN64)
+#elif  defined (_WIN64)
 		system( "cls" );
 #else
 #	error "ssc::Terminal() only defined for OpenBSD, GNU/Linux and MS Windows"
 #endif
 	}/*ssc::Terminal::Terminal{}*/
 	Terminal::~Terminal (void) {
-#if   defined (__UnixLike__)
+#if    defined (__UnixLike__)
 		endwin();
-#elif defined (_WIN64)
+#elif  defined (_WIN64)
 		system( "cls" );
 #else
 #	error "ssc::~Terminal() only defined for OpenBSD, GNU/Linux, and MS Windows"
@@ -64,7 +64,7 @@ namespace ssc {
 			 int const min_pw_size,
 			 char const * prompt) {
 		using namespace std;
-#if   defined (__UnixLike__)
+#if    defined (__UnixLike__)
 		// Screen setup
 		cbreak();               // Disable line buffering
 		noecho();               // Disable echoing
@@ -143,7 +143,7 @@ namespace ssc {
 #	endif
 		delwin( w );
 		return password_size;
-#elif defined (_WIN64)
+#elif  defined (_WIN64)
 		auto const buffer_size = max_pw_size + 1;
 		auto buffer = std::make_unique<char[]>( buffer_size );
 #	ifdef __SSC_MemoryLocking__
@@ -218,7 +218,7 @@ namespace ssc {
     void Terminal::notify(char const *notice)
     {
         using namespace std;
-#if   defined (__UnixLike__)
+#if    defined (__UnixLike__)
         WINDOW * w = newwin( 1, strlen(notice) + 1, 0, 0 );
         wclear( w );
         wmove( w, 0, 0 );
@@ -226,7 +226,7 @@ namespace ssc {
         wrefresh( w );
         wgetch( w );
         delwin( w );
-#elif defined (_WIN64)
+#elif  defined (_WIN64)
         system( "cls" );
 	if (_cputs( notice ) != 0)
 		errx( "Error: Failed to _cputs()\n" );

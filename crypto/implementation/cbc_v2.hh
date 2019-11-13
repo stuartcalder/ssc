@@ -14,7 +14,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #pragma once
 
 #ifndef __SSC_CBC_V2__
-#define __SSC_CBC_V2__
+#	define __SSC_CBC_V2__
 #endif
 
 #include <cstring>
@@ -43,13 +43,13 @@ namespace ssc::cbc_v2 {
 	static constexpr auto const Max_Password_Length = 120;
 	static constexpr auto const Max_Supplementary_Entropy_Chars = 120;
 	// OS-Specific Compile-Time Constants
-#if   defined (__UnixLike__)
+#if    defined (__UnixLike__)
 	static_assert (Max_Password_Length == 120);
 	static constexpr auto const Password_Prompt = "Please input a password (max length 120 characters).\n> ";
 	static constexpr auto const Password_Reentry_Prompt = "Good. Please input the same password again (max length 120 characters).\n> ";
 	static_assert (Max_Supplementary_Entropy_Chars == 120);
 	static constexpr auto const Supplementary_Entropy_Prompt = "Please input up to 120 random characters.\n> ";
-#elif defined (_WIN64)
+#elif  defined (_WIN64)
 	static_assert (Max_Password_Length == 120);
 	static constexpr auto const Password_Prompt = "Please input a password (max length 120 characters).\n\r> ";
 	static constexpr auto const Password_Reentry_Prompt = "Good. Please input the same password again (max length 120 characters).\n\r> ";

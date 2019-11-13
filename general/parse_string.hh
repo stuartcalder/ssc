@@ -15,7 +15,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <string>
 #include <ssc/general/symbols.hh>
 
-namespace ssc
-{
-    bool DLL_PUBLIC enforce_integer(std::string & str);
-}/* ! namespace ssc */
+namespace ssc {
+	bool DLL_PUBLIC
+	enforce_integer (std::string & str);
+}/*namespace ssc */
