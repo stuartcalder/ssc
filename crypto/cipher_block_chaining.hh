@@ -48,8 +48,9 @@ namespace ssc {
 		static_assert (CHAR_BIT == 8             , "A byte must be 8 bits");
 		static_assert (Block_Bits % CHAR_BIT == 0, "Block size must be a multiple of bytes.");
 		static_assert ((Block_Bits >= 128)       , "Modern block ciphers have at least 128-bit blocks!");
+		static_assert (Block_Cipher_t::Block_Bits == Block_Bits, "The Block size of the cipher and the block size of the CBC object don't match!");
 		/* COMPILE TIME CONSTANTS */
-		static constexpr size_t const Block_Bytes = (Block_Bits / 8);
+		static constexpr size_t const Block_Bytes = (Block_Bits / CHAR_BIT);
 		/* PUBLIC INTERFACE */
 		Cipher_Block_Chaining  (void) = delete;		/* Disallow construction with no arguments. */
 		Cipher_Block_Chaining  (Block_Cipher_t &&blk_c);	/* Construct a Cipher_Block_Chaining object with the block cipher in-place. */
@@ -165,9 +166,8 @@ namespace ssc {
 		while (bytes_left >= Block_Bytes) {
 			memcpy( buffer, in, Block_Bytes );
 			xor_block<Block_Bits>( buffer, state );
-			blk_cipher.cipher( buffer, buffer );
-			memcpy( state, buffer, Block_Bytes );
-			memcpy( out  , buffer, Block_Bytes );
+			blk_cipher.cipher( buffer, state );
+			memcpy( out, state, Block_Bytes );
 
 			in         += Block_Bytes;
 			out        += Block_Bytes;
@@ -179,9 +179,8 @@ namespace ssc {
 		memset( (buffer + bytes_left + 1), 0, (Block_Bytes - (bytes_left + 1)) );
 		// Final encrypt
 		xor_block<Block_Bits>( buffer, state );
-		blk_cipher.cipher( buffer, buffer );
-		memcpy( state, buffer, Block_Bytes );
-		memcpy( out  , buffer, Block_Bytes );
+		blk_cipher.cipher( buffer, state );
+		memcpy( out, state, Block_Bytes );
 		zero_sensitive( buffer, Block_Bytes );
 #ifdef __SSC_MemoryLocking__
 		unlock_os_memory( buffer, sizeof(buffer) );
