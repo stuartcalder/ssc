@@ -235,27 +235,28 @@ namespace ssc {
 	Threefish<Key_Bits,Expansion_MemoryLocking>::cipher	(u8_t const *in, u8_t *out) {
 		std::memcpy( state, in, sizeof(state) );
 		for (int round = 0; round < Number_Rounds; ++round) {
-			if (round % 4 == 0)		/* Adding subkeys */
-				add_subkey_( round );
-			for (int j = 0; j <= ((Number_Words / 2) - 1); ++j)	/* Performing MIX function */
-				mix_( (state + (2 * j)), (state + (2 * j) + 1), round, j );
-			permute_state_();		/* Permute the state, using fixed constants */
+			if (round % 4 == 0)
+				add_subkey_( round ); // Adding the round subkey.
+			for (int j = 0; j <= ((Number_Words / 2) - 1); ++j)
+				mix_( (state + (2 * j)), (state + (2 * j) + 1), round, j ); // Performing the MIX function.
+			permute_state_(); // Permuting the state (shuffling words around).
 		}
-		add_subkey_( Number_Rounds );
+		add_subkey_( Number_Rounds ); // Adding the final subkey.
 		std::memcpy( out, state, sizeof(state) );
 	} /* cipher */
 
 	template <size_t Key_Bits, bool Expansion_MemoryLocking>
 	void
 	Threefish<Key_Bits,Expansion_MemoryLocking>::inverse_cipher	(u8_t const *in, u8_t *out) {
+		// We start the inverse_cipher at the "last" round index, and go backwards to 0.
 		std::memcpy( state, in, sizeof(state) );
-		subtract_subkey_( Number_Rounds );
+		subtract_subkey_( Number_Rounds ); // Subtracting the last subkey of the keyschedule.
 		for (int round = Number_Rounds - 1; round >= 0; --round) {
-			inverse_permute_state_();
+			inverse_permute_state_(); // Inversing the permutation function (shuffling words around).
 			for (int j = 0; j <= ((Number_Words / 2) - 1); ++j)
-				inverse_mix_( (state + (2 * j)), (state + (2 * j) + 1), round, j );
+				inverse_mix_( (state + (2 * j)), (state + (2 * j) + 1), round, j ); // Performing the inverse of the MIX function.
 			if (round % 4 == 0)
-				subtract_subkey_( round );
+				subtract_subkey_( round ); // Subtracting the round subkey.
 		}
 		std::memcpy( out, state, sizeof(state) );
 	} /* inverse_cipher */
