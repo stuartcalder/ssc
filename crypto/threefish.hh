@@ -28,6 +28,8 @@ namespace ssc {
 		static_assert ((Key_Bits == 256 || Key_Bits == 512 || Key_Bits == 1024), "Invalid keysize");
 		static_assert ((CHAR_BIT == 8), "This implementation needs 8-bit chars");
 		/* Public Constants */
+		static constexpr size_t const   Block_Bits     = Key_Bits;
+		static constexpr size_t const   Block_Bytes    = Block_Bits / CHAR_BIT;
 		static constexpr size_t const   Number_Words   = Key_Bits / 64;
 		static constexpr size_t const   Number_Rounds  = [](size_t bits) {
 									if (bits == 1024)
