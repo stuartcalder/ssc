@@ -88,6 +88,10 @@ namespace ssc {
 			std::fputs( "Failed to dynamically allocate Entropy_Pool buffer memory\n", stderr );
 			std::exit( EXIT_FAILURE );
 		}
+#ifdef __SSC_MemoryLocking__
+		lock_os_memory( pool        , Pool_Bytes );
+		lock_os_memory( reset_buffer, Pool_Bytes );
+#endif
 		// Initialize the current pointer to the beginning of the pool.
 		current = pool;
 		// Initialize the pool using the PRNG.
@@ -104,6 +108,10 @@ namespace ssc {
 			prng_thread.join();
 		zero_sensitive( pool        , Pool_Bytes );
 		zero_sensitive( reset_buffer, Pool_Bytes );
+#ifdef __SSC_MemoryLocking__
+		unlock_os_memory( pool        , Pool_Bytes );
+		unlock_os_memory( reset_buffer, Pool_Bytes );
+#endif
 		delete[] pool;
 		delete[] reset_buffer;
 	}/*~Entropy_Pool{}*/

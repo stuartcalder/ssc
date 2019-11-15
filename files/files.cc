@@ -35,11 +35,19 @@ namespace ssc {
 	size_t
 	get_file_size	(OS_File_t const os_file) {
 		using namespace std;
+	/* On Unix-Like operating systems, directly use the fstat(2) call
+	 * to get the size of a file, given a file descriptor (int).
+	 */
 #if    defined (__UnixLike__)
 		struct stat s;
 		if (fstat( os_file, &s ) == -1)
 			errx( "Error: Unable to fstat file descriptor #%d\n", os_file );
 		return static_cast<size_t>(s.st_size);
+	/* On 64-bit MS Windows, given a HANDLE input,
+	 * create a LARGE_INTEGER, and use GetFileSizeEx() to store the
+	 * size of the file defined by the input HANDLE.
+	 * Cast the size to size_t, and return it.
+	 */
 #elif  defined (_WIN64)
 		LARGE_INTEGER large_int;
 		if (GetFileSizeEx( os_file, &large_int ) == 0)
@@ -68,17 +76,26 @@ namespace ssc {
 	size_t
 	get_file_size	(char const * filename) {
 	using namespace std;
+	/* On Unix-Like operating systems, directly use the stat(2) call with
+	 * the `struct stat` datastructure to get the size of a file defined by
+	 * a C-string.
+	 */
 #if    defined (__UnixLike__)
 		struct stat s;
 		if (stat( filename, &s) != 0 )
 			errx( "Error: Failed to stat() info about %s\n", filename );
 		return static_cast<size_t>(s.st_size);
+		
+	/* On 64-bit MS Windows, use our already existing open_existing_os_file(), get_file_size(), and close_os_file()
+	 * functions to get the size of a file in bytes, given an input C-string.
+	 */
 #elif  defined (_WIN64)
 		OS_File_t file = open_existing_os_file( filename, true );
 		size_t const size = get_file_size( file );
 		close_os_file( file );
 		return size;
-#else // All other platforms
+	/* All other platforms. */
+#else 
 		size_t num_bytes = 0;
 		FILE * stream = fopen( filename, "rb" );
 		if (stream == nullptr)
@@ -91,6 +108,10 @@ namespace ssc {
 #endif
 	} /* ! get_file_size(const char * filename) */
 
+	/* Use the standard C-library stdio.h functions to open
+	 * a FILE. If we successfully open the file, assume that file to exist.
+	 * If we do not successfully open it, assume that file does not exist.
+	 */
 	bool
 	file_exists	(char const * filename) {
 		using namespace std;
@@ -104,6 +125,9 @@ namespace ssc {
 		return exists;
 	}
 
+	/* Ensure that the std::string parameter is within a certain minimum size.
+	 * If it isn't, error out.
+	 */
 	void
 	check_file_name_sanity	(std::string const & str,
 				 size_t const        min_size) {
@@ -111,6 +135,10 @@ namespace ssc {
 			errx( "Error: Filename `%s` must have at least %zu character(s)\n", str.c_str(), min_size );
 	}
 
+	/* Check whether a given file exists for an input C-string filename.
+	 * Then, if we the force the file to exist and it doesn't exist, error out.
+	 * If we force the file to NOT exist and it DOES exist, error out.
+	 */
 	void
 	enforce_file_existence	(char const * const __restrict filename,
 				 bool const                    force_to_exist,
@@ -138,10 +166,16 @@ namespace ssc {
 		std::exit( EXIT_FAILURE );
 	}/* ! enforce_file_existence */
 
+	/* Open a file with Operating-System defined file handlers, given
+	 * an input C-string and a true boolean for readonly, a false
+	 * boolean for read/write.
+	 */
 	OS_File_t
 	open_existing_os_file	(char const * filename, bool const readonly) {
 		using namespace std;
 		enforce_file_existence( filename, true );
+	/* On Unix-Like operating systems, we return an int representing an OS file-descriptor.
+	 */
 #if    defined (__UnixLike__)
 		int file_d;
 		decltype(O_RDWR) read_write_rights;
@@ -154,6 +188,8 @@ namespace ssc {
 		if ((file_d = open( filename, read_write_rights, static_cast<mode_t>(0600) )) == -1)
 			errx( "Error: Unable to open existing file `%s` with open()\n", filename );
 		return file_d;
+	/* On Win64, we return a HANDLE representing an OS file-handle.
+	 */
 #elif  defined (_WIN64)
 		HANDLE file_h;
 		decltype(GENERIC_READ) read_write_rights;
