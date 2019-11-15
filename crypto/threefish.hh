@@ -170,8 +170,8 @@ namespace ssc {
 	void
 	Threefish<Key_Bits,Expansion_MemoryLocking>::expand_key_	(u8_t const *__restrict k, u8_t const *__restrict tw) {
 		// key / tweak setup
-		u64_t key [Number_Words + 1]; // Big enough for the parity word
-		u64_t tweak [3];
+		u64_t key   [Number_Words + 1]; // Big enough key buffer for the parity word.
+		u64_t tweak [3];		// Big enough tweak buffer for the parity word.
 #ifdef __SSC_MemoryLocking__
 		if constexpr(Expansion_MemoryLocking) {
 			lock_os_memory( key  , sizeof(key)   );
@@ -179,22 +179,21 @@ namespace ssc {
 		}
 #endif
 		std::memcpy( key, k, sizeof(state) );
-		if (tw != nullptr) {	// If a valid tweak was supplied
+		if (tw != nullptr) {	// If a valid tweak was supplied, copy it into the first two words of the tweak buffer.
 			std::memcpy( tweak, tw, sizeof(u64_t) * 2 );
-					// Tweak parity word
+					// Determine the tweak parity word.
 			tweak[ 2 ] = tweak[ 0 ] ^ tweak[ 1 ];
-		} else {		// If a valid tweak wasn't supplied
+		} else {		// If a valid tweak wasn't supplied, set the whole tweak buffer to zero.
 			std::memset( tweak, 0, sizeof(tweak) );
 		}
-		// Define parity words for the key. (tweak parity word is above)
+		// Define key parity word.
 		key[ Number_Words ] = Constant_240;
 		for (int i = 0; i < Number_Words; ++i)
 			key[ Number_Words ] ^= key[ i ];
 
-		// Arbitrary keyschedule generation
 		for (int subkey = 0; subkey < Number_Subkeys; ++subkey) {// for each subkey
 			int const subkey_index = subkey * Number_Words;
-			for (int i = 0; i <= Number_Words - 4; ++i)// each word of the subkey
+			for (int i = 0; i <= Number_Words - 4; ++i)// for each word of the subkey
 				key_schedule[ subkey_index + i ] = key[ (subkey + i) % (Number_Words + 1) ];
 			key_schedule[ subkey_index + (Number_Words - 3) ] =  key[ (subkey + (Number_Words - 3)) % (Number_Words + 1) ] + tweak[ subkey % 3 ];
 			key_schedule[ subkey_index + (Number_Words - 2) ] =  key[ (subkey + (Number_Words - 2)) % (Number_Words + 1) ] + tweak[ (subkey + 1) % 3 ];
