@@ -41,15 +41,18 @@ namespace ssc {
 		/* Constructors / Destructors */
 		Threefish (void) {
 #ifdef __SSC_MemoryLocking__
+			// If supported, lock both the state and key_schedule from swapping.
 			lock_os_memory( state       , sizeof(state)        );
 			lock_os_memory( key_schedule, sizeof(key_schedule) );
 #endif
 		}
 		Threefish (u8_t const *__restrict k, u8_t const *__restrict tw = nullptr) {
 #ifdef __SSC_MemoryLocking__
+			// If supported, unlock both the state and key_schedule from swapping.
 			lock_os_memory( state       , sizeof(state)        );
 			lock_os_memory( key_schedule, sizeof(key_schedule) );
 #endif
+			// Expand the key and tweak parameters into the keyschedule.
 			expand_key_( k, tw );
 		}
 		~Threefish (void);	/* forward declared */
@@ -93,16 +96,19 @@ namespace ssc {
 	}; /* class Threefish */
 	template <size_t Key_Bits, bool Expansion_MemoryLocking>
 	void
-	Threefish<Key_Bits,Expansion_MemoryLocking>::rekey	(u8_t const *__restrict new_key,
-							 u8_t const *__restrict new_tweak) {
+	Threefish<Key_Bits,Expansion_MemoryLocking>::rekey (u8_t const *__restrict new_key,
+							    u8_t const *__restrict new_tweak) {
+		// Expand the key and tweak arguments into the keyschedule.
 		expand_key_( new_key, new_tweak );
 	}
 
 	template <size_t Key_Bits, bool Expansion_MemoryLocking>
 	Threefish<Key_Bits,Expansion_MemoryLocking>::~Threefish	(void) {
+		// Securely zero the key_schedule and state buffers.
 		zero_sensitive( key_schedule, sizeof(key_schedule) );
 		zero_sensitive( state       , sizeof(state) );
 #ifdef __SSC_MemoryLocking__
+		// If supported, unlock the key_schedule and state buffers.
 		unlock_os_memory( key_schedule, sizeof(key_schedule) );
 		unlock_os_memory( state       , sizeof(state)        );
 #endif
@@ -111,15 +117,20 @@ namespace ssc {
 	template <size_t Key_Bits, bool Expansion_MemoryLocking>
 	void
 	Threefish<Key_Bits,Expansion_MemoryLocking>::mix_		(u64_t *__restrict x0, u64_t *__restrict x1, int const round, int const index) {
+		// x0 equal the sum of x0 and x1.
 		(*x0) = ((*x0) + (*x1));
+		// x1 equals x1 rotated right by a rotation constant defined by the round number and index XOR'd with x0.
 		(*x1) = ( rotate_left<u64_t>( (*x1), get_rotate_constant_( round, index ) ) ^ (*x0) );
 	}
 
 	template <size_t Key_Bits, bool Expansion_MemoryLocking>
 	void
 	Threefish<Key_Bits,Expansion_MemoryLocking>::inverse_mix_	(u64_t *__restrict x0, u64_t *__restrict x1, int const round, int const index) {
+		// x1 equls x0 XOR'd with x1.
 		(*x1) = ((*x0) ^ (*x1));
+		// x1 equals x1 rotated right by a rotation constant defined by the round number and index.
 		(*x1) = rotate_right<u64_t>( (*x1), get_rotate_constant_( round, index ) ) ;
+		// x0 equals x0 minus x1.
 		(*x0) = (*x0) - (*x1);
 	}
 
@@ -127,6 +138,7 @@ namespace ssc {
 	u64_t
 	Threefish<Key_Bits,Expansion_MemoryLocking>::get_rotate_constant_	(int const round, int const index) {
 		static_assert (Number_Words == 4 || Number_Words == 8 || Number_Words == 16, "Invalid Number_Words. 4, 8, 16 only.");
+		// All rotation constant look-up tables.
 		if constexpr(Number_Words == 4) {
 			static constexpr const u64_t rc [8][2] = {
 				{ 14, 16 }, //d = 0
@@ -173,11 +185,13 @@ namespace ssc {
 		u64_t key   [Number_Words + 1]; // Big enough key buffer for the parity word.
 		u64_t tweak [3];		// Big enough tweak buffer for the parity word.
 #ifdef __SSC_MemoryLocking__
+		// If supported, and specified by template parameter, lock the key and tweak buffers from being paged.
 		if constexpr(Expansion_MemoryLocking) {
 			lock_os_memory( key  , sizeof(key)   );
 			lock_os_memory( tweak, sizeof(tweak) );
 		}
 #endif
+		// Copy the function parameter k into the key buffer.
 		std::memcpy( key, k, sizeof(state) );
 		if (tw != nullptr) {	// If a valid tweak was supplied, copy it into the first two words of the tweak buffer.
 			std::memcpy( tweak, tw, sizeof(u64_t) * 2 );
@@ -188,6 +202,7 @@ namespace ssc {
 		}
 		// Define key parity word.
 		key[ Number_Words ] = Constant_240;
+		// XOR all the words of the key into the parity word.
 		for (int i = 0; i < Number_Words; ++i)
 			key[ Number_Words ] ^= key[ i ];
 
@@ -204,6 +219,7 @@ namespace ssc {
 		zero_sensitive( key  , sizeof(key)   );
 		zero_sensitive( tweak, sizeof(tweak) );
 #ifdef __SSC_MemoryLocking__
+		// If supported, unlock the key and tweak buffers.
 		if constexpr(Expansion_MemoryLocking) {
 			unlock_os_memory( key  , sizeof(key)   );
 			unlock_os_memory( tweak, sizeof(tweak) );
