@@ -13,9 +13,11 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 */
 #pragma once
 
-#ifndef __SSC_CBC_V2__
-#	define __SSC_CBC_V2__
+#ifdef __SSC_CBC_V2__
+#	error "Somehow, __SSC_CBC_V2__ is already defined..."
 #endif
+
+#define __SSC_CBC_V2__
 
 #include <cstring>
 #include <cstdlib>
