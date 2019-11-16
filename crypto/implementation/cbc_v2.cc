@@ -196,7 +196,7 @@ namespace ssc::cbc_v2 {
 			close_os_file( input_map.os_file );
 			close_os_file( output_map.os_file );
 			remove( output_filename );
-			errx( "Error: Input file doesn't appear to be large enought to be a 3CRYPT_CBC_V2 encrypted file\n" );
+			errx( "Error: Input file doesn't appear to be large enough to be a 3CRYPT_CBC_V2 encrypted file\n" );
 		}
 		// Set the output file to be `output_map.size` bytes.
 		set_os_file_size( output_map.os_file, output_map.size );
