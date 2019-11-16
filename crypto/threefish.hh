@@ -193,11 +193,13 @@ namespace ssc {
 #endif
 		// Copy the function parameter k into the key buffer.
 		std::memcpy( key, k, sizeof(state) );
-		if (tw != nullptr) {	// If a valid tweak was supplied, copy it into the first two words of the tweak buffer.
+		if (tw != nullptr) {
+			// If a valid tweak was supplied, copy it into the first two words of the tweak buffer.
 			std::memcpy( tweak, tw, sizeof(u64_t) * 2 );
-					// Determine the tweak parity word.
+			// Determine the tweak parity word.
 			tweak[ 2 ] = tweak[ 0 ] ^ tweak[ 1 ];
-		} else {		// If a valid tweak wasn't supplied, set the whole tweak buffer to zero.
+		} else {
+			// If a valid tweak wasn't supplied, set the whole tweak buffer to zero.
 			std::memset( tweak, 0, sizeof(tweak) );
 		}
 		// Define key parity word.
