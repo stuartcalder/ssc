@@ -40,7 +40,7 @@ namespace ssc::cbc_v2 {
 	encrypt	(Encrypt_Input const & encr_input) {
 		using namespace std;
 
-		PRNG_t prng;
+		CSPRNG_t prng;
 		OS_Map input_map, output_map;
 
 		// Open input file
