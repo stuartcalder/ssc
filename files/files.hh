@@ -19,10 +19,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/general/symbols.hh>
 
 #ifdef _WIN64
-#	ifndef WIN64_WINDOWS_H
-#		include <windows.h>
-#		define WIN64_WINDOWS_H
-#	endif
+#	include <windows.h>
 #endif
 
 namespace ssc {

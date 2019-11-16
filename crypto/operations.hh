@@ -27,21 +27,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #if    defined (__UnixLike__)
 #	include <unistd.h>
 #elif  defined (_WIN64)
-#	ifndef WIN64_WINDOWS_H
-#		include <windows.h>
-#		define WIN64_WINDOWS_H
-#	endif
-
-#	ifndef WIN64_NTSTATUS_H
-#		include <ntstatus.h>
-#		define WIN64_NTSTATUS_H
-#	endif
-
-#	ifndef WIN64_BCRYPT_H
-#		include <bcrypt.h>
-#		define WIN64_BCRYPT_H
-#	endif
-
+#	include <windows.h>
+#	include <ntstatus.h>
+#	include <bcrypt.h>
 #else
 #	error "Operations.hh only implemented for OpenBSD, GNU/Linux, and 64-bit Microsoft Windows"
 #endif

@@ -28,16 +28,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #	if   defined (__UnixLike__)
 #		include <sys/mman.h>
 #	elif defined (_WIN64)
-#		ifndef WIN64_WINDOWS_H
-#			include <windows.h>
-#			define WIN64_WINDOWS_H
-#		endif
-
-#		ifndef WIN64_MEMORYAPI_H
-#			include <memoryapi.h>
-#			define WIN64_MEMORYAPI_H
-#		endif
-
+#		include <windows.h>
+#		include <memoryapi.h>
 #	else
 #		error "Only implemented on Unix-like systems and 64-bit Windows."
 #	endif

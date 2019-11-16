@@ -21,11 +21,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #	include <unistd.h>
 #	include <fcntl.h>
 #elif  defined (_WIN64)
-#	ifndef WIN64_WINDOWS_H
-#		include <windows.h>
-#		define WIN64_WINDOWS_H
-#	endif
-
+#	include <windows.h>
 #else
 #	error "Only defined for OpenBSD, GNU/Linux, and Win64"
 #endif
