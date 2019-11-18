@@ -40,7 +40,7 @@ namespace ssc::cbc_v2 {
 	encrypt	(Encrypt_Input const & encr_input) {
 		using namespace std;
 
-		CSPRNG_t prng;
+		CSPRNG_t csprng;
 		OS_Map input_map, output_map;
 
 		// Open input file
@@ -96,7 +96,7 @@ namespace ssc::cbc_v2 {
 			int num_input_chars = term.get_pw( char_input, Max_Supplementary_Entropy_Chars, 1, Supplementary_Entropy_Prompt );
 			static_assert (Skein_t::State_Bytes == sizeof(hash));
 			skein.hash_native( hash, reinterpret_cast<u8_t *>(char_input), num_input_chars );
-			prng.reseed( hash, sizeof(hash) );
+			csprng.reseed( hash, sizeof(hash) );
 
 			zero_sensitive( hash      , sizeof(hash)       );
 			zero_sensitive( char_input, sizeof(char_input) );
@@ -110,9 +110,9 @@ namespace ssc::cbc_v2 {
 		static_assert (sizeof(header.id) == sizeof(CBC_V2_ID));
 		memcpy( header.id, CBC_V2_ID, sizeof(header.id) );
 		header.total_size = static_cast<decltype(header.total_size)>(output_map.size);
-		prng.get( header.tweak      , sizeof(header.tweak)       );
-		prng.get( header.sspkdf_salt, sizeof(header.sspkdf_salt) );
-		prng.get( header.cbc_iv     , sizeof(header.cbc_iv)      );
+		csprng.get( header.tweak      , sizeof(header.tweak)       );
+		csprng.get( header.sspkdf_salt, sizeof(header.sspkdf_salt) );
+		csprng.get( header.cbc_iv     , sizeof(header.cbc_iv)      );
 		header.num_iter   = encr_input.number_iterations;
 		header.num_concat = encr_input.number_concatenations;
 		// Copy header into the file, field at a time, advancing the pointer
