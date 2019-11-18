@@ -104,7 +104,8 @@ namespace ssc {
                 u64_t const buffer_size = sizeof(state) + seed_bytes;   
                 auto buffer = std::make_unique<u8_t[]>( buffer_size );
 #ifdef __SSC_MemoryLocking__
-		if (buffer_size <= Max_Lockable_Bytes)
+		bool const do_lock = (buffer_size <= Max_Lockable_Bytes);
+		if (do_lock)
 			lock_os_memory( buffer.get(), buffer_size );
 #endif
                 // Copy the state into the beginning of the temp buffer.
@@ -116,7 +117,7 @@ namespace ssc {
                 // Securely zero over the used buffer.
                 zero_sensitive( buffer.get(), buffer_size );
 #ifdef __SSC_MemoryLocking__
-		if (buffer_size <= Max_Lockable_Bytes)
+		if (do_lock)
 			unlock_os_memory( buffer.get(), buffer_size );
 #endif
         } /* reseed (u8_t*,u64_t) */
@@ -128,7 +129,8 @@ namespace ssc {
                 u64_t const buffer_size = sizeof(state) + seed_bytes;
                 auto buffer = std::make_unique<u8_t[]>( buffer_size );
 #ifdef __SSC_MemoryLocking__
-		if (buffer_size <= Max_Lockable_Bytes)
+		bool const do_lock = (buffer_size <= Max_Lockable_Bytes);
+		if (do_lock)
 			lock_os_memory( buffer.get(), buffer_size );
 #endif
                 // Copy the state into the beginning of the temp buffer.
@@ -140,7 +142,7 @@ namespace ssc {
                 // Securely zero over the used buffer.
                 zero_sensitive( buffer.get(), buffer_size );
 #ifdef __SSC_MemoryLocking__
-		if (buffer_size <= Max_Lockable_Bytes)
+		if (do_lock)
 			unlock_os_memory( buffer.get(), buffer_size );
 #endif
         } /* os_reseed (u64_t) */
