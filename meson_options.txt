@@ -1,7 +1,7 @@
 # By default, we enable "memory locking" on operating systems that support it
 # that do not necessarily encrypt swap by default. (i.e. GNU/Linux)
 option('disable_memorylocking', type : 'boolean', value : false,
-	description : 'By default, we lock sensitive memory from being paged
+	description : '''By default, we lock sensitive memory from being paged
 	to swap on operating systems that support memory locking and don\'t
 	encrypt swap. Set this bool to true to disable it regardless of
-	support.')
+	support.''')
