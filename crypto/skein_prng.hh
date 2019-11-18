@@ -153,7 +153,8 @@ namespace ssc {
                 u64_t const buffer_size = sizeof(state) + requested_bytes;
                 auto buffer = std::make_unique<u8_t[]>( buffer_size );
 #ifdef __SSC_MemoryLocking__
-		if (buffer_size <= Max_Lockable_Bytes)
+		bool const do_lock = (buffer_size <= Max_Lockable_Bytes);
+		if (do_lock)
 			lock_os_memory( buffer.get(), buffer_size );
 #endif
                 // Hash the state, writing ${buffer_size} bytes of pseudorandomness to ${buffer.get()}
@@ -165,7 +166,7 @@ namespace ssc {
                 // Securely zero over the used buffer.
                 zero_sensitive( buffer.get(), buffer_size );
 #ifdef __SSC_MemoryLocking__
-		if (buffer_size <= Max_Lockable_Bytes)
+		if (do_lock)
 			unlock_os_memory( buffer.get(), buffer_size );
 #endif
         } /* get (u8_t*,u64_t) */
