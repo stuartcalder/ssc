@@ -14,12 +14,12 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #pragma once
 
 /* Symbol visibility macros */
-#if defined (BUILD_STATIC) || defined (IMPORT_STATIC)
+#if defined (__BUILD_STATIC) || defined (__IMPORT_STATIC)
 #	define DLL_PUBLIC
 #	define DLL_LOCAL
 #else
 #	if defined (_WIN32) || defined (__CYGWIN__)
-#		if defined (BUILD_DLL)
+#		if defined (__BUILD_DLL)
 #			if defined (__GNUC__)
 #				define DLL_PUBLIC __attribute__ ((dllexport))
 #			else
@@ -45,15 +45,19 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #endif
 
 /* Operating System Macros */
-// Unix-Likes
-// For now, we have tested and verified support for OpenBSD and GNU/Linux Unix-Likes.
+
 #if    defined (__OpenBSD__) || defined (__gnu_linux__)
 #	define __UnixLike__
-// Windows NT+
-#elif  defined (_WIN32) && !defined (_WIN64)
-// We define __Win32__ as being an explicitly 32-bit Windows.
-#	define __Win32__
-#elif  defined (_WIN64)
-// We define __Win64__ as being an explicitly 64-bit Windows.
-#	define __Win64__
+#elif  defined (_WIN32) || defined(_WIN64)
+#	define __Windows__
+#else
+#	error "OpenBSD, GNU/Linux and Windows the only supported operating systems."
+#endif
+
+#ifdef __Windows__
+#	if   !defined (_WIN64)
+#		define __Win32__
+#	else
+#		define __Win64__
+#	endif
 #endif
