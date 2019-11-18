@@ -19,26 +19,24 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/general/symbols.hh>
 #include <ssc/crypto/operations.hh>
 
-namespace ssc
-{
-    class DLL_PUBLIC Terminal
-    {
-    public:
+namespace ssc {
+	class DLL_PUBLIC Terminal {
+		public:
         /* CONSTRUCTORS */
-        Terminal();
-        ~Terminal();
+			Terminal();
+			~Terminal();
         // Returns password size
-        int get_pw(char    * buffer,
-                   int const max_pw_size,
-                   int const min_pw_size,
-		   char const * prompt);
-        void notify(char const * notice);
-    private:
+			int get_pw(char    * buffer,
+				   int const max_pw_size,
+				   int const min_pw_size,
+				   char const * prompt);
+			void notify(char const * notice);
+		private:
 #if    defined (__UnixLike__)
-        int DLL_LOCAL std_height;
-        int DLL_LOCAL std_width;
+			int DLL_LOCAL std_height;
+			int DLL_LOCAL std_width;
 #elif !defined (__Win64__)
 #	error "ssc::Terminal only defined for OpenBSD, GNU/Linux, and 64-bit Windows"
 #endif
-    };/* ! class ssc::Terminal */
-}/* ! namespace ssc */
+    };/*class ssc::Terminal*/
+}/*namespace ssc*/

@@ -39,7 +39,7 @@ namespace ssc {
 #elif  defined (__Win64__)
 		system( "cls" );
 #else
-#	error "ssc::Terminal() only defined for OpenBSD, GNU/Linux and MS Windows"
+#	error "ssc::Terminal() only defined for OpenBSD, GNU/Linux and 64-bit MS Windows"
 #endif
 	}/*ssc::Terminal::Terminal{}*/
 	Terminal::~Terminal (void) {
@@ -48,7 +48,7 @@ namespace ssc {
 #elif  defined (__Win64__)
 		system( "cls" );
 #else
-#	error "ssc::~Terminal() only defined for OpenBSD, GNU/Linux, and MS Windows"
+#	error "ssc::~Terminal() only defined for OpenBSD, GNU/Linux, and 64-bit MS Windows"
 #endif
 	}/*ssc::Terminal::~Terminal{}*/
 	int
@@ -205,7 +205,7 @@ namespace ssc {
 		system( "cls" );
 		return password_size;
 #else
-#	error "ssc::Terminal::get_pw(...) defined for OpenBSD, GNU/Linux, and MS Windows"
+#	error "ssc::Terminal::get_pw(...) defined for OpenBSD, GNU/Linux, and 64-bit MS Windows"
 #endif
 	}/* ! ssc::Terminal::get_pw */
     void Terminal::notify(char const *notice)
@@ -226,7 +226,7 @@ namespace ssc {
         system( "pause" );
         system( "cls" );
 #else
-#	error "ssc::Terminal::notify(...) defined for OpenBSD, GNU/Linux, and MS Windows"
+#	error "ssc::Terminal::notify(...) defined for OpenBSD, GNU/Linux, and 64-bit MS Windows"
 #endif
     }/* ! ssc::Terminal::notify */
 }
