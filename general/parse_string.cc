@@ -15,19 +15,18 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include "parse_string.hh"
 
-namespace ssc
-{
-    bool enforce_integer(std::string & str)
-    {
-        bool success = true;
-        std::string s;
-        for ( char const ch : str )
-            if ( isdigit( ch ) )
-                s += ch;
-        if ( s.empty() )
-            success = false;
-        else
-            str = std::move( s );
-        return success;
-    }
-}/* ! namespace ssc */
+namespace ssc {
+	bool
+	enforce_integer(std::string & str) {
+		bool success = true;
+		std::string s;
+		for ( char const ch : str )
+		    if ( isdigit( ch ) )
+			s += ch;
+		if ( s.empty() )
+		    success = false;
+		else
+		    str = std::move( s );
+		return success;
+	}/*enforce_integer(std::string&)*/
+}/*namespace ssc*/
