@@ -21,7 +21,7 @@ namespace ssc {
 		u8_t    * ptr;
 		u64_t     size;
 		OS_File_t os_file;
-#ifdef _WIN64
+#ifdef __Win64__
 		OS_File_t win64_filemapping;
 #endif
 	};

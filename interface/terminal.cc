@@ -23,7 +23,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #if    defined (__UnixLike__)
 #	include <ncurses.h>
-#elif  defined (_WIN64)
+#elif  defined (__Win64__)
 #	include <windows.h>
 #	include <conio.h>
 #else
@@ -36,7 +36,7 @@ namespace ssc {
 		initscr();
 		getmaxyx( stdscr, std_height, std_width );
 		clear();
-#elif  defined (_WIN64)
+#elif  defined (__Win64__)
 		system( "cls" );
 #else
 #	error "ssc::Terminal() only defined for OpenBSD, GNU/Linux and MS Windows"
@@ -45,7 +45,7 @@ namespace ssc {
 	Terminal::~Terminal (void) {
 #if    defined (__UnixLike__)
 		endwin();
-#elif  defined (_WIN64)
+#elif  defined (__Win64__)
 		system( "cls" );
 #else
 #	error "ssc::~Terminal() only defined for OpenBSD, GNU/Linux, and MS Windows"
@@ -136,7 +136,7 @@ namespace ssc {
 #	endif
 		delwin( w );
 		return password_size;
-#elif  defined (_WIN64)
+#elif  defined (__Win64__)
 		auto const buffer_size = max_pw_size + 1;
 		auto buffer = std::make_unique<char[]>( buffer_size );
 #	ifdef __SSC_MemoryLocking__
@@ -219,7 +219,7 @@ namespace ssc {
         wrefresh( w );
         wgetch( w );
         delwin( w );
-#elif  defined (_WIN64)
+#elif  defined (__Win64__)
         system( "cls" );
 	if (_cputs( notice ) != 0)
 		errx( "Error: Failed to _cputs()\n" );

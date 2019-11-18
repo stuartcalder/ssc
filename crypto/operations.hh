@@ -26,7 +26,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #if    defined (__UnixLike__)
 #	include <unistd.h>
-#elif  defined (_WIN64)
+#elif  defined (__Win64__)
 #	include <windows.h>
 #	include <ntstatus.h>
 #	include <bcrypt.h>
@@ -112,7 +112,7 @@ namespace ssc {
 		}
 		if (getentropy( buffer, num_bytes ) != 0)
 			errx( "Error: Failed to getentropy()\n" );
-#elif  defined (_WIN64)
+#elif  defined (__Win64__)
 		BCRYPT_ALG_HANDLE cng_provider_handle;
 		// Open algorithm provider.
 		if (BCryptOpenAlgorithmProvider( &cng_provider_handle, L"RNG", nullptr, 0 ) != STATUS_SUCCESS)
@@ -133,7 +133,7 @@ namespace ssc {
 		using namespace std;
 #if    defined (__UnixLike__)
 		explicit_bzero( buffer, num_bytes );
-#elif  defined (_WIN64)
+#elif  defined (__Win64__)
 		SecureZeroMemory( buffer, num_bytes );
 #else
 #	error "ssc::zero_sensitive defined for OpenBSD, GNU/Linux, and MS Windows"

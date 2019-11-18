@@ -61,7 +61,7 @@ namespace ssc::cbc_v2 {
 /* For the functions we're going to use in the win64 implementation of ssc::Terminal, we require
  * lines to be terminated by \n\r instead of just \n.
  */
-#elif  defined (_WIN64)
+#elif  defined (__Win64__)
 	static_assert (Max_Password_Length == 120);
 	static constexpr auto const Password_Prompt = "Please input a password (max length 120 characters).\n\r> ";
 	static constexpr auto const Password_Reentry_Prompt = "Good. Please input the same password again (max length 120 characters).\n\r> ";

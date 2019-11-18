@@ -18,7 +18,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <string>
 #include <ssc/general/symbols.hh>
 
-#ifdef _WIN64
+#ifdef __Win64__
 #	include <windows.h>
 #endif
 
@@ -26,7 +26,7 @@ namespace ssc {
 
 #if    defined (__UnixLike__)
 	using OS_File_t = int;
-#elif  defined (_WIN64)
+#elif  defined (__Win64__)
 	using OS_File_t = HANDLE;
 #else
 #	error "Unsupported platform"

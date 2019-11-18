@@ -37,8 +37,8 @@ namespace ssc
 #if    defined (__UnixLike__)
         int DLL_LOCAL std_height;
         int DLL_LOCAL std_width;
-#elif !defined (_WIN64)
-	#error "ssc::Terminal only defined for OpenBSD, GNU/Linux, and MS Windows"
+#elif !defined (__Win64__)
+#	error "ssc::Terminal only defined for OpenBSD, GNU/Linux, and 64-bit Windows"
 #endif
     };/* ! class ssc::Terminal */
 }/* ! namespace ssc */

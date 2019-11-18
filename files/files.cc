@@ -20,7 +20,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #	include <sys/stat.h>
 #	include <unistd.h>
 #	include <fcntl.h>
-#elif  defined (_WIN64)
+#elif  defined (__Win64__)
 #	include <windows.h>
 #else
 #	error "Only defined for OpenBSD, GNU/Linux, and Win64"
@@ -44,7 +44,7 @@ namespace ssc {
 	 * size of the file defined by the input HANDLE.
 	 * Cast the size to size_t, and return it.
 	 */
-#elif  defined (_WIN64)
+#elif  defined (__Win64__)
 		LARGE_INTEGER large_int;
 		if (GetFileSizeEx( os_file, &large_int ) == 0)
 			errx( "Error: GetFileSizeEx() failed\n" );
@@ -85,7 +85,7 @@ namespace ssc {
 	/* On 64-bit MS Windows, use our already existing open_existing_os_file(), get_file_size(), and close_os_file()
 	 * functions to get the size of a file in bytes, given an input C-string.
 	 */
-#elif  defined (_WIN64)
+#elif  defined (__Win64__)
 		OS_File_t file = open_existing_os_file( filename, true );
 		size_t const size = get_file_size( file );
 		close_os_file( file );
@@ -186,7 +186,7 @@ namespace ssc {
 		return file_d;
 	/* On Win64, we return a HANDLE representing an OS file-handle.
 	 */
-#elif  defined (_WIN64)
+#elif  defined (__Win64__)
 		HANDLE file_h;
 		decltype(GENERIC_READ) read_write_rights;
 
@@ -212,7 +212,7 @@ namespace ssc {
 		if ((file_d = open( filename, (O_RDWR|O_TRUNC|O_CREAT), static_cast<mode_t>(0600) )) == -1)
 			errx( "Error: Unable to create new file `%s` with open()\n", filename );
 		return file_d;
-#elif  defined (_WIN64)
+#elif  defined (__Win64__)
 		HANDLE file_h;
 		if ((file_h = CreateFileA( filename, (GENERIC_READ|GENERIC_WRITE), 0, nullptr, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, nullptr )) == INVALID_HANDLE_VALUE)
 			errx( "Error: Unable to create file `%s` with CreateFileA()\n", filename );
@@ -228,7 +228,7 @@ namespace ssc {
 #if    defined (__UnixLike__)
 		if (close( os_file ) == -1)
 			errx( "Error: Wasn't able to close file descriptor %d\n", os_file );
-#elif  defined (_WIN64)
+#elif  defined (__Win64__)
 		if (CloseHandle( os_file ) == 0)
 			errx( "Error: Wasn't able to close file handle\n" );
 #else
@@ -242,7 +242,7 @@ namespace ssc {
 #if    defined (__UnixLike__)
 		if (ftruncate( os_file, new_size ) == -1)
 			errx( "Error: Failed to set size of file descriptor `%d` to `%zu`\n", os_file, new_size );
-#elif  defined (_WIN64)
+#elif  defined (__Win64__)
 		LARGE_INTEGER large_int;
 		large_int.QuadPart = static_cast<decltype(large_int.QuadPart)>(new_size);
 		if (SetFilePointerEx( os_file, large_int, nullptr, FILE_BEGIN ) == 0)

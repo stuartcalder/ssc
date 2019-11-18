@@ -28,7 +28,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 // Get OS-specific headers needed for locking memory.
 #	if   defined (__UnixLike__)
 #		include <sys/mman.h>
-#	elif defined (_WIN64)
+#	elif defined (__Win64__)
 #		include <windows.h>
 #		include <memoryapi.h>
 #	else
@@ -42,7 +42,7 @@ namespace ssc {
 #	if    defined (__UnixLike__)
 		if (mlock( addr, length ) != 0)
 			errx( "Error: Failed to mlock()\n" );
-#	elif  defined (_WIN64)
+#	elif  defined (__Win64__)
 		if (VirtualLock( addr, length ) == 0)
 			errx( "Error: Failed to VirtualLock()\n" );
 #	else
@@ -56,7 +56,7 @@ namespace ssc {
 #	if    defined (__UnixLike__)
 		if (munlock( addr, length ) != 0)
 			errx( "Error: Failed to munlock()\n" );
-#	elif  defined (_WIN64)
+#	elif  defined (__Win64__)
 		if (VirtualUnlock( addr, length ) == 0)
 			errx( "Error: Failed to VirtualUnlock()\n" );
 #	else
