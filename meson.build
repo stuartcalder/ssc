@@ -4,12 +4,9 @@ project('ssc', 'cpp', default_options: ['cpp_std=c++17', 'buildtype=release',
 cc = meson.get_compiler('cpp')
 
 host_os = host_machine.system()
-if host_os == 'openbsd' or host_os == 'linux'
-	define_flag_prefix = '-D'
-elif host_os == 'windows'
+define_flag_prefix = '-D'
+if host_os == 'windows'
 	define_flag_prefix = '/D'
-else
-	assert(false)
 endif
 
 ssc_src = ['general/arg_mapping.cc', 'general/base64.cc', 'general/print.cc',
