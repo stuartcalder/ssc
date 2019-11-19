@@ -3,41 +3,49 @@ project('ssc', 'cpp', default_options: ['cpp_std=c++17', 'buildtype=release',
                                         'cpp_eh=none'])
 cc = meson.get_compiler('cpp')
 
-host_os = host_machine.system()
+os = host_machine.system()
 define_flag_prefix = '-D'
-if host_os == 'windows'
+if os == 'windows'
 	define_flag_prefix = '/D'
 endif
 
-ssc_src = ['general/arg_mapping.cc', 'general/base64.cc', 'general/print.cc',
-           'files/files.cc', 'interface/terminal.cc', 'crypto/sspkdf.cc',
-           'general/parse_string.cc', 'files/os_map.cc',
-	   'crypto/implementation/cbc_v2.cc']
-lib_deps = []
+ssc_src = [
+	# `General` Files
+	'general/arg_mapping.cc', 'general/base64.cc', 'general/print.cc',
+	'general/parse_string.cc',
+	# `Files` Files
+	'files/files.cc', 'files/os_map.cc',
+	# `Crypto` Files
+	'crypto/sspkdf.cc', 'crypto/implementation/cbc_v2.cc',
+	# `Interface` Files
+	'interface/terminal.cc'
+	]
+lib_deps   = []
 extra_args = []
+inc_dir    = []
 
 if get_option('disable_memorylocking')
 	flag = define_flag_prefix + '__SSC_DISABLE_MEMORYLOCKING'
 	extra_args += flag
 endif
 
-if host_os == 'openbsd'
-	lib_deps += cc.find_library('ncurses')
+if os == 'openbsd'
+	lib_deps   += cc.find_library('ncurses')
 	extra_args += '-fvisibility=hidden'
 	extra_args += '-fno-exceptions'
-	inc_dir = include_directories('..')
+	inc_dir    += include_directories('..')
 	shared_library('ssc', sources: ssc_src, dependencies: lib_deps,
 		       cpp_args: extra_args, install: true, include_directories: inc_dir)
-elif host_os == 'linux'
-	lib_deps += cc.find_library('ncurses')
-	lib_deps += cc.find_library('tinfo')
+elif os == 'linux'
+	lib_deps   += cc.find_library('ncurses')
+	lib_deps   += cc.find_library('tinfo')
 	extra_args += '-fvisibility=hidden'
 	extra_args += '-fno-exceptions'
 	shared_library('ssc', sources: ssc_src, dependencies: lib_deps,
 		       cpp_args: extra_args, install: true)
-elif host_os == 'windows'
-	lib_deps += cc.find_library('bcrypt')
-	inc_dir = include_directories('C:/include')
+elif os == 'windows'
+	lib_deps   += cc.find_library('bcrypt')
+	inc_dir    += include_directories('C:/include')
 	extra_args += '/D__BUILD_STATIC'
 	static_library('ssc', sources: ssc_src, dependencies: lib_deps,
 		       include_directories: inc_dir, cpp_args: extra_args)
