@@ -55,6 +55,9 @@ namespace ssc {
 		/* PUBLIC INTERFACE */
 		Cipher_Block_Chaining  (void) = delete;		/* Disallow construction with no arguments. */
 		Cipher_Block_Chaining  (Block_Cipher_t &&blk_c);	/* Construct a Cipher_Block_Chaining object with the block cipher in-place. */
+		Cipher_Block_Chaining  (u8_t const *);
+		template <typename... Blk_Cipher_Args>
+		Cipher_Block_Chaining  (u8_t const *, Blk_Cipher_Args...);
 		~Cipher_Block_Chaining (void);			/* Destruct a Cipher_Block_Chaining object. (zero sensitive memory) */
 
 		void	manually_set_state (u8_t const *__restrict const state_bytes);
@@ -75,7 +78,24 @@ namespace ssc {
 	/* Constructors */
 	template <typename Block_Cipher_t, size_t Block_Bits>
 	Cipher_Block_Chaining<Block_Cipher_t,Block_Bits>::Cipher_Block_Chaining (Block_Cipher_t &&blk_c) 
-	    : blk_cipher{ std::move( blk_c ) }
+		: blk_cipher{ std::move( blk_c ) }
+	{
+#ifdef __SSC_MemoryLocking__
+		lock_os_memory( state, sizeof(state) );
+#endif
+	}
+	template <typename Block_Cipher_t, size_t Block_Bits>
+	Cipher_Block_Chaining<Block_Cipher_t,Block_Bits>::Cipher_Block_Chaining (u8_t const *key)
+		: blk_cipher{ key }
+	{
+#ifdef __SSC_MemoryLocking__
+		lock_os_memory( state, sizeof(state) );
+#endif
+	}
+	template <typename Block_Cipher_t, size_t Block_Bits>
+	template <typename... Blk_Cipher_Args>
+	Cipher_Block_Chaining<Block_Cipher_t,Block_Bits>::Cipher_Block_Chaining (u8_t const *key, Blk_Cipher_Args... args)
+		: blk_cipher{ key, args... }
 	{
 #ifdef __SSC_MemoryLocking__
 		lock_os_memory( state, sizeof(state) );

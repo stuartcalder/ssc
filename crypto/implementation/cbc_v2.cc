@@ -153,7 +153,7 @@ namespace ssc::cbc_v2 {
 #endif
 		{
 			// Encrypt the input file, writing the ciphertext into the memory-mapped output file
-			CBC_t cbc{ Threefish_t{ derived_key, header.tweak } };
+			CBC_t cbc{ derived_key, header.tweak };
 			out += cbc.encrypt( input_map.ptr, out, input_map.size, header.cbc_iv );
 		}
 		{
@@ -298,7 +298,7 @@ namespace ssc::cbc_v2 {
 		size_t plaintext_size;
 		{
 			// Decrypt the input file's ciphertext into the output file, recording the number of bytes of plaintext in `plaintext_size`.
-			CBC_t cbc{ Threefish_t{ derived_key, header.tweak } };
+			CBC_t cbc{ derived_key, header.tweak };
 			// Securely zero over the derived key now that we're done with it.
 			zero_sensitive( derived_key, sizeof(derived_key) );
 #ifdef __SSC_MemoryLocking__
