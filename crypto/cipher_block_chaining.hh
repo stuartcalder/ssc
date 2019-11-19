@@ -15,6 +15,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
+#include <climits>
 #include <utility>
 #include <ssc/crypto/operations.hh>
 #include <ssc/crypto/threefish.hh>

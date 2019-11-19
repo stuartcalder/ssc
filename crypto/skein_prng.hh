@@ -14,6 +14,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #pragma once
 #include <cstdlib>
 #include <cstring>
+#include <climits>
 #include <memory>
 #include <utility>
 #include <ssc/crypto/skein.hh>
@@ -112,6 +113,7 @@ namespace ssc {
                 std::memcpy( buffer.get(), state, sizeof(state) );
                 // Copy the seed into the buffer immediately after the end of the copied-in state.
                 std::memcpy( (buffer.get() + sizeof(state)), seed, seed_bytes );
+		static_assert (Skein_t::State_Bytes == sizeof(state));
                 // Hash the buffer, outputting the hash back into the state.
                 skein.hash_native( state, buffer.get(), buffer_size );
                 // Securely zero over the used buffer.
@@ -137,6 +139,7 @@ namespace ssc {
                 std::memcpy( buffer.get(), state, sizeof(state) );
                 // Write ${seed_bytes} bytes of entropy after the end of the copied-in state.
 		obtain_os_entropy( buffer.get() + sizeof(state), seed_bytes );
+		static_assert (Skein_t::State_Bytes == sizeof(state));
                 // Hash the buffer, outputting the hash back into the state.
                 skein.hash_native( state, buffer.get(), buffer_size );
                 // Securely zero over the used buffer.
