@@ -86,7 +86,7 @@ namespace ssc::cbc_v2 {
 		// Mix in additional entropy from the keyboard if specified
 		if (encr_input.supplement_os_entropy) {
 			u8_t hash       [Block_Bytes];
-			char char_input [Max_Supplementary_Entropy_Chars + 1];
+			char char_input [Max_Supplementary_Entropy_Chars + 1] = { 0 };
 #ifdef __SSC_MemoryLocking__
 			lock_os_memory( hash      , sizeof(hash)       );
 			lock_os_memory( char_input, sizeof(char_input) );
