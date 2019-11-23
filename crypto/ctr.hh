@@ -87,7 +87,7 @@ namespace ssc {
 	void
 	CounterMode<Block_Cipher_t,Block_Bits>::xorcrypt (void *output, void const *input, size_t const input_size, u64_t start); {
 		using std::memcpy, std::memset;
-		u8_t					keystream [Block_Bytes];
+		u8_t					keystream_plaintext [Block_Bytes];
 		Sensitive_Buffer<u8_t, Block_Bytes>	buffer;
 		size_t					bytes_left = input_size;
 		u8_t const				*in  = input;
@@ -95,41 +95,42 @@ namespace ssc {
 		u64_t					counter = start;
 
 		// Zero the space between the counter and the nonce.
-		memset( (keystream + sizeof(counter)),
-			0,
-			Nonce_Bytes - sizeof(counter) );
-		// Copy the nonce into the second half of the keystream.
-		static_assert (sizeof(keystream)    == Nonce_Bytes * 2);
+		if constexpr(sizeof(counter) != Nonce_Bytes)
+			memset( (keystream_plaintext + sizeof(counter)), 0, (Nonce_Bytes - sizeof(counter)) );
+		// Copy the nonce into the second half of the keystream_plaintext.
+		static_assert (sizeof(keystream_plaintext)    == Nonce_Bytes * 2);
 		static_assert (sizeof(random_nonce) == Nonce_Bytes);
-		memcpy( (keystream + Nonce_Bytes), random_nonce, sizeof(random_nonce) );
+		memcpy( (keystream_plaintext + Nonce_Bytes), random_nonce, sizeof(random_nonce) );
 		static_assert (Nonce_Bytes > sizeof(u64_t));
 
 		while (bytes_left >= Block_Bytes) {
-			// Copy the counter into the keystream.
-			memcpy( keystream, &counter, sizeof(counter) );
-			// Encrypt a block of keystream.
-			blk_cipher_p->cipher( keystream, buffer.get() );
-			// xor that black of keystream with a block of inputtext.
+			// Copy the counter into the keystream_plaintext.
+			memcpy( keystream_plaintext, &counter, sizeof(counter) );
+			// Encrypt a block of keystream_plaintext.
+			blk_cipher_p->cipher( buffer.get(), keystream_plaintext );
+			// xor that block of keystream_plaintext with a block of inputtext.
 			xor_block<Block_Bits>( buffer.get(), in );
 			// Copy the post-xor-text out.
-			memcpy( out, buffer.get(), Block_Bytes );
+			memcpy( out, buffer.get(), buffer.size() );
 
 			// Advance the input and output pointers, reduce the bytes_left counter,
-			// increment the keystream counter.
+			// increment the keystream_plaintext counter.
 			in         += Block_Bytes;
 			out        += Block_Bytes;
 			bytes_left -= Block_Bytes;
 			++counter;
 		}
 		// There is now less than one block left to xorcrypt.
-		memcpy( keystream, &counter, sizeof(counter) );
-		// Encrypt the last block to xor with.
-		blk_cipher_p->cipher( keystream, buffer.get() );
-		// For each byte left, xor them all together.
-		for (int i = 0; i < static_cast<int>(bytes_left); ++i)
-			buffer.get()[ i ] ^= in[ i ];
-		// Copy the post-xor-text out.
-		memcpy( out, buffer.get(), bytes_left );
+		if (bytes_left > 0) {
+			memcpy( keystream_plaintext, &counter, sizeof(counter) );
+			// Encrypt the last block to xor with.
+			blk_cipher_p->cipher( buffer.get(), keystream_plaintext );
+			// For each byte left, xor them all together.
+			for (int i = 0; i < static_cast<int>(bytes_left); ++i)
+				buffer[ i ] ^= in[ i ];
+			// Copy the post-xor-text out.
+			memcpy( out, buffer.get(), bytes_left );
+		}
 
 	}
 }/*namespace ssc*/
