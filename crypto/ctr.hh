@@ -27,7 +27,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/crypto/sensitive_buffer.hh>
 
 namespace ssc {
-	template <typename Block_Cipher_t, Block_Bits>
+	template <typename Block_Cipher_t, size_t Block_Bits>
 	class CounterMode {
 		public:
 			static_assert (CHAR_BIT == 8);
@@ -58,32 +58,32 @@ namespace ssc {
 			u8_t		random_nonce	[Nonce_Bytes];
 	};
 
-	template <typename Block_Cipher_t, Block_Bits>
+	template <typename Block_Cipher_t, size_t Block_Bits>
 	CounterMode<Block_Cipher_t,Block_Bits>::CounterMode (Block_Cipher_t *cipher_p)
 		: blk_cipher_p{ cipher_p }
 	{
 		obtain_os_entropy( random_nonce, sizeof(random_nonce) );
 	}
 
-	template <typename Block_Cipher_t, Block_Bits>
+	template <typename Block_Cipher_t, size_t Block_Bits>
 	CounterMode<Block_Cipher_t,Block_Bits>::CounterMode (Block_Cipher_t *cipher_p, void const *nonce)
 		: blk_cipher_p{ cipher_p }
 	{
 		set_nonce( nonce );
 	}
 
-	template <typename Block_Cipher_t, Block_Bits>
+	template <typename Block_Cipher_t, size_t Block_Bits>
 	CounterMode<Block_Cipher_t,Block_Bits>::~CounterMode (void) {
 		zero_sensitive( buffer, sizeof(buffer) );
 	}
 
-	template <typename Block_Cipher_t,Block_Bits>
+	template <typename Block_Cipher_t, size_t Block_Bits>
 	void
 	set_nonce (void *nonce) {
 		std::memcpy( random_nonce, nonce, sizeof(random_nonce) );
 	}
 
-	template <typename Block_Cipher_t, Block_Bits>
+	template <typename Block_Cipher_t, size_t Block_Bits>
 	void
 	CounterMode<Block_Cipher_t,Block_Bits>::xorcrypt (void *output, void const *input, size_t const input_size, u64_t start); {
 		using std::memcpy, std::memset;
