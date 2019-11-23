@@ -13,6 +13,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 */
 #include <cstdio>
 
+#include <ssc/crypto/sensitive_buffer.hh>
 #include <ssc/crypto/implementation/cbc_v2.hh>
 
 #include <ssc/general/symbols.hh>
@@ -85,25 +86,15 @@ namespace ssc::cbc_v2 {
 		}
 		// Mix in additional entropy from the keyboard if specified
 		if (encr_input.supplement_os_entropy) {
-			u8_t hash       [Block_Bytes];
-			char char_input [Max_Supplementary_Entropy_Chars + 1] = { 0 };
-#ifdef __SSC_MemoryLocking__
-			lock_os_memory( hash      , sizeof(hash)       );
-			lock_os_memory( char_input, sizeof(char_input) );
-#endif
+			Sensitive_Buffer<u8_t, Block_Bytes>				hash;
+			Sensitive_Buffer<char, (Max_Supplementary_Entropy_Chars + 1)>	char_input { 0 };
 			Skein_t skein;
 			Terminal term;
-			int num_input_chars = term.get_pw( char_input, Max_Supplementary_Entropy_Chars, 1, Supplementary_Entropy_Prompt );
-			static_assert (Skein_t::State_Bytes == sizeof(hash));
-			skein.hash_native( hash, reinterpret_cast<u8_t *>(char_input), num_input_chars );
-			csprng.reseed( hash, sizeof(hash) );
 
-			zero_sensitive( hash      , sizeof(hash)       );
-			zero_sensitive( char_input, sizeof(char_input) );
-#ifdef __SSC_MemoryLocking__
-			unlock_os_memory( hash      , sizeof(hash)       );
-			unlock_os_memory( char_input, sizeof(char_input) );
-#endif
+			int num_input_chars = term.get_pw( char_input.get(), Max_Supplementary_Entropy_Chars, 1, Supplementary_Entropy_Prompt );
+			static_assert (Skein_t::State_Bytes == hash.size());
+			skein.hash_native( hash.get(), reinterpret_cast<u8_t *>(char_input.get()), num_input_chars );
+			csprng.reseed( hash.get(), hash.size() );
 		}
 		// Create a header
 		CBC_V2_Header_t header;
@@ -201,7 +192,7 @@ namespace ssc::cbc_v2 {
 		// Set the output file to be `output_map.size` bytes.
 		set_os_file_size( output_map.os_file, output_map.size );
 		// Memory-map the input and output files.
-		map_file( input_map, true );
+		map_file( input_map , true  );
 		map_file( output_map, false );
 		// The `in` pointer is used for reading from the input files, and incremented as it's used to read.
 		u8_t const *in = input_map.ptr;

@@ -19,6 +19,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <utility>
 #include <ssc/crypto/skein.hh>
 #include <ssc/crypto/operations.hh>
+#include <ssc/crypto/sensitive_buffer.hh>
+#include <ssc/crypto/sensitive_dynamic_buffer.hh>
 #include <ssc/general/integers.hh>
 #include <ssc/general/symbols.hh>
 #include <ssc/memory/os_memory_locking.hh>
@@ -37,10 +39,9 @@ namespace ssc {
                 using Skein_t = Skein<State_Bits>;
 
                 Skein_PRNG (void);
+
                 Skein_PRNG (void const * const seed,
                             u64_t const        seed_bytes);
-                ~Skein_PRNG (void);
-
 
                 /* void reseed(seed,seed_bytes)
                  *      Copies in ${seed_bytes} bytes into the state, and
@@ -61,118 +62,76 @@ namespace ssc {
                 get (void * const output_buffer,
                      u64_t const  requested_bytes);
         private:
-                u8_t    state [State_Bytes];
-                Skein_t skein;
+		Sensitive_Buffer<u8_t, State_Bytes>	state;
+                Skein_t					skein;
+
+		static inline bool
+		is_lockable_ (size_t const);
         }; /* ! class Skein_PRNG */
 
         template<size_t State_Bits>
-        Skein_PRNG<State_Bits>::Skein_PRNG (void) {
-#ifdef __SSC_MemoryLocking__
-		// Lock the state into memory on construction.
-		lock_os_memory( state, sizeof(state) );
-#endif
-		// With no arguments, seed the state with operating system entropy on construction.
-		obtain_os_entropy( state, sizeof(state) );
+        Skein_PRNG<State_Bits>::Skein_PRNG (void)
+	{
+		obtain_os_entropy( state.get(), state.size() );
         } /* Skein_PRNG (void) */
 
         template <size_t State_Bits>
         Skein_PRNG<State_Bits>::Skein_PRNG (void const * const seed,
-                                            u64_t const        seed_bytes) {
-#ifdef __SSC_MemoryLocking__
-		// Lock the state into memory on construction.
-		lock_os_memory( state, sizeof(state) );
-#endif
-		// With arguments, seed the state with the provided seed bytes.
-		std::memset( state, 0, sizeof(state) );
-                this->reseed( seed, seed_bytes );
+                                            u64_t const        seed_bytes)
+		: state{ 0 }
+	{
+		reseed( seed, seed_bytes );
         } /* Skein_PRNG (u8_t*,u64_t) */
-
-        template <size_t State_Bits>
-        Skein_PRNG<State_Bits>::~Skein_PRNG (void) {
-                // Securely zero the buffer on destruction.
-                zero_sensitive( state, sizeof(state) );
-#ifdef __SSC_MemoryLocking__
-		// Unlock the OS memory on destruction (if supported).
-		unlock_os_memory( state, sizeof(state) );
-#endif
-        } /* ~Skein_PRNG */
 
         template <size_t State_Bits>
         void
         Skein_PRNG<State_Bits>::reseed (void const * const seed,
                                         u64_t const        seed_bytes) {
-                // Enough bytes for the current state and new bytes.
-                u64_t const buffer_size = sizeof(state) + seed_bytes;   
-                auto buffer = std::make_unique<u8_t[]>( buffer_size );
-#ifdef __SSC_MemoryLocking__
-		bool const do_lock = (buffer_size <= Max_Lockable_Bytes);
-		if (do_lock)
-			lock_os_memory( buffer.get(), buffer_size );
-#endif
-                // Copy the state into the beginning of the temp buffer.
-                std::memcpy( buffer.get(), state, sizeof(state) );
-                // Copy the seed into the buffer immediately after the end of the copied-in state.
-                std::memcpy( (buffer.get() + sizeof(state)), seed, seed_bytes );
-		static_assert (Skein_t::State_Bytes == sizeof(state));
-                // Hash the buffer, outputting the hash back into the state.
-                skein.hash_native( state, buffer.get(), buffer_size );
-                // Securely zero over the used buffer.
-                zero_sensitive( buffer.get(), buffer_size );
-#ifdef __SSC_MemoryLocking__
-		if (do_lock)
-			unlock_os_memory( buffer.get(), buffer_size );
-#endif
+		using std::memcpy;
+		u64_t const buffer_size = seed_bytes + state.size();
+		Sensitive_Dynamic_Buffer<u8_t> buffer{ buffer_size, is_lockable_( buffer_size ) };
+
+		memcpy( buffer.get()                 , state.get(), state.size() );
+		memcpy( (buffer.get() + state.size()), seed       , seed_bytes   );
+
+		static_assert (Skein_t::State_Bytes == state.size());
+		skein.hash_native( state.get(), buffer.get(), buffer_size );
         } /* reseed (u8_t*,u64_t) */
 
         template <size_t State_Bits>
         void
         Skein_PRNG<State_Bits>::os_reseed (u64_t const seed_bytes) {
-                // Enough bytes for the current state and seed bytes.
-                u64_t const buffer_size = sizeof(state) + seed_bytes;
-                auto buffer = std::make_unique<u8_t[]>( buffer_size );
-#ifdef __SSC_MemoryLocking__
-		bool const do_lock = (buffer_size <= Max_Lockable_Bytes);
-		if (do_lock)
-			lock_os_memory( buffer.get(), buffer_size );
-#endif
-                // Copy the state into the beginning of the temp buffer.
-                std::memcpy( buffer.get(), state, sizeof(state) );
-                // Write ${seed_bytes} bytes of entropy after the end of the copied-in state.
-		obtain_os_entropy( buffer.get() + sizeof(state), seed_bytes );
-		static_assert (Skein_t::State_Bytes == sizeof(state));
-                // Hash the buffer, outputting the hash back into the state.
-                skein.hash_native( state, buffer.get(), buffer_size );
-                // Securely zero over the used buffer.
-                zero_sensitive( buffer.get(), buffer_size );
-#ifdef __SSC_MemoryLocking__
-		if (do_lock)
-			unlock_os_memory( buffer.get(), buffer_size );
-#endif
+		using std::memcpy;
+		u64_t const buffer_size = seed_bytes + state.size();
+		Sensitive_Dynamic_Buffer<u8_t> buffer{ buffer_size, is_lockable_( buffer_size ) };
+
+		memcpy( buffer.get(), state.get(), state.size() );
+		obtain_os_entropy( (buffer.get() + state.size()), seed_bytes );
+
+		static_assert (Skein_t::State_Bytes == state.size());
+		skein.hash_native( state.get(), buffer.get(), buffer_size );
         } /* os_reseed (u64_t) */
 
         template <size_t State_Bits>
         void
         Skein_PRNG<State_Bits>::get (void * const output_buffer,
                                      u64_t const  requested_bytes) {
-                // Enough bytes for the current state and requested bytes.
-                u64_t const buffer_size = sizeof(state) + requested_bytes;
-                auto buffer = std::make_unique<u8_t[]>( buffer_size );
-#ifdef __SSC_MemoryLocking__
-		bool const do_lock = (buffer_size <= Max_Lockable_Bytes);
-		if (do_lock)
-			lock_os_memory( buffer.get(), buffer_size );
-#endif
-                // Hash the state, writing ${buffer_size} bytes of pseudorandomness to ${buffer.get()}
-                skein.hash( buffer.get(), state, sizeof(state), buffer_size );
-                // Copy sizeof(state) bytes into the state.
-                std::memcpy( state, buffer.get(), sizeof(state) );
-                // Copy the remaining ${requested_bytes} into the output buffer.
-                std::memcpy( output_buffer, (buffer.get() + sizeof(state)), requested_bytes );
-                // Securely zero over the used buffer.
-                zero_sensitive( buffer.get(), buffer_size );
-#ifdef __SSC_MemoryLocking__
-		if (do_lock)
-			unlock_os_memory( buffer.get(), buffer_size );
-#endif
+		using std::memcpy;
+		u64_t const buffer_size = requested_bytes + state.size();
+		Sensitive_Dynamic_Buffer<u8_t> buffer{ buffer_size, is_lockable_( buffer_size ) };
+
+		skein.hash( buffer.get(), state.get(), state.size(), buffer_size );
+		memcpy( state.get(), buffer.get(), state.size() );
+		memcpy( output_buffer, (buffer.get() + state.size()), requested_bytes );
         } /* get (u8_t*,u64_t) */
+
+	template <size_t State_Bits>
+	bool
+	Skein_PRNG<State_Bits>::is_lockable_ (size_t const buf_size) {
+#ifdef __SSC_MemoryLocking__
+		return buf_size <= Max_Lockable_Bytes;
+#else
+		return false;
+#endif
+	}
 }/* ! namespace ssc */

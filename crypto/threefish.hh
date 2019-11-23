@@ -16,6 +16,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <cstdlib>
 #include <cstring>
 #include <ssc/crypto/operations.hh>
+#include <ssc/crypto/sensitive_buffer.hh>
 #include <ssc/general/integers.hh>
 #include <ssc/general/symbols.hh>
 #include <ssc/memory/os_memory_locking.hh>
@@ -39,36 +40,25 @@ namespace ssc {
 		static constexpr size_t const   Number_Subkeys = (Number_Rounds / 4) + 1;
 		static constexpr u64_t const Constant_240   = 0x1b'd1'1b'da'a9'fc'1a'22;
 		/* Constructors / Destructors */
-		Threefish (void) {
-#ifdef __SSC_MemoryLocking__
-			// If supported, lock both the state and key_schedule from swapping.
-			lock_os_memory( state       , sizeof(state)        );
-			lock_os_memory( key_schedule, sizeof(key_schedule) );
-#endif
-		}
-		Threefish (u8_t const *__restrict k, u8_t const *__restrict tw = nullptr) {
-#ifdef __SSC_MemoryLocking__
-			// If supported, unlock both the state and key_schedule from swapping.
-			lock_os_memory( state       , sizeof(state)        );
-			lock_os_memory( key_schedule, sizeof(key_schedule) );
-#endif
+		Threefish () = default;
+		Threefish (u8_t const *__restrict k, u8_t const *__restrict tw = nullptr)
+		{
 			// Expand the key and tweak parameters into the keyschedule.
 			expand_key_( k, tw );
 		}
-		~Threefish (void);	/* forward declared */
 		/* Public Functions */
 		void
-		cipher	(u8_t const *in, u8_t *out);
+		cipher		(u8_t const *in, u8_t *out);
 
 		void
 		inverse_cipher	(u8_t const *in, u8_t *out);
 
-		void
-		rekey	(u8_t const *__restrict new_key, u8_t const *__restrict new_tweak = nullptr);
+		inline void
+		rekey		(u8_t const *__restrict new_key, u8_t const *__restrict new_tweak = nullptr);
 	private:
 		/* Private Data */
-		u64_t state        [Number_Words];
-		u64_t key_schedule [Number_Subkeys * Number_Words];
+		Sensitive_Buffer<u64_t, Number_Words>			state;
+		Sensitive_Buffer<u64_t, Number_Subkeys * Number_Words>	key_schedule;
 		/* Private Functions */
 		static void
 		mix_		(u64_t *__restrict x0, u64_t *__restrict x1, int const round, int const index);
@@ -94,24 +84,13 @@ namespace ssc {
 		void
 		inverse_permute_state_	(void);
 	}; /* class Threefish */
+
 	template <size_t Key_Bits, bool Expansion_MemoryLocking>
 	void
 	Threefish<Key_Bits,Expansion_MemoryLocking>::rekey (u8_t const *__restrict new_key,
 							    u8_t const *__restrict new_tweak) {
 		// Expand the key and tweak arguments into the keyschedule.
 		expand_key_( new_key, new_tweak );
-	}
-
-	template <size_t Key_Bits, bool Expansion_MemoryLocking>
-	Threefish<Key_Bits,Expansion_MemoryLocking>::~Threefish	(void) {
-		// Securely zero the key_schedule and state buffers.
-		zero_sensitive( key_schedule, sizeof(key_schedule) );
-		zero_sensitive( state       , sizeof(state) );
-#ifdef __SSC_MemoryLocking__
-		// If supported, unlock the key_schedule and state buffers.
-		unlock_os_memory( key_schedule, sizeof(key_schedule) );
-		unlock_os_memory( state       , sizeof(state)        );
-#endif
 	}
 
 	template <size_t Key_Bits, bool Expansion_MemoryLocking>
@@ -140,7 +119,7 @@ namespace ssc {
 		static_assert (Number_Words == 4 || Number_Words == 8 || Number_Words == 16, "Invalid Number_Words. 4, 8, 16 only.");
 		// All rotation constant look-up tables.
 		if constexpr(Number_Words == 4) {
-			static constexpr const u64_t rc [8][2] = {
+			static constexpr u64_t const rc [8][2] = {
 				{ 14, 16 }, //d = 0
 				{ 52, 57 }, //d = 1
 				{ 23, 40 }, //d = 2
@@ -152,7 +131,7 @@ namespace ssc {
 			};
 			return rc[ (round % 8) ][ index ] ;
 		} else if constexpr( Number_Words == 8) {
-			static constexpr const u64_t rc [8][4] = {
+			static constexpr u64_t const rc [8][4] = {
 				{ 46, 36, 19, 37 },
 				{ 33, 27, 14, 42 },
 				{ 17, 49, 36, 39 },
@@ -164,7 +143,7 @@ namespace ssc {
 			};
 			return rc[ (round % 8) ][ index ];
 		} else if constexpr(Number_Words == 16) {
-			static constexpr const u64_t rc [8][8] = {
+			static constexpr u64_t const rc [8][8] = {
 				{ 24, 13,  8, 47,  8, 17, 22, 37 },
 				{ 38, 19, 10, 55, 49, 18, 23, 52 },
 				{ 33,  4, 51, 13, 34, 41, 59, 17 },
@@ -181,26 +160,20 @@ namespace ssc {
 	template <size_t Key_Bits, bool Expansion_MemoryLocking>
 	void
 	Threefish<Key_Bits,Expansion_MemoryLocking>::expand_key_	(u8_t const *__restrict k, u8_t const *__restrict tw) {
+		using std::memcpy, std::memset;
 		// key / tweak setup
-		u64_t key   [Number_Words + 1]; // Big enough key buffer for the parity word.
-		u64_t tweak [3];		// Big enough tweak buffer for the parity word.
-#ifdef __SSC_MemoryLocking__
-		// If supported, and specified by template parameter, lock the key and tweak buffers from being paged.
-		if constexpr(Expansion_MemoryLocking) {
-			lock_os_memory( key  , sizeof(key)   );
-			lock_os_memory( tweak, sizeof(tweak) );
-		}
-#endif
+		Sensitive_Buffer<u64_t, Number_Words + 1, Expansion_MemoryLocking> key;
+		Sensitive_Buffer<u64_t, 3               , Expansion_MemoryLocking> tweak;
 		// Copy the function parameter k into the key buffer.
-		std::memcpy( key, k, sizeof(state) );
+		memcpy( key.get(), k, state.size() );
 		if (tw != nullptr) {
 			// If a valid tweak was supplied, copy it into the first two words of the tweak buffer.
-			std::memcpy( tweak, tw, sizeof(u64_t) * 2 );
+			memcpy( tweak.get(), tw, sizeof(u64_t) * 2 );
 			// Determine the tweak parity word.
 			tweak[ 2 ] = tweak[ 0 ] ^ tweak[ 1 ];
 		} else {
 			// If a valid tweak wasn't supplied, set the whole tweak buffer to zero.
-			std::memset( tweak, 0, sizeof(tweak) );
+			memset( tweak.get(), 0, tweak.size() );
 		}
 		// Define key parity word.
 		key[ Number_Words ] = Constant_240;
@@ -216,17 +189,6 @@ namespace ssc {
 			key_schedule[ subkey_index + (Number_Words - 2) ] =  key[ (subkey + (Number_Words - 2)) % (Number_Words + 1) ] + tweak[ (subkey + 1) % 3 ];
 			key_schedule[ subkey_index + (Number_Words - 1) ] =  key[ (subkey + (Number_Words - 1)) % (Number_Words + 1) ] + static_cast<u64_t>(subkey);
 		}
-
-		// clear sensitive memory
-		zero_sensitive( key  , sizeof(key)   );
-		zero_sensitive( tweak, sizeof(tweak) );
-#ifdef __SSC_MemoryLocking__
-		// If supported, unlock the key and tweak buffers.
-		if constexpr(Expansion_MemoryLocking) {
-			unlock_os_memory( key  , sizeof(key)   );
-			unlock_os_memory( tweak, sizeof(tweak) );
-		}
-#endif
 	} /* expand_key_ */
 
 	template <size_t Key_Bits, bool Expansion_MemoryLocking>
@@ -250,32 +212,36 @@ namespace ssc {
 	template <size_t Key_Bits, bool Expansion_MemoryLocking>
 	void
 	Threefish<Key_Bits,Expansion_MemoryLocking>::cipher	(u8_t const *in, u8_t *out) {
-		std::memcpy( state, in, sizeof(state) );
+		using std::memcpy;
+
+		memcpy( state.get(), in, state.size() );
 		for (int round = 0; round < Number_Rounds; ++round) {
 			if (round % 4 == 0)
 				add_subkey_( round ); // Adding the round subkey.
 			for (int j = 0; j <= ((Number_Words / 2) - 1); ++j)
-				mix_( (state + (2 * j)), (state + (2 * j) + 1), round, j ); // Performing the MIX function.
+				mix_( (state.get() + (j * 2)), (state.get() + (j * 2) + 1), round, j ); // Performing the MIX function.
 			permute_state_(); // Permuting the state (shuffling words around).
 		}
 		add_subkey_( Number_Rounds ); // Adding the final subkey.
-		std::memcpy( out, state, sizeof(state) );
+		memcpy( out, state.get(), state.size() );
 	} /* cipher */
 
 	template <size_t Key_Bits, bool Expansion_MemoryLocking>
 	void
 	Threefish<Key_Bits,Expansion_MemoryLocking>::inverse_cipher	(u8_t const *in, u8_t *out) {
+		using std::memcpy;
+		
 		// We start the inverse_cipher at the "last" round index, and go backwards to 0.
-		std::memcpy( state, in, sizeof(state) );
+		memcpy( state.get(), in, state.size() );
 		subtract_subkey_( Number_Rounds ); // Subtracting the last subkey of the keyschedule.
 		for (int round = Number_Rounds - 1; round >= 0; --round) {
 			inverse_permute_state_(); // Inversing the permutation function (shuffling words around).
 			for (int j = 0; j <= ((Number_Words / 2) - 1); ++j)
-				inverse_mix_( (state + (2 * j)), (state + (2 * j) + 1), round, j ); // Performing the inverse of the MIX function.
+				inverse_mix_( (state.get() + (j * 2)), (state.get() + (j * 2) + 1), round, j ); // Performing the inverse of the MIX function.
 			if (round % 4 == 0)
 				subtract_subkey_( round ); // Subtracting the round subkey.
 		}
-		std::memcpy( out, state, sizeof(state) );
+		memcpy( out, state.get(), state.size() );
 	} /* inverse_cipher */
 
 	template <size_t Key_Bits, bool Expansion_MemoryLocking>

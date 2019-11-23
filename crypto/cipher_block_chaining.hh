@@ -18,7 +18,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <climits>
 #include <utility>
 #include <ssc/crypto/operations.hh>
-#include <ssc/crypto/threefish.hh>
 #include <ssc/general/integers.hh>
 #include <ssc/general/symbols.hh>
 #include <ssc/general/error_conditions.hh>

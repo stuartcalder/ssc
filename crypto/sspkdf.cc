@@ -16,6 +16,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/crypto/sspkdf.hh>
 #include <ssc/crypto/skein.hh>
 #include <ssc/crypto/operations.hh>
+#include <ssc/crypto/sensitive_buffer.hh>
 #include <ssc/general/integers.hh>
 #include <ssc/memory/os_memory_locking.hh>
 
@@ -29,15 +30,15 @@ namespace ssc
 		 u8_t const *__restrict salt,
 		 u32_t const            number_iterations,
 		 u32_t const            number_concatenations) {
-	using std::memcpy;
+	using std::memcpy, std::make_unique;
 	static constexpr auto const State_Bits = 512;
 	static constexpr auto const State_Bytes = State_Bits / CHAR_BIT;
 	static constexpr auto const Salt_Bits = 128;
 	static constexpr auto const Salt_Bytes = Salt_Bits / CHAR_BIT;
 	Skein<State_Bits> skein;
 	using Index_t = u32_t;
-	u64_t const concat_size = (static_cast<u64_t>(password_length) + Salt_Bytes + sizeof(Index_t)) * number_concatenations;
-	auto concat_buffer = std::make_unique<u8_t[]>( concat_size );
+	u64_t const concat_size = (static_cast<u64_t>(password_length) + Salt_Bytes + sizeof(Index_t)) * static_cast<u64_t>(number_concatenations);
+	auto concat_buffer = make_unique<u8_t[]>( concat_size );
 
 	{
 		Index_t index = 0;
@@ -54,30 +55,19 @@ namespace ssc
 		}
 	}
 	{
-		u8_t key    [State_Bytes];
-		u8_t buffer [State_Bytes];
-#ifdef __SSC_MemoryLocking__
-		lock_os_memory( key   , sizeof(key)    );
-		lock_os_memory( buffer, sizeof(buffer) );
-#endif
+		Sensitive_Buffer<u8_t, State_Bytes> key;
+		Sensitive_Buffer<u8_t, State_Bytes> buffer;
 
-		skein.hash( key, concat_buffer.get(), concat_size, sizeof(key) );
-		skein.message_auth_code( buffer, concat_buffer.get(), key, concat_size, sizeof(key), sizeof(buffer) );
+		skein.hash( key.get(), concat_buffer.get(), concat_size, key.size() );
+		skein.message_auth_code( buffer.get(), concat_buffer.get(), key.get(), concat_size, key.size() , buffer.size() );
 		zero_sensitive( concat_buffer.get(), concat_size );
-		xor_block<State_Bits>( key, buffer );
+		xor_block<State_Bits>( key.get(), buffer.get() );
 
 		for (u32_t i = 1; i < number_iterations; ++i) {
-			skein.message_auth_code( buffer, buffer, key, sizeof(buffer), sizeof(key), sizeof(buffer) );
-			xor_block<State_Bits>( key, buffer );
+			skein.message_auth_code( buffer.get(), buffer.get(), key.get(), buffer.size(), key.size(), buffer.size() );
+			xor_block<State_Bits>( key.get(), buffer.get() );
 		}
-		skein.hash( derived_key, buffer, sizeof(buffer), State_Bytes );
-
-		zero_sensitive( key   , sizeof(key)    );
-		zero_sensitive( buffer, sizeof(buffer) );
-#ifdef __SSC_MemoryLocking__
-		unlock_os_memory( key   , sizeof(key)    );
-		unlock_os_memory( buffer, sizeof(buffer) );
-#endif
+		skein.hash( derived_key, buffer.get(), buffer.size(), State_Bytes );
 	}
     } /* sspkdf */
 } /* ! namespace ssc */

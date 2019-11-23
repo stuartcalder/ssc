@@ -12,13 +12,127 @@ the following disclaimer in the documentation and/or other materials provided wi
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #pragma once
+
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <cstdio>
-#include <utility>
-#include <ssc/general/integers.hh>
+#include <climits>
 
+#include <utility>
+#include <ssc/general/symbols.hh>
+#include <ssc/general/integers.hh>
+#include <ssc/general/error_conditions.hh>
+#include <ssc/crypto/operations.hh>
+#include <ssc/crypto/sensitive_buffer.hh>
+
+namespace ssc {
+	template <typename Block_Cipher_t, Block_Bits>
+	class CounterMode {
+		public:
+			static_assert (CHAR_BIT == 8);
+			/* Compile-Time Constants and checks*/
+			static_assert (Block_Bits % CHAR_BIT == 0);
+			static_assert (Block_Bits >= 128);
+			static_assert (Block_Cipher_t::Block_Bits == Block_Bits);
+			static constexpr size_t const Block_Bytes = Block_Bits / CHAR_BIT;
+			static_assert (Block_Bytes % 2 == 0);
+			static constexpr size_t const Nonce_Bytes = Block_Bytes / 2;
+
+			/* Public Interface */
+			CounterMode (void) = delete;
+
+			CounterMode (Block_Cipher_t *cipher_p);
+
+			CounterMode (Block_Cipher_t *cipher_p, void const *nonce);
+
+			~CounterMode (void);
+
+			inline void
+			set_nonce (void *nonce);
+
+			void
+			xorcrypt (void *output, void const *input, size_t const input_size, u64_t start = 0);
+		private:
+			Block_Cipher_t	*blk_cipher_p;
+			u8_t		random_nonce	[Nonce_Bytes];
+	};
+
+	template <typename Block_Cipher_t, Block_Bits>
+	CounterMode<Block_Cipher_t,Block_Bits>::CounterMode (Block_Cipher_t *cipher_p)
+		: blk_cipher_p{ cipher_p }
+	{
+		obtain_os_entropy( random_nonce, sizeof(random_nonce) );
+	}
+
+	template <typename Block_Cipher_t, Block_Bits>
+	CounterMode<Block_Cipher_t,Block_Bits>::CounterMode (Block_Cipher_t *cipher_p, void const *nonce)
+		: blk_cipher_p{ cipher_p }
+	{
+		set_nonce( nonce );
+	}
+
+	template <typename Block_Cipher_t, Block_Bits>
+	CounterMode<Block_Cipher_t,Block_Bits>::~CounterMode (void) {
+		zero_sensitive( buffer, sizeof(buffer) );
+	}
+
+	template <typename Block_Cipher_t,Block_Bits>
+	void
+	set_nonce (void *nonce) {
+		std::memcpy( random_nonce, nonce, sizeof(random_nonce) );
+	}
+
+	template <typename Block_Cipher_t, Block_Bits>
+	void
+	CounterMode<Block_Cipher_t,Block_Bits>::xorcrypt (void *output, void const *input, size_t const input_size, u64_t start); {
+		using std::memcpy, std::memset;
+		u8_t					keystream [Block_Bytes];
+		Sensitive_Buffer<u8_t, Block_Bytes>	buffer;
+		size_t					bytes_left = input_size;
+		u8_t const				*in  = input;
+		u8_t					*out = output;
+		u64_t					counter = start;
+
+		// Zero the space between the counter and the nonce.
+		memset( (keystream + sizeof(counter)),
+			0,
+			Nonce_Bytes - sizeof(counter) );
+		// Copy the nonce into the second half of the keystream.
+		static_assert (sizeof(keystream)    == Nonce_Bytes * 2);
+		static_assert (sizeof(random_nonce) == Nonce_Bytes);
+		memcpy( (keystream + Nonce_Bytes), random_nonce, sizeof(random_nonce) );
+		static_assert (Nonce_Bytes > sizeof(u64_t));
+
+		while (bytes_left >= Block_Bytes) {
+			// Copy the counter into the keystream.
+			memcpy( keystream, &counter, sizeof(counter) );
+			// Encrypt a block of keystream.
+			blk_cipher_p->cipher( keystream, buffer.get() );
+			// xor that black of keystream with a block of inputtext.
+			xor_block<Block_Bits>( buffer.get(), in );
+			// Copy the post-xor-text out.
+			memcpy( out, buffer.get(), Block_Bytes );
+
+			// Advance the input and output pointers, reduce the bytes_left counter,
+			// increment the keystream counter.
+			in         += Block_Bytes;
+			out        += Block_Bytes;
+			bytes_left -= Block_Bytes;
+			++counter;
+		}
+		// There is now less than one block left to xorcrypt.
+		memcpy( keystream, &counter, sizeof(counter) );
+		// Encrypt the last block to xor with.
+		blk_cipher_p->cipher( keystream, buffer.get() );
+		// For each byte left, xor them all together.
+		for (int i = 0; i < static_cast<int>(bytes_left); ++i)
+			buffer.get()[ i ] ^= in[ i ];
+		// Copy the post-xor-text out.
+		memcpy( out, buffer.get(), bytes_left );
+
+	}
+}/*namespace ssc*/
 #if 0 // Disable ctr for now
 namespace ssc
 {

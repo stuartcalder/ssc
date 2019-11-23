@@ -63,5 +63,5 @@ namespace ssc {
 #		error "unlock_memory only implemented on win64 and unix-like operating systems."
 #	endif
 	}/* unlock_os_memory */
-}/* ! namespace ssc */
+}/*namespace ssc*/
 #endif /*#if defined (__gnu_linux__) && !defined (__SSC_DISABLE_MEMORYLOCKING)*/
