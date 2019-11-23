@@ -186,7 +186,7 @@ namespace ssc {
 		while (bytes_left >= Block_Bytes) {
 			memcpy( buffer, in, Block_Bytes );
 			xor_block<Block_Bits>( buffer, state );
-			blk_cipher.cipher( buffer, state );
+			blk_cipher.cipher( state, buffer );
 			memcpy( out, state, Block_Bytes );
 
 			in         += Block_Bytes;
@@ -199,7 +199,7 @@ namespace ssc {
 		memset( (buffer + bytes_left + 1), 0, (Block_Bytes - (bytes_left + 1)) );
 		// Final encrypt
 		xor_block<Block_Bits>( buffer, state );
-		blk_cipher.cipher( buffer, state );
+		blk_cipher.cipher( state, buffer );
 		memcpy( out, state, Block_Bytes );
 		zero_sensitive( buffer, Block_Bytes );
 #ifdef __SSC_MemoryLocking__
@@ -230,7 +230,7 @@ namespace ssc {
 			u8_t const *block_in  = bytes_in  + b_off;
 			u8_t       *block_out = bytes_out + b_off;
 			memcpy( ciphertext, block_in, Block_Bytes );
-			blk_cipher.inverse_cipher( ciphertext, buffer );
+			blk_cipher.inverse_cipher( buffer, ciphertext );
 			xor_block<Block_Bits>( buffer, state );
 			memcpy( block_out, buffer    , Block_Bytes );
 			memcpy( state    , ciphertext, Block_Bytes );
@@ -260,7 +260,7 @@ namespace ssc {
 			u8_t const *block_in  = bytes_in  + b_off;
 			u8_t       *block_out = bytes_out + b_off;
 			memcpy( ciphertext, block_in, Block_Bytes );
-			blk_cipher.inverse_cipher( ciphertext, buffer );
+			blk_cipher.inverse_cipher( buffer, ciphertext );
 			xor_block<Block_Bits>( buffer, state );
 			memcpy( block_out, buffer    , Block_Bytes );
 			memcpy( state    , ciphertext, Block_Bytes );

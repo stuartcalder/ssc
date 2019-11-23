@@ -48,10 +48,10 @@ namespace ssc {
 		}
 		/* Public Functions */
 		void
-		cipher		(u8_t const *in, u8_t *out);
+		cipher (u8_t *out, u8_t const *in);
 
 		void
-		inverse_cipher	(u8_t const *in, u8_t *out);
+		inverse_cipher (u8_t *out, u8_t const *in);
 
 		inline void
 		rekey		(u8_t const *__restrict new_key, u8_t const *__restrict new_tweak = nullptr);
@@ -211,7 +211,7 @@ namespace ssc {
 
 	template <size_t Key_Bits, bool Expansion_MemoryLocking>
 	void
-	Threefish<Key_Bits,Expansion_MemoryLocking>::cipher	(u8_t const *in, u8_t *out) {
+	Threefish<Key_Bits,Expansion_MemoryLocking>::cipher (u8_t *out, u8_t const *in) {
 		using std::memcpy;
 
 		memcpy( state.get(), in, state.size() );
@@ -228,7 +228,7 @@ namespace ssc {
 
 	template <size_t Key_Bits, bool Expansion_MemoryLocking>
 	void
-	Threefish<Key_Bits,Expansion_MemoryLocking>::inverse_cipher	(u8_t const *in, u8_t *out) {
+	Threefish<Key_Bits,Expansion_MemoryLocking>::inverse_cipher (u8_t *out, u8_t const *in) {
 		using std::memcpy;
 		
 		// We start the inverse_cipher at the "last" round index, and go backwards to 0.

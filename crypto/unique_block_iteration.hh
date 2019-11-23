@@ -110,7 +110,7 @@ namespace ssc {
 		// First block Setup
 		block_cipher.rekey( key_state, tweak_state );
 		// First block
-		block_cipher.cipher( msg_state, key_state );
+		block_cipher.cipher( key_state, msg_state );
 		xor_block_( key_state, msg_state );
 		clear_tweak_first_();
 
@@ -121,7 +121,7 @@ namespace ssc {
 			message_bytes_left -= bytes_just_read;
 			(*position)        += bytes_just_read;
 			block_cipher.rekey( key_state, tweak_state );
-			block_cipher.cipher( msg_state, key_state );
+			block_cipher.cipher( key_state, msg_state );
 			xor_block_( key_state, msg_state );
 		}
 
@@ -130,7 +130,7 @@ namespace ssc {
 			set_tweak_last_();
 			(*position) += read_msg_block_( message_offset, message_bytes_left );
 			block_cipher.rekey( key_state, tweak_state );
-			block_cipher.cipher( msg_state, key_state );
+			block_cipher.cipher( key_state, msg_state );
 			xor_block_( key_state, msg_state );
 		}
 
