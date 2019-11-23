@@ -27,10 +27,10 @@ namespace ssc {
 			inline Int_t &
 			operator[] (size_t const);
 
-			static constexpr size_t
+			constexpr size_t
 			size (void);
 
-			static constexpr size_t
+			constexpr size_t
 			num_elements (void);
 		private:
 			Int_t	buf	[Num_Elements];
