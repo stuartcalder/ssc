@@ -165,7 +165,7 @@ namespace ssc {
 		Sensitive_Buffer<u64_t, Number_Words + 1, Expansion_MemoryLocking> key;
 		Sensitive_Buffer<u64_t, 3               , Expansion_MemoryLocking> tweak;
 		// Copy the function parameter k into the key buffer.
-		memcpy( key.get(), k, state.size() );
+		memcpy( key.get(), k, state.Num_Bytes );
 		if (tw != nullptr) {
 			// If a valid tweak was supplied, copy it into the first two words of the tweak buffer.
 			memcpy( tweak.get(), tw, sizeof(u64_t) * 2 );
@@ -173,7 +173,7 @@ namespace ssc {
 			tweak[ 2 ] = tweak[ 0 ] ^ tweak[ 1 ];
 		} else {
 			// If a valid tweak wasn't supplied, set the whole tweak buffer to zero.
-			memset( tweak.get(), 0, tweak.size() );
+			memset( tweak.get(), 0, tweak.Num_Bytes );
 		}
 		// Define key parity word.
 		key[ Number_Words ] = Constant_240;
@@ -214,7 +214,7 @@ namespace ssc {
 	Threefish<Key_Bits,Expansion_MemoryLocking>::cipher (u8_t *out, u8_t const *in) {
 		using std::memcpy;
 
-		memcpy( state.get(), in, state.size() );
+		memcpy( state.get(), in, state.Num_Bytes );
 		for (int round = 0; round < Number_Rounds; ++round) {
 			if (round % 4 == 0)
 				add_subkey_( round ); // Adding the round subkey.
@@ -223,7 +223,7 @@ namespace ssc {
 			permute_state_(); // Permuting the state (shuffling words around).
 		}
 		add_subkey_( Number_Rounds ); // Adding the final subkey.
-		memcpy( out, state.get(), state.size() );
+		memcpy( out, state.get(), state.Num_Bytes );
 	} /* cipher */
 
 	template <size_t Key_Bits, bool Expansion_MemoryLocking>
@@ -232,7 +232,7 @@ namespace ssc {
 		using std::memcpy;
 		
 		// We start the inverse_cipher at the "last" round index, and go backwards to 0.
-		memcpy( state.get(), in, state.size() );
+		memcpy( state.get(), in, state.Num_Bytes );
 		subtract_subkey_( Number_Rounds ); // Subtracting the last subkey of the keyschedule.
 		for (int round = Number_Rounds - 1; round >= 0; --round) {
 			inverse_permute_state_(); // Inversing the permutation function (shuffling words around).
@@ -241,7 +241,7 @@ namespace ssc {
 			if (round % 4 == 0)
 				subtract_subkey_( round ); // Subtracting the round subkey.
 		}
-		memcpy( out, state.get(), state.size() );
+		memcpy( out, state.get(), state.Num_Bytes );
 	} /* inverse_cipher */
 
 	template <size_t Key_Bits, bool Expansion_MemoryLocking>

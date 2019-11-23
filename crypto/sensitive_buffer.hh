@@ -28,9 +28,6 @@ namespace ssc {
 			operator[] (size_t const);
 
 			constexpr size_t
-			size (void);
-
-			constexpr size_t
 			num_elements (void);
 		private:
 			Int_t	buf	[Num_Elements];
@@ -75,13 +72,6 @@ namespace ssc {
 	Int_t &
 	Sensitive_Buffer<Int_t,Num_Elements,Mem_Lock>::operator[] (size_t const index) {
 		return buf[ index ];
-	}
-
-	template <typename Int_t, size_t Num_Elements, bool Mem_Lock>
-	constexpr size_t
-	Sensitive_Buffer<Int_t,Num_Elements,Mem_Lock>::size (void) {
-		static_assert (sizeof(buf) == Num_Bytes);
-		return Num_Bytes;
 	}
 
 	template <typename Int_t, size_t Num_Elements, bool Mem_Lock>

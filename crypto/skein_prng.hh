@@ -72,7 +72,7 @@ namespace ssc {
         template<size_t State_Bits>
         Skein_PRNG<State_Bits>::Skein_PRNG (void)
 	{
-		obtain_os_entropy( state.get(), state.size() );
+		obtain_os_entropy( state.get(), state.Num_Bytes );
         } /* Skein_PRNG (void) */
 
         template <size_t State_Bits>
@@ -88,13 +88,13 @@ namespace ssc {
         Skein_PRNG<State_Bits>::reseed (void const * const seed,
                                         u64_t const        seed_bytes) {
 		using std::memcpy;
-		u64_t const buffer_size = seed_bytes + state.size();
+		u64_t const buffer_size = seed_bytes + state.Num_Bytes;
 		Sensitive_Dynamic_Buffer<u8_t> buffer{ buffer_size, is_lockable_( buffer_size ) };
 
-		memcpy( buffer.get()                 , state.get(), state.size() );
-		memcpy( (buffer.get() + state.size()), seed       , seed_bytes   );
+		memcpy( buffer.get()                    , state.get(), state.Num_Bytes );
+		memcpy( (buffer.get() + state.Num_Bytes), seed       , seed_bytes      );
 
-		static_assert (Skein_t::State_Bytes == decltype(state)::Num_Bytes);
+		static_assert (Skein_t::State_Bytes == state.Num_Bytes);
 		skein.hash_native( state.get(), buffer.get(), buffer_size );
         } /* reseed (u8_t*,u64_t) */
 
@@ -102,13 +102,13 @@ namespace ssc {
         void
         Skein_PRNG<State_Bits>::os_reseed (u64_t const seed_bytes) {
 		using std::memcpy;
-		u64_t const buffer_size = seed_bytes + state.size();
+		u64_t const buffer_size = seed_bytes + state.Num_Bytes;
 		Sensitive_Dynamic_Buffer<u8_t> buffer{ buffer_size, is_lockable_( buffer_size ) };
 
-		memcpy( buffer.get(), state.get(), state.size() );
-		obtain_os_entropy( (buffer.get() + state.size()), seed_bytes );
+		memcpy( buffer.get(), state.get(), state.Num_Bytes );
+		obtain_os_entropy( (buffer.get() + state.Num_Bytes), seed_bytes );
 
-		static_assert (Skein_t::State_Bytes == decltype(state)::Num_Bytes);
+		static_assert (Skein_t::State_Bytes == state.Num_Bytes);
 		skein.hash_native( state.get(), buffer.get(), buffer_size );
         } /* os_reseed (u64_t) */
 
@@ -117,12 +117,12 @@ namespace ssc {
         Skein_PRNG<State_Bits>::get (void * const output_buffer,
                                      u64_t const  requested_bytes) {
 		using std::memcpy;
-		u64_t const buffer_size = requested_bytes + state.size();
+		u64_t const buffer_size = requested_bytes + state.Num_Bytes;
 		Sensitive_Dynamic_Buffer<u8_t> buffer{ buffer_size, is_lockable_( buffer_size ) };
 
-		skein.hash( buffer.get(), state.get(), state.size(), buffer_size );
-		memcpy( state.get(), buffer.get(), state.size() );
-		memcpy( output_buffer, (buffer.get() + state.size()), requested_bytes );
+		skein.hash( buffer.get(), state.get(), state.Num_Bytes, buffer_size );
+		memcpy( state.get(), buffer.get(), state.Num_Bytes );
+		memcpy( output_buffer, (buffer.get() + state.Num_Bytes), requested_bytes );
         } /* get (u8_t*,u64_t) */
 
 	template <size_t State_Bits>

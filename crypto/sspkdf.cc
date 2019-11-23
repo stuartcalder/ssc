@@ -58,16 +58,22 @@ namespace ssc
 		Sensitive_Buffer<u8_t, State_Bytes> key;
 		Sensitive_Buffer<u8_t, State_Bytes> buffer;
 
-		skein.hash( key.get(), concat_buffer.get(), concat_size, key.size() );
-		skein.message_auth_code( buffer.get(), concat_buffer.get(), key.get(), concat_size, key.size() , buffer.size() );
+		if constexpr(skein.State_Bytes == State_Bytes)
+			skein.hash_native( key.get(), concat_buffer.get(), concat_size );
+		else
+			skein.hash( key.get(), concat_buffer.get(), concat_size, key.Num_Bytes );
+		skein.message_auth_code( buffer.get(), concat_buffer.get(), key.get(), concat_size, key.Num_Bytes, buffer.Num_Bytes );
 		zero_sensitive( concat_buffer.get(), concat_size );
 		xor_block<State_Bits>( key.get(), buffer.get() );
 
 		for (u32_t i = 1; i < number_iterations; ++i) {
-			skein.message_auth_code( buffer.get(), buffer.get(), key.get(), buffer.size(), key.size(), buffer.size() );
+			skein.message_auth_code( buffer.get(), buffer.get(), key.get(), buffer.Num_Bytes, key.Num_Bytes, buffer.Num_Bytes );
 			xor_block<State_Bits>( key.get(), buffer.get() );
 		}
-		skein.hash( derived_key, buffer.get(), buffer.size(), State_Bytes );
+		if constexpr(skein.State_Bytes == State_Bytes)
+			skein.hash_native( derived_key, buffer.get(), buffer.Num_Bytes );
+		else
+			skein.hash( derived_key, buffer.get(), buffer.Num_Bytes, State_Bytes );
 	}
     } /* sspkdf */
 } /* ! namespace ssc */

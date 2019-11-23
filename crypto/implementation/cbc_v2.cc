@@ -92,9 +92,9 @@ namespace ssc::cbc_v2 {
 			Terminal term;
 
 			int num_input_chars = term.get_pw( char_input.get(), Max_Supplementary_Entropy_Chars, 1, Supplementary_Entropy_Prompt );
-			static_assert (Skein_t::State_Bytes == hash.size());
+			static_assert (skein.State_Bytes == hash.Num_Bytes);
 			skein.hash_native( hash.get(), reinterpret_cast<u8_t *>(char_input.get()), num_input_chars );
-			csprng.reseed( hash.get(), hash.size() );
+			csprng.reseed( hash.get(), hash.Num_Bytes );
 		}
 		// Create a header
 		CBC_V2_Header_t header;

@@ -111,7 +111,7 @@ namespace ssc {
 			// xor that block of keystream_plaintext with a block of inputtext.
 			xor_block<Block_Bits>( buffer.get(), in );
 			// Copy the post-xor-text out.
-			memcpy( out, buffer.get(), buffer.size() );
+			memcpy( out, buffer.get(), buffer.Num_Bytes );
 
 			// Advance the input and output pointers, reduce the bytes_left counter,
 			// increment the keystream_plaintext counter.
