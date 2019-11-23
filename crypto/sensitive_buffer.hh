@@ -78,7 +78,7 @@ namespace ssc {
 	}
 
 	template <typename Int_t, size_t Num_Elements, bool Mem_Lock>
-	static constexpr size_t
+	constexpr size_t
 	Sensitive_Buffer<Int_t,Num_Elements,Mem_Lock>::size (void) {
 		static_assert (sizeof(buf) == Num_Bytes);
 		return Num_Bytes;
