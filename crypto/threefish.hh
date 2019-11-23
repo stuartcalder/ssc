@@ -209,6 +209,13 @@ namespace ssc {
 #endif
 		// Copy the function parameter k into the key buffer.
 #ifndef __SSC_ENABLE_EXPERIMENTAL
+#	ifdef __SSC_MemoryLocking__
+		if constexpr(Expansion_MemoryLocking) {
+			lock_os_memory( key  , sizeof(key)   );
+			lock_os_memory( tweak, sizeof(tweak) );
+		}
+#	endif
+
 		memcpy( key, k, sizeof(state) );
 #else
 		memcpy( key.get(), k, state.Num_Bytes );
@@ -244,6 +251,16 @@ namespace ssc {
 			key_schedule[ subkey_index + (Number_Words - 2) ] =  key[ (subkey + (Number_Words - 2)) % (Number_Words + 1) ] + tweak[ (subkey + 1) % 3 ];
 			key_schedule[ subkey_index + (Number_Words - 1) ] =  key[ (subkey + (Number_Words - 1)) % (Number_Words + 1) ] + static_cast<u64_t>(subkey);
 		}
+#ifndef __SSC_ENABLE_EXPERIMENTAL
+		zero_sensitive( key  , sizeof(key)   );
+		zero_sensitive( tweak, sizeof(tweak) );
+#	ifdef __SSC_MemoryLocking__
+		if constexpr(Expansion_MemoryLocking) {
+			unlock_os_memory( key  , sizeof(key)   );
+			unlock_os_memory( tweak, sizeof(tweak) );
+		}
+#	endif
+#endif
 	} /* expand_key_ */
 
 	template <size_t Key_Bits, bool Expansion_MemoryLocking>
