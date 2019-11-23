@@ -13,18 +13,19 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 */
 #pragma once
 
-#include <cstdint>
-#include <cstdlib>
-#include <cstring>
-#include <cstdio>
-#include <climits>
+#ifdef __SSC_ENABLE_EXPERIMENTAL
+#	include <cstdint>
+#	include <cstdlib>
+#	include <cstring>
+#	include <cstdio>
+#	include <climits>
 
-#include <utility>
-#include <ssc/general/symbols.hh>
-#include <ssc/general/integers.hh>
-#include <ssc/general/error_conditions.hh>
-#include <ssc/crypto/operations.hh>
-#include <ssc/crypto/sensitive_buffer.hh>
+#	include <utility>
+#	include <ssc/general/symbols.hh>
+#	include <ssc/general/integers.hh>
+#	include <ssc/general/error_conditions.hh>
+#	include <ssc/crypto/operations.hh>
+#	include <ssc/crypto/sensitive_buffer.hh>
 
 namespace ssc {
 	template <typename Block_Cipher_t, size_t Block_Bits>

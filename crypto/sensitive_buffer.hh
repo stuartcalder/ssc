@@ -1,12 +1,13 @@
 #pragma once
 
-#include <cstring>
-#include <climits>
+#ifdef __SSC_ENABLE_EXPERIMENTAL
+#	include <cstring>
+#	include <climits>
 
-#include <ssc/general/integers.hh>
-#include <ssc/general/symbols.hh>
-#include <ssc/crypto/operations.hh>
-#include <ssc/memory/os_memory_locking.hh>
+#	include <ssc/general/integers.hh>
+#	include <ssc/general/symbols.hh>
+#	include <ssc/crypto/operations.hh>
+#	include <ssc/memory/os_memory_locking.hh>
 
 namespace ssc {
 	template <typename Int_t, size_t Num_Elements, bool Mem_Lock = true>
@@ -36,19 +37,19 @@ namespace ssc {
 	template <typename Int_t, size_t Num_Elements, bool Mem_Lock>
 	Sensitive_Buffer<Int_t,Num_Elements,Mem_Lock>::Sensitive_Buffer (void)
 	{
-#ifdef __SSC_MemoryLocking__
+#	ifdef __SSC_MemoryLocking__
 		if constexpr(Mem_Lock)
 			lock_os_memory( buf, sizeof(buf) );
-#endif
+#	endif
 	}
 
 	template <typename Int_t, size_t Num_Elements, bool Mem_Lock>
 	Sensitive_Buffer<Int_t,Num_Elements,Mem_Lock>::Sensitive_Buffer (Int_t starting_value)
 	{
-#ifdef __SSC_MemoryLocking__
+#	ifdef __SSC_MemoryLocking__
 		if constexpr(Mem_Lock)
 			lock_os_memory( buf, sizeof(buf) );
-#endif
+#	endif
 		std::memset( buf, starting_value, sizeof(buf) );
 	}
 
@@ -56,10 +57,10 @@ namespace ssc {
 	Sensitive_Buffer<Int_t,Num_Elements,Mem_Lock>::~Sensitive_Buffer (void)
 	{
 		zero_sensitive( buf, sizeof(buf) );
-#ifdef __SSC_MemoryLocking__
+#	ifdef __SSC_MemoryLocking__
 		if constexpr(Mem_Lock)
 			unlock_os_memory( buf, sizeof(buf) );
-#endif
+#	endif
 	}
 
 	template <typename Int_t, size_t Num_Elements, bool Mem_Lock>
@@ -80,3 +81,4 @@ namespace ssc {
 		return Num_Elements;
 	}
 }/*namespace ssc*/
+#endif/*#ifdef __SSC_ENABLE_EXPERIMENTAL*/

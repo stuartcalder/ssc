@@ -24,8 +24,13 @@ lib_deps   = []
 extra_args = []
 inc_dir    = []
 
+# Parse meson_options.txt
 if get_option('disable_memorylocking')
 	flag = define_flag_prefix + '__SSC_DISABLE_MEMORYLOCKING'
+	extra_args += flag
+endif
+if get_option('enable_experimental_features')
+	flag = define_flag_prefix + '__SSC_ENABLE_EXPERIMENTAL'
 	extra_args += flag
 endif
 
