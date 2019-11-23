@@ -94,7 +94,10 @@ namespace ssc {
 		memcpy( buffer.get()                 , state.get(), state.size() );
 		memcpy( (buffer.get() + state.size()), seed       , seed_bytes   );
 
-		static_assert (Skein_t::State_Bytes == state.size());
+		{
+			static constexpr size_t const Size = state.size();
+			static_assert (Skein_t::State_Bytes == Size);
+		}
 		skein.hash_native( state.get(), buffer.get(), buffer_size );
         } /* reseed (u8_t*,u64_t) */
 
@@ -108,7 +111,10 @@ namespace ssc {
 		memcpy( buffer.get(), state.get(), state.size() );
 		obtain_os_entropy( (buffer.get() + state.size()), seed_bytes );
 
-		static_assert (Skein_t::State_Bytes == state.size());
+		{
+			static constexpr size_t const Size = state.size();
+			static_assert (Skein_t::State_Bytes == Size);
+		}
 		skein.hash_native( state.get(), buffer.get(), buffer_size );
         } /* os_reseed (u64_t) */
 
