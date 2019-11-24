@@ -25,20 +25,20 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 namespace ssc {
         template <size_t State_Bits>
-        class Skein_PRNG {
+        class Skein_CSPRNG {
         public:
                 static_assert (State_Bits == 256 ||
                                State_Bits == 512 ||
                                State_Bits == 1024,
-                               "Skein_PRNG only defined for state sizes of 256,512,1024 bits");
+                               "Skein_CSPRNG only defined for state sizes of 256,512,1024 bits");
 		static_assert (CHAR_BIT == 8);
                 static constexpr size_t const State_Bytes = State_Bits / CHAR_BIT;
 		static constexpr size_t const Max_Lockable_Bytes = 256;
                 using Skein_t = Skein<State_Bits>;
 
-                Skein_PRNG (void);
+                Skein_CSPRNG (void);
 
-                Skein_PRNG (void const * const seed,
+                Skein_CSPRNG (void const * const seed,
                             u64_t const        seed_bytes);
 
                 /* void reseed(seed,seed_bytes)
@@ -63,16 +63,16 @@ namespace ssc {
 		u8_t					state [State_Bytes];
                 Skein_t					skein;
 
-        }; /* ! class Skein_PRNG */
+        }; /* ! class Skein_CSPRNG */
 
         template<size_t State_Bits>
-        Skein_PRNG<State_Bits>::Skein_PRNG (void)
+        Skein_CSPRNG<State_Bits>::Skein_CSPRNG (void)
 	{
 		obtain_os_entropy( state, sizeof(state) );
-        } /* Skein_PRNG (void) */
+        } /* Skein_CSPRNG (void) */
 
         template <size_t State_Bits>
-        Skein_PRNG<State_Bits>::Skein_PRNG (void const * const seed,
+        Skein_CSPRNG<State_Bits>::Skein_CSPRNG (void const * const seed,
                                             u64_t const        seed_bytes)
 	{
 		std::memset( state, 0, sizeof(state) );
@@ -81,7 +81,7 @@ namespace ssc {
 
         template <size_t State_Bits>
         void
-        Skein_PRNG<State_Bits>::reseed (void const * const seed,
+        Skein_CSPRNG<State_Bits>::reseed (void const * const seed,
                                         u64_t const        seed_bytes) {
 		using std::memcpy;
 		u64_t const buffer_size = seed_bytes + sizeof(state);
@@ -104,7 +104,7 @@ namespace ssc {
 
         template <size_t State_Bits>
         void
-        Skein_PRNG<State_Bits>::os_reseed (u64_t const seed_bytes) {
+        Skein_CSPRNG<State_Bits>::os_reseed (u64_t const seed_bytes) {
 		using std::memcpy;
 		u64_t const buffer_size = seed_bytes + sizeof(state);
 		auto buffer = std::make_unique<u8_t []>( buffer_size );
@@ -128,7 +128,7 @@ namespace ssc {
 
         template <size_t State_Bits>
         void
-        Skein_PRNG<State_Bits>::get (void * const output_buffer,
+        Skein_CSPRNG<State_Bits>::get (void * const output_buffer,
                                      u64_t const  requested_bytes) {
 		using std::memcpy;
 		u64_t const buffer_size = requested_bytes + sizeof(state);

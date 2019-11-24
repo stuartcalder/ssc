@@ -29,7 +29,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 namespace ssc {
 
-	template <typename PRNG_t, size_t Pool_Bits, size_t Max_Bits_Per_Call>
+	template <typename CSPRNG_t, size_t Pool_Bits, size_t Max_Bits_Per_Call>
 	class Entropy_Pool {
 		public:
 			/* Compile-Time Assertions & Data */
@@ -50,7 +50,7 @@ namespace ssc {
 			static_assert (Pool_Bytes > Bytes_Left_Before_Reset);
 			/* Constructors / Destructor */
 			Entropy_Pool() = delete;
-			Entropy_Pool(PRNG_t &&);
+			Entropy_Pool(CSPRNG_t &&);
 			~Entropy_Pool();
 			u8_t *get(int const requested_bytes);
 		private:
@@ -66,14 +66,14 @@ namespace ssc {
 			std::atomic_int prng_calls_left;
 			std::thread reset_thread;
 			std::thread prng_thread;
-			PRNG_t prng;
+			CSPRNG_t prng;
 			/* Private Functions */
 			void reset_pool_ (void);
 			void reset_prng_ (void);
 	};/*class Entropy_Pool*/
 
-	template <typename PRNG_t, size_t Pool_Bits, size_t Max_Bits_Per_Call>
-	Entropy_Pool<PRNG_t,Pool_Bits,Max_Bits_Per_Call>::Entropy_Pool(PRNG_t &&rng)
+	template <typename CSPRNG_t, size_t Pool_Bits, size_t Max_Bits_Per_Call>
+	Entropy_Pool<CSPRNG_t,Pool_Bits,Max_Bits_Per_Call>::Entropy_Pool(CSPRNG_t &&rng)
 		: prng{ rng }, bytes_left{ Pool_Bytes }, reset_thread_status{ Thread_Status_E::None },
 		  prng_thread_status{ Thread_Status_E::None }, prng_calls_left{ Num_Consec_Prng_Calls }
 	{
@@ -101,8 +101,8 @@ namespace ssc {
 		prng.get( reset_buffer, Pool_Bytes );
 	}/*Entropy_Pool{}*/
 
-	template <typename PRNG_t, size_t Pool_Bits, size_t Max_Bits_Per_Call>
-	Entropy_Pool<PRNG_t,Pool_Bits,Max_Bits_Per_Call>::~Entropy_Pool (void) {
+	template <typename CSPRNG_t, size_t Pool_Bits, size_t Max_Bits_Per_Call>
+	Entropy_Pool<CSPRNG_t,Pool_Bits,Max_Bits_Per_Call>::~Entropy_Pool (void) {
 		if (reset_thread.joinable())
 			reset_thread.join();
 		if (prng_thread.joinable())
@@ -117,9 +117,9 @@ namespace ssc {
 		delete[] reset_buffer;
 	}/*~Entropy_Pool{}*/
 
-	template <typename PRNG_t, size_t Pool_Bits, size_t Max_Bits_Per_Call>
+	template <typename CSPRNG_t, size_t Pool_Bits, size_t Max_Bits_Per_Call>
 	void
-	Entropy_Pool<PRNG_t,Pool_Bits,Max_Bits_Per_Call>::reset_pool_ (void) {
+	Entropy_Pool<CSPRNG_t,Pool_Bits,Max_Bits_Per_Call>::reset_pool_ (void) {
 		{
 			{
 				std::scoped_lock pool_lock{ pool_reset_mutex };
@@ -139,9 +139,9 @@ namespace ssc {
 		}
 	}/*reset_pool_()*/
 
-	template <typename PRNG_t, size_t Pool_Bits, size_t Max_Bits_Per_Call>
+	template <typename CSPRNG_t, size_t Pool_Bits, size_t Max_Bits_Per_Call>
 	void
-	Entropy_Pool<PRNG_t,Pool_Bits,Max_Bits_Per_Call>::reset_prng_ (void) {
+	Entropy_Pool<CSPRNG_t,Pool_Bits,Max_Bits_Per_Call>::reset_prng_ (void) {
 		{
 			std::scoped_lock lock{ prng_mutex };
 			prng.os_reseed();
@@ -150,9 +150,9 @@ namespace ssc {
 		}
 	}/*reset_prng_()*/
 
-	template <typename PRNG_t, size_t Pool_Bits, size_t Max_Bits_Per_Call>
+	template <typename CSPRNG_t, size_t Pool_Bits, size_t Max_Bits_Per_Call>
 	u8_t *
-	Entropy_Pool<PRNG_t,Pool_Bits,Max_Bits_Per_Call>::get (int const requested_bytes) {
+	Entropy_Pool<CSPRNG_t,Pool_Bits,Max_Bits_Per_Call>::get (int const requested_bytes) {
 		bool enough_bytes;
 		{
 			std::scoped_lock lock{ pool_reset_mutex };
@@ -170,7 +170,7 @@ namespace ssc {
 				}
 				// Open a new thread to reset the pool.
 				reset_thread_status = Thread_Status_E::Running;
-				reset_thread = std::thread{ &Entropy_Pool<PRNG_t,Pool_Bits,Max_Bits_Per_Call>::reset_pool_, this };
+				reset_thread = std::thread{ &Entropy_Pool<CSPRNG_t,Pool_Bits,Max_Bits_Per_Call>::reset_pool_, this };
 			}
 			// If there are not enough bytes to complete the call...
 			if (bytes_left <= Max_Bytes_Per_Call) {
@@ -188,7 +188,7 @@ namespace ssc {
 					prng_thread.join();
 				}
 				prng_thread_status = Thread_Status_E::Running;
-				prng_thread = std::thread{ &Entropy_Pool<PRNG_t,Pool_Bits,Max_Bits_Per_Call>::reset_prng_, this };
+				prng_thread = std::thread{ &Entropy_Pool<CSPRNG_t,Pool_Bits,Max_Bits_Per_Call>::reset_prng_, this };
 			}
 		}
 		{
