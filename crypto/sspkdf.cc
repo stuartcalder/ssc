@@ -63,10 +63,8 @@ namespace ssc
 		lock_os_memory( buffer, sizeof(buffer) );
 #endif
 
-		if constexpr(Skein_t::State_Bytes == State_Bytes)
-			skein.hash_native( key, concat_buffer.get(), concat_size );
-		else
-			skein.hash( key, concat_buffer.get(), concat_size, sizeof(key) );
+		static_assert (Skein_t::State_Bytes == State_Bytes);
+		skein.hash_native( key, concat_buffer.get(), concat_size );
 		skein.message_auth_code( buffer, concat_buffer.get(), key, concat_size, sizeof(key), sizeof(buffer) );
 		zero_sensitive( concat_buffer.get(), concat_size );
 		xor_block<State_Bits>( key, buffer );
