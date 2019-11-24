@@ -75,10 +75,10 @@ namespace ssc::cbc_v2 {
 	// We shall use Threefish with the desired block width.
 	using Threefish_t = Threefish<Block_Bits>;
 	// We shall use Skein with the desired block width.
-	using Skein_t     = Skein    <Block_Bits>;
+	using Skein_t     = Skein    <Block_Bits, true>;
 	// We shall use Threefish in cipher-block-chaining mode, with the specified block width.
 	using CBC_t	  = Cipher_Block_Chaining<Threefish_t, Block_Bits>;
-	// We shall use the Skein_PRNG as a cryptographically secure PRNG, with the specified block width.
+	// We shall use the Skein_CSPRNG as a cryptographically secure PRNG, with the specified block width.
 	using CSPRNG_t	  = Skein_CSPRNG<Block_Bits>;
 
 	struct DLL_PUBLIC Encrypt_Input {

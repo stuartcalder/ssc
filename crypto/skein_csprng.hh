@@ -34,7 +34,7 @@ namespace ssc {
 		static_assert (CHAR_BIT == 8);
                 static constexpr size_t const State_Bytes = State_Bits / CHAR_BIT;
 		static constexpr size_t const Max_Lockable_Bytes = 256;
-                using Skein_t = Skein<State_Bits>;
+                using Skein_t = Skein<State_Bits, true>;
 
                 Skein_CSPRNG (void);
 

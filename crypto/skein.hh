@@ -20,7 +20,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 
 namespace ssc {
-	template <size_t State_Bits>
+	template <size_t State_Bits, bool Sensitive = true>
 	class Skein {
 	public:
 		/* PUBLIC CONSTANTS and COMPILE-TIME CHECKS */
@@ -32,7 +32,7 @@ namespace ssc {
 		// Use Threefish with a block size of (State_Bits/8) and do NOT memory lock on key expansion operations.
 		using Threefish_t = Threefish<State_Bits, false>;
 		// Skein is based upon the Unique Block Iteration mode for the Threefish tweakable block cipher.
-		using UBI_t       = Unique_Block_Iteration<Threefish_t, State_Bits>;
+		using UBI_t       = Unique_Block_Iteration<Threefish_t, State_Bits, Sensitive>;
 		// Use the "type mask" defined by UBI_t when processing config blocks, key blocks, etc.
 		using Type_Mask_E = typename UBI_t::Type_Mask_E;
 		static constexpr const size_t State_Bytes = State_Bits / 8;
@@ -77,9 +77,9 @@ namespace ssc {
 		output_transform_ (u8_t *out, u64_t const num_output_bytes);
 	}; /* ! Skein */
     
-	template <size_t State_Bits>
+	template <size_t State_Bits, bool Sensitive>
 	void
-	Skein<State_Bits>::process_config_block_ (u64_t const num_output_bits) {
+	Skein<State_Bits,Sensitive>::process_config_block_ (u64_t const num_output_bits) {
 		/* Setup configuration string. */
 		u8_t config [32] = {
 			// First 4 bytes
@@ -101,21 +101,21 @@ namespace ssc {
 		ubi.chain( Type_Mask_E::T_cfg, config, sizeof(config) );
 	} /* process_config_block_ */
     
-	template <size_t State_Bits>
+	template <size_t State_Bits, bool Sensitive>
 	void
-	Skein<State_Bits>::process_key_block_ (u8_t const * const key_in, u64_t const key_size) {
+	Skein<State_Bits,Sensitive>::process_key_block_ (u8_t const * const key_in, u64_t const key_size) {
 		ubi.chain( Type_Mask_E::T_key, key_in, key_size );
 	}
     
-	template <size_t State_Bits>
+	template <size_t State_Bits, bool Sensitive>
 	void
-	Skein<State_Bits>::process_message_block_ (u8_t const * const message_in, u64_t const message_size) {
+	Skein<State_Bits,Sensitive>::process_message_block_ (u8_t const * const message_in, u64_t const message_size) {
 		ubi.chain( Type_Mask_E::T_msg, message_in, message_size );
 	}
     
-	template <size_t State_Bits>
+	template <size_t State_Bits, bool Sensitive>
 	void
-	Skein<State_Bits>::output_transform_ (u8_t *out, u64_t const num_output_bytes) {
+	Skein<State_Bits,Sensitive>::output_transform_ (u8_t *out, u64_t const num_output_bytes) {
 		u64_t bytes_left = num_output_bytes;
 		u64_t i = 0;
 		for (;;) {
@@ -132,12 +132,13 @@ namespace ssc {
 		}
 	}/* ! output_transform(...) */
     
-	template <size_t State_Bits>
+	template <size_t State_Bits, bool Sensitive>
 	void
-	Skein<State_Bits>::hash (u8_t * const bytes_out,
-				 u8_t const * const bytes_in,
-				 u64_t const num_bytes_in,
-				 u64_t const num_bytes_out) {
+	Skein<State_Bits,Sensitive>::hash (u8_t * const bytes_out,
+				           u8_t const * const bytes_in,
+				           u64_t const num_bytes_in,
+				           u64_t const num_bytes_out)
+	{
 		ubi.clear_key_state();
 		static_assert (CHAR_BIT == 8);
 		process_config_block_( num_bytes_out * CHAR_BIT );
@@ -145,14 +146,15 @@ namespace ssc {
 		output_transform_( bytes_out, num_bytes_out );
 	}
     
-	template <size_t State_Bits>
+	template <size_t State_Bits, bool Sensitive>
 	void
-	Skein<State_Bits>::message_auth_code	(u8_t * const       bytes_out,
-					 	 u8_t const * const bytes_in,
-						 u8_t const * const key_in,
-						 u64_t const        num_bytes_in,
-						 u64_t const        num_key_bytes_in,
-						 u64_t const        num_bytes_out) {
+	Skein<State_Bits,Sensitive>::message_auth_code	(u8_t * const       bytes_out,
+						 	 u8_t const * const bytes_in,
+							 u8_t const * const key_in,
+							 u64_t const        num_bytes_in,
+							 u64_t const        num_key_bytes_in,
+							 u64_t const        num_bytes_out)
+	{
 		ubi.clear_key_state();
 		process_key_block_( key_in, num_key_bytes_in );
 		static_assert (CHAR_BIT == 8);
@@ -161,11 +163,12 @@ namespace ssc {
 		output_transform_( bytes_out, num_bytes_out );
 	}
     
-	template <size_t State_Bits>
+	template <size_t State_Bits, bool Sensitive>
 	void
-	Skein<State_Bits>::hash_native	(u8_t * const       bytes_out,
-					 u8_t const * const bytes_in,
-					 u64_t const        num_bytes_in) {
+	Skein<State_Bits,Sensitive>::hash_native	(u8_t * const       bytes_out,
+							 u8_t const * const bytes_in,
+							 u64_t const        num_bytes_in)
+	{
 		static_assert (State_Bits == 256 ||
 		               State_Bits == 512 ||
 		               State_Bits == 1024,

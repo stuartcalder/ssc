@@ -34,7 +34,7 @@ namespace ssc
 	static constexpr auto const State_Bytes = State_Bits / CHAR_BIT;
 	static constexpr auto const Salt_Bits = 128;
 	static constexpr auto const Salt_Bytes = Salt_Bits / CHAR_BIT;
-	using Skein_t = Skein<State_Bits>;
+	using Skein_t = Skein<State_Bits, true>;
 	Skein_t skein;
 	using Index_t = u32_t;
 	u64_t const concat_size = (static_cast<u64_t>(password_length) + Salt_Bytes + sizeof(Index_t)) * static_cast<u64_t>(number_concatenations);
