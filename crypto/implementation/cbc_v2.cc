@@ -116,8 +116,8 @@ namespace ssc::cbc_v2 {
 		csprng.get( header.tweak      , sizeof(header.tweak)       );
 		csprng.get( header.sspkdf_salt, sizeof(header.sspkdf_salt) );
 		csprng.get( header.cbc_iv     , sizeof(header.cbc_iv)      );
-		header.num_iter   = encr_input.number_iterations;
-		header.num_concat = encr_input.number_concatenations;
+		header.num_iter   = encr_input.number_sspkdf_iterations;
+		header.num_concat = encr_input.number_sspkdf_concatenations;
 		// Copy header into the file, field at a time, advancing the pointer
 		u8_t *out = output_map.ptr;
 		{

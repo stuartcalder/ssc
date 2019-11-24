@@ -45,10 +45,8 @@ namespace ssc {
 
 			CounterMode (Block_Cipher_t *cipher_p, void const *nonce);
 
-			~CounterMode (void);
-
 			inline void
-			set_nonce (void *nonce);
+			set_nonce (void const *nonce);
 
 			void
 			xorcrypt (void *output, void const *input, size_t const input_size, u64_t start = 0);
@@ -72,25 +70,20 @@ namespace ssc {
 	}
 
 	template <typename Block_Cipher_t, size_t Block_Bits>
-	CounterMode<Block_Cipher_t,Block_Bits>::~CounterMode (void) {
-		zero_sensitive( buffer, sizeof(buffer) );
-	}
-
-	template <typename Block_Cipher_t, size_t Block_Bits>
 	void
-	set_nonce (void *nonce) {
+	CounterMode<Block_Cipher_t,Block_Bits>::set_nonce (void const *nonce) {
 		std::memcpy( random_nonce, nonce, sizeof(random_nonce) );
 	}
 
 	template <typename Block_Cipher_t, size_t Block_Bits>
 	void
-	CounterMode<Block_Cipher_t,Block_Bits>::xorcrypt (void *output, void const *input, size_t const input_size, u64_t start); {
+	CounterMode<Block_Cipher_t,Block_Bits>::xorcrypt (void *output, void const *input, size_t const input_size, u64_t start) {
 		using std::memcpy, std::memset;
 		u8_t					keystream_plaintext	[Block_Bytes];
 		u8_t					buffer			[Block_Bytes];
 		size_t					bytes_left = input_size;
-		u8_t const				*in  = input;
-		u8_t					*out = output;
+		u8_t const				*in  = static_cast<u8_t const *>(input);
+		u8_t					*out = static_cast<u8_t *>(output);
 		u64_t					counter = start;
 
 #ifdef __SSC_MemoryLocking__

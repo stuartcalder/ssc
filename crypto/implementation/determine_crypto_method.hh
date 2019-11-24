@@ -19,6 +19,13 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/files/os_map.hh>
 
 #include <ssc/crypto/implementation/cbc_v2.hh>
+#ifdef __SSC_ENABLE_EXPERIMENTAL
+#	include <ssc/crypto/implementation/ctr_v1.hh>
+#endif
+
+#if    (!defined (__SSC_CBC_V2__) && !defined (__SSC_CTR_V1__))
+#	error "The only two supported methods are not enabled..."
+#endif
 
 namespace ssc {
 
@@ -27,8 +34,9 @@ namespace ssc {
 		None,
 #ifdef __SSC_CBC_V2__
 		CBC_V2,
-#else
-#	error "CBC_V2 is the only supported Crypto_Method, but isn't here."
+#endif
+#ifdef __SSC_CTR_V1__
+		CTR_V1,
 #endif
 		Terminating_Enum
 	};/*enum class Crypto_Method_E*/
@@ -41,6 +49,10 @@ namespace ssc {
 		if (sizeof(cbc_v2::CBC_V2_ID) > s)
 			s = sizeof(cbc_v2::CBC_V2_ID);
 #endif
+#ifdef __SSC_CTR_V1__
+		if (sizeof(ctr_v1::CTR_V1_ID) > s)
+			s = sizeof(ctr_v1::CTR_V1_ID);
+#endif
 		return s;
 	}/*Biggest_ID_String_Size*/
 	inline constexpr size_t DLL_PUBLIC
@@ -49,6 +61,10 @@ namespace ssc {
 #ifdef __SSC_CBC_V2__
 		if (sizeof(cbc_v2::CBC_V2_ID) < s)
 			s = sizeof(cbc_v2::CBC_V2_ID);
+#endif
+#ifdef __SSC_CTR_V1__
+		if (sizeof(ctr_v1::CTR_V1_ID) < s)
+			s = sizeof(ctr_v1::CTR_V1_ID);
 #endif
 		return s;
 	}/*Smallest_ID_String_Size*/
@@ -81,8 +97,20 @@ namespace ssc {
 				method = Crypto_Method_E::CBC_V2;
 			}
 		}
-#else
-#	error	"Currently, CBC_V2 is the only supported cryptographic method."
+#endif
+#ifdef __SSC_CTR_V1__
+		{
+			using namespace ctr_v1;
+			{
+				static constexpr auto const Smallest_ID = Smallest_ID_String_Size();
+				static constexpr auto const Biggest_ID  = Biggest_ID_String_Size();
+				static_assert (sizeof(CTR_V1_ID) >= Smallest_ID);
+				static_assert (sizeof(CTR_V1_ID) <= Biggest_ID);
+			}
+			if ((method == Crypto_Method_E::None) && (memcmp( os_map.ptr, CTR_V1_ID, sizeof(CTR_V1_ID) ) == 0)) {
+				method = Crypto_Method_E::CTR_V1;
+			}
+		}
 #endif
 		// Cleanup.
 		unmap_file( os_map );

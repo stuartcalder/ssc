@@ -32,6 +32,7 @@ endif
 if get_option('enable_experimental_features')
 	flag = define_flag_prefix + '__SSC_ENABLE_EXPERIMENTAL'
 	extra_args += flag
+	ssc_src += 'crypto/implementation/ctr_v1.cc'
 endif
 
 if os == 'openbsd'

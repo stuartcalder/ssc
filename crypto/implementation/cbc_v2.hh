@@ -84,8 +84,8 @@ namespace ssc::cbc_v2 {
 	struct DLL_PUBLIC Encrypt_Input {
 		std::string input_filename;
 		std::string output_filename;
-		u32_t       number_iterations;
-		u32_t       number_concatenations;
+		u32_t       number_sspkdf_iterations;
+		u32_t       number_sspkdf_concatenations;
 		bool        supplement_os_entropy;
 	};/*struct Encrypt_Input */
 
