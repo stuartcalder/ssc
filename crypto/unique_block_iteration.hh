@@ -135,7 +135,7 @@ namespace ssc {
 			set_tweak_last_();
 		/* Set the position, and get a pointer to it for use later */
 		//FIXME Should we be doing this here?
-		u64_t * const position = reinterpret_cast<u64_t*>(tweak_state);
+		u64_t * const position = reinterpret_cast<u64_t *>(tweak_state);
 		(*position) = bytes_just_read;
 		// First block Setup
 		block_cipher.rekey( key_state, tweak_state );
