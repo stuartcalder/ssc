@@ -16,9 +16,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/crypto/sspkdf.hh>
 #include <ssc/crypto/skein.hh>
 #include <ssc/crypto/operations.hh>
-#ifdef __SSC_ENABLE_EXPERIMENTAL
-#	include <ssc/crypto/sensitive_buffer.hh>
-#endif
 #include <ssc/general/integers.hh>
 #include <ssc/memory/os_memory_locking.hh>
 
@@ -58,63 +55,34 @@ namespace ssc
 		}
 	}
 	{
-#ifdef __SSC_ENABLE_EXPERIMENTAL
-		Sensitive_Buffer<u8_t, State_Bytes> key;
-		Sensitive_Buffer<u8_t, State_Bytes> buffer;
-#else
 		u8_t	key	[State_Bytes];
 		u8_t	buffer	[State_Bytes];
 
-#	ifdef __SSC_MemoryLocking__
+#ifdef __SSC_MemoryLocking__
 		lock_os_memory( key   , sizeof(key)   );
 		lock_os_memory( buffer, sizeof(buffer) );
-#	endif
 #endif
 
-#ifdef __SSC_ENABLE_EXPERIMENTAL
-		if constexpr(skein.State_Bytes == State_Bytes)
-			skein.hash_native( key.get(), concat_buffer.get(), concat_size );
-		else
-			skein.hash( key.get(), concat_buffer.get(), concat_size, key.Num_Bytes );
-#else
 		if constexpr(Skein_t::State_Bytes == State_Bytes)
 			skein.hash_native( key, concat_buffer.get(), concat_size );
 		else
 			skein.hash( key, concat_buffer.get(), concat_size, sizeof(key) );
-#endif
-#ifdef __SSC_ENABLE_EXPERIMENTAL
-		skein.message_auth_code( buffer.get(), concat_buffer.get(), key.get(), concat_size, key.Num_Bytes, buffer.Num_Bytes );
-#else
 		skein.message_auth_code( buffer, concat_buffer.get(), key, concat_size, sizeof(key), sizeof(buffer) );
-#endif
 		zero_sensitive( concat_buffer.get(), concat_size );
-#ifdef __SSC_ENABLE_EXPERIMENTAL
-		xor_block<State_Bits>( key.get(), buffer.get() );
-#else
 		xor_block<State_Bits>( key, buffer );
-#endif
 
 		for (u32_t i = 1; i < number_iterations; ++i) {
-#ifdef __SSC_ENABLE_EXPERIMENTAL
-			skein.message_auth_code( buffer.get(), buffer.get(), key.get(), buffer.Num_Bytes, key.Num_Bytes, buffer.Num_Bytes );
-			xor_block<State_Bits>( key.get(), buffer.get() );
-#else
 			skein.message_auth_code( buffer, buffer, key, sizeof(buffer), sizeof(key), sizeof(buffer) );
 			xor_block<State_Bits>( key, buffer );
-#endif
 		}
 		static_assert (Skein_t::State_Bytes == State_Bytes);
-#ifdef __SSC_ENABLE_EXPERIMENTAL
-		skein.hash_native( derived_key, buffer.get(), buffer.Num_Bytes );
-#else
 		skein.hash_native( derived_key, buffer, sizeof(buffer) );
 
 		zero_sensitive( key   , sizeof(key)    );
 		zero_sensitive( buffer, sizeof(buffer) );
-#	ifdef __SSC_MemoryLocking__
+#ifdef __SSC_MemoryLocking__
 		unlock_os_memory( key   , sizeof(key)    );
 		unlock_os_memory( buffer, sizeof(buffer) );
-#	endif
 #endif
 	}
     } /* sspkdf */
