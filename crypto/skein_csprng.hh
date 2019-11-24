@@ -73,7 +73,7 @@ namespace ssc {
 
         template <size_t State_Bits>
         Skein_CSPRNG<State_Bits>::Skein_CSPRNG (void const * const seed,
-                                            u64_t const        seed_bytes)
+		                                u64_t const        seed_bytes)
 	{
 		std::memset( state, 0, sizeof(state) );
 		this->reseed( seed, seed_bytes );
@@ -82,12 +82,15 @@ namespace ssc {
         template <size_t State_Bits>
         void
         Skein_CSPRNG<State_Bits>::reseed (void const * const seed,
-                                        u64_t const        seed_bytes) {
+                                          u64_t const        seed_bytes)
+	{
 		using std::memcpy;
 		u64_t const buffer_size = seed_bytes + sizeof(state);
 		auto buffer = std::make_unique<u8_t []>( buffer_size );
 #ifdef __SSC_MemoryLocking__
-		lock_os_memory( buffer.get(), buffer_size );
+		bool const is_lockable = seed_bytes <= Max_Lockable_Bytes;
+		if (is_lockable)
+			lock_os_memory( buffer.get(), buffer_size );
 #endif
 
 		memcpy( buffer.get()                  , state, sizeof(state) );
@@ -98,7 +101,8 @@ namespace ssc {
 
 		zero_sensitive( buffer.get(), buffer_size );
 #ifdef __SSC_MemoryLocking__
-		unlock_os_memory( buffer.get(), buffer_size );
+		if (is_lockable)
+			unlock_os_memory( buffer.get(), buffer_size );
 #endif
         } /* reseed (u8_t*,u64_t) */
 
