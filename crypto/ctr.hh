@@ -13,19 +13,17 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 */
 #pragma once
 
-#ifdef __SSC_ENABLE_EXPERIMENTAL
-#	include <cstdint>
-#	include <cstdlib>
-#	include <cstring>
-#	include <cstdio>
-#	include <climits>
+#include <cstdint>
+#include <cstdlib>
+#include <cstring>
+#include <cstdio>
+#include <climits>
 
-#	include <utility>
-#	include <ssc/general/symbols.hh>
-#	include <ssc/general/integers.hh>
-#	include <ssc/general/error_conditions.hh>
-#	include <ssc/crypto/operations.hh>
-#	include <ssc/crypto/sensitive_buffer.hh>
+#include <utility>
+#include <ssc/general/symbols.hh>
+#include <ssc/general/integers.hh>
+#include <ssc/general/error_conditions.hh>
+#include <ssc/crypto/operations.hh>
 
 namespace ssc {
 	template <typename Block_Cipher_t, size_t Block_Bits>
@@ -88,12 +86,16 @@ namespace ssc {
 	void
 	CounterMode<Block_Cipher_t,Block_Bits>::xorcrypt (void *output, void const *input, size_t const input_size, u64_t start); {
 		using std::memcpy, std::memset;
-		u8_t					keystream_plaintext [Block_Bytes];
-		Sensitive_Buffer<u8_t, Block_Bytes>	buffer;
+		u8_t					keystream_plaintext	[Block_Bytes];
+		u8_t					buffer			[Block_Bytes];
 		size_t					bytes_left = input_size;
 		u8_t const				*in  = input;
 		u8_t					*out = output;
 		u64_t					counter = start;
+
+#ifdef __SSC_MemoryLocking__
+		lock_os_memory( buffer, sizeof(buffer) );
+#endif
 
 		// Zero the space between the counter and the nonce.
 		if constexpr(sizeof(counter) != Nonce_Bytes)
@@ -108,11 +110,11 @@ namespace ssc {
 			// Copy the counter into the keystream_plaintext.
 			memcpy( keystream_plaintext, &counter, sizeof(counter) );
 			// Encrypt a block of keystream_plaintext.
-			blk_cipher_p->cipher( buffer.get(), keystream_plaintext );
+			blk_cipher_p->cipher( buffer, keystream_plaintext );
 			// xor that block of keystream_plaintext with a block of inputtext.
-			xor_block<Block_Bits>( buffer.get(), in );
+			xor_block<Block_Bits>( buffer, in );
 			// Copy the post-xor-text out.
-			memcpy( out, buffer.get(), buffer.Num_Bytes );
+			memcpy( out, buffer, sizeof(buffer) );
 
 			// Advance the input and output pointers, reduce the bytes_left counter,
 			// increment the keystream_plaintext counter.
@@ -125,13 +127,17 @@ namespace ssc {
 		if (bytes_left > 0) {
 			memcpy( keystream_plaintext, &counter, sizeof(counter) );
 			// Encrypt the last block to xor with.
-			blk_cipher_p->cipher( buffer.get(), keystream_plaintext );
+			blk_cipher_p->cipher( buffer, keystream_plaintext );
 			// For each byte left, xor them all together.
 			for (int i = 0; i < static_cast<int>(bytes_left); ++i)
 				buffer[ i ] ^= in[ i ];
 			// Copy the post-xor-text out.
-			memcpy( out, buffer.get(), bytes_left );
+			memcpy( out, buffer, bytes_left );
 		}
+		zero_sensitive( buffer, sizeof(buffer) );
+#ifdef __SSC_MemoryLocking__
+		unlock_os_memory( buffer, sizeof(buffer) );
+#endif
 
 	}
 }/*namespace ssc*/
