@@ -1,4 +1,5 @@
 # By default, we enable "memory locking" on operating systems that support it
 # that do not necessarily encrypt swap by default. (i.e. GNU/Linux)
-option('disable_memorylocking',        type: 'boolean', value: false)
-option('enable_experimental_features', type: 'boolean', value: false)
+option('disable_memorylocking',		type: 'boolean', value: false)
+option('enable_experimental_features',	type: 'boolean', value: false)
+option('include_directories',           type: 'array'  , value: []   )

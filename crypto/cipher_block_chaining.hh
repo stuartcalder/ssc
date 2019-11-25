@@ -235,8 +235,9 @@ namespace ssc {
 			memcpy( block_out, buffer    , Block_Bytes );
 			memcpy( state    , ciphertext, Block_Bytes );
 		}
-		zero_sensitive( buffer    , Block_Bytes );
+
 		zero_sensitive( ciphertext, Block_Bytes );
+		zero_sensitive( buffer    , Block_Bytes );
 #ifdef __SSC_MemoryLocking__
 		unlock_os_memory( ciphertext, sizeof(ciphertext) );
 		unlock_os_memory( buffer    , sizeof(buffer)     );
