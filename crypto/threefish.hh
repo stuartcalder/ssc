@@ -137,9 +137,9 @@ namespace ssc {
 	template <size_t Key_Bits, bool Expansion_MemoryLocking>
 	u64_t
 	Threefish<Key_Bits,Expansion_MemoryLocking>::get_rotate_constant_	(int const round, int const index) {
-		static_assert (Number_Words == 4 || Number_Words == 8 || Number_Words == 16, "Invalid Number_Words. 4, 8, 16 only.");
+		static_assert (Key_Bits == 256 || Key_Bits == 512 || Key_Bits == 1024);
 		// All rotation constant look-up tables.
-		if constexpr(Number_Words == 4) {
+		if constexpr(Key_Bits == 256)
 			static constexpr u64_t const rc [8][2] = {
 				{ 14, 16 }, //d = 0
 				{ 52, 57 }, //d = 1
@@ -151,7 +151,7 @@ namespace ssc {
 				{ 32, 32 }  //d = 7
 			};
 			return rc[ (round % 8) ][ index ] ;
-		} else if constexpr( Number_Words == 8) {
+		} else if constexpr(Key_Bits == 512) {
 			static constexpr u64_t const rc [8][4] = {
 				{ 46, 36, 19, 37 },
 				{ 33, 27, 14, 42 },
@@ -163,7 +163,7 @@ namespace ssc {
 				{  8, 35, 56, 22 }
 			};
 			return rc[ (round % 8) ][ index ];
-		} else if constexpr(Number_Words == 16) {
+		} else if constexpr(Key_Bits == 1024) {
 			static constexpr u64_t const rc [8][8] = {
 				{ 24, 13,  8, 47,  8, 17, 22, 37 },
 				{ 38, 19, 10, 55, 49, 18, 23, 52 },
@@ -283,11 +283,11 @@ namespace ssc {
 	template <size_t Key_Bits, bool Expansion_MemoryLocking>
 	void
 	Threefish<Key_Bits,Expansion_MemoryLocking>::permute_state_	(void) {
-		if constexpr(Number_Words == 4) {
+		if constexpr(Key_Bits == 256) {
 			u64_t w = state[ 1 ];
 			state[ 1 ] = state[ 3 ];
 			state[ 3 ] = w;
-		} else if constexpr(Number_Words == 8) {
+		} else if constexpr(Key_Bits == 512) {
 			u64_t w0, w1;
 			/* Start from the left. Shift words in and out as necessary
 			Starting with index 0 ...*/
@@ -310,7 +310,7 @@ namespace ssc {
 			w0 = state[ 3 ];
 			state[ 3 ] = state[ 7 ];
 			state[ 7 ] = w0;
-		} else if constexpr(Number_Words == 16) {
+		} else if constexpr(Key_Bits == 1024) {
 			u64_t w0, w1;
 			// 1 overwrites 15 (stored in w0)
 			w0 = state[ 15 ];
@@ -358,10 +358,10 @@ namespace ssc {
 	template <size_t Key_Bits, bool Expansion_MemoryLocking>
 	void
 	Threefish<Key_Bits,Expansion_MemoryLocking>::inverse_permute_state_	(void) {
-		static_assert (Number_Words == 4 || Number_Words == 8 || Number_Words == 16);
-		if constexpr(Number_Words == 4) {
+		static_assert (Key_Bits == 256 || Key_Bits == 512 || Key_Bits == 1024);
+		if constexpr(Key_Bits == 256) {
 			permute_state_();  // here, permute_state() and inverse_permute_state() are the same operation
-		} else if constexpr(Number_Words == 8) {
+		} else if constexpr(Key_Bits == 512) {
 			u64_t w0, w1;
 			/* Starting from the left with index 0 */
 			// original index 0
@@ -383,7 +383,7 @@ namespace ssc {
 			w0 = state[ 3 ];
 			state[ 3 ] = state[ 7 ];
 			state[ 7 ] = w0;
-		} else if constexpr(Number_Words == 16) {
+		} else if constexpr(Key_Bits == 1024) {
 			u64_t w0, w1;
 			// 1 overwrites 9 (stored in w0)
 			w0 = state[ 9 ];
