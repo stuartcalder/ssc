@@ -1,6 +1,16 @@
 # ssc
-C++17 Cryptographic & File I/O Library for OpenBSD, GNU/Linux, and Microsoft Windows.
-Little Endian only!
+C++17 Cryptography & Abstract File I/O Library for 64-bit OpenBSD, GNU/Linux, and Microsoft Windows systems, on little-endian architectures only.
+## Purpose
+SSC aims to provide robust, easy-to-use abstract interfaces to a limited number of strong cryptographic primitives as C++ templates, including:
+- The [Threefish Block Cipher](https://www.schneier.com/academic/skein/threefish.html), which we use as the essential crypto primtive in SSC.
+	* CipherBlockChaining (CBC) Mode encryption for block ciphers, which we use to provide cryptographic confidentiality.
+	* Counter             (CTR) Mode encryption for block ciphers, which we use to provide cryptographic confidentiality.
+- The [Skein Cryptographic Hash Function](http://www.skein-hash.info/about), which is built out of the [Threefish Block Cipher](https://www.schneier.com/academic/skein/threefish.html).
+	* The SSC implementation of Skein can output up to (2^64) - 1 bytes per invocation.
+	* Skein's security proof states roughly: "If [Threefish](https://www.schneier.com/academic/skein/threefish.html) is an ideal block cipher, Skein is a cryptographically secure hash function."
+	* From the specification, SSC has implementations of a Skein-based key-derivation function and a Skein-based Cryptographically Secure PseudoRandom Number Generator.
+	* For authentication, we use Skein's native MAC instead of HMAC.
+
 ## Dependencies
 -	[meson](https://mesonbuild.com) Build system
 ### Linux Dependencies
