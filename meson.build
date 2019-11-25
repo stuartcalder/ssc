@@ -25,14 +25,15 @@ lib_deps   = []
 cpp_flags = []
 inc_dir    = []
 
-if os == 'openbsd' or os == 'linux'
+if os   == 'openbsd'
 	cpp_flags += '-fvisibility=hidden'
 	cpp_flags += '-fno-exceptions'
 	lib_deps  += cc.find_library('ncurses')
-endif
-if os   == 'openbsd'
 	include = '/usr/local/include'
 elif os == 'linux'
+	cpp_flags += '-fvisibility=hidden'
+	cpp_flags += '-fno-exceptions'
+	lib_deps  += cc.find_library('ncurses')
 	include = '/usr/include'
 	lib_deps += cc.find_library('tinfo')
 elif os == 'windows'
