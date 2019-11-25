@@ -38,7 +38,7 @@ namespace ssc {
 	static_assert (CHAR_BIT == 8);
 	template <typename uint_t>
 	uint_t
-	rotate_left (uint_t value, uint_t count) {
+	rotate_left (uint_t value, unsigned int count) {
 		uint_t const mask = (CHAR_BIT * sizeof(uint_t)) - 1;
 		count &= mask;
 		return ( value << count ) | ( value >> (-count & mask));
@@ -46,7 +46,7 @@ namespace ssc {
 
 	template <typename uint_t>
 	uint_t
-	rotate_right (uint_t value, uint_t count) {
+	rotate_right (uint_t value, unsigned int count) {
 		uint_t const mask = (CHAR_BIT * sizeof(uint_t)) - 1;
 		count &= mask;
 		return ( value >> count ) | ( value << (-count & mask));

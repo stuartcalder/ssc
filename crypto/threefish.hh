@@ -96,7 +96,7 @@ namespace ssc {
 		void
 		subtract_subkey_	(int const round);
 
-		static u64_t
+		static unsigned int
 		get_rotate_constant_	(int const round, int const index);
 
 		void
@@ -135,12 +135,12 @@ namespace ssc {
 	}
 
 	template <size_t Key_Bits, bool Expansion_MemoryLocking>
-	u64_t
-	Threefish<Key_Bits,Expansion_MemoryLocking>::get_rotate_constant_	(int const round, int const index) {
+	unsigned int
+	Threefish<Key_Bits,Expansion_MemoryLocking>::get_rotate_constant_ (int const round, int const index) {
 		static_assert (Key_Bits == 256 || Key_Bits == 512 || Key_Bits == 1024);
 		// All rotation constant look-up tables.
-		if constexpr(Key_Bits == 256)
-			static constexpr u64_t const rc [8][2] = {
+		if constexpr(Key_Bits == 256) {
+			static constexpr unsigned int const rc [8][2] = {
 				{ 14, 16 }, //d = 0
 				{ 52, 57 }, //d = 1
 				{ 23, 40 }, //d = 2
@@ -152,7 +152,7 @@ namespace ssc {
 			};
 			return rc[ (round % 8) ][ index ] ;
 		} else if constexpr(Key_Bits == 512) {
-			static constexpr u64_t const rc [8][4] = {
+			static constexpr unsigned int const rc [8][4] = {
 				{ 46, 36, 19, 37 },
 				{ 33, 27, 14, 42 },
 				{ 17, 49, 36, 39 },
@@ -164,7 +164,7 @@ namespace ssc {
 			};
 			return rc[ (round % 8) ][ index ];
 		} else if constexpr(Key_Bits == 1024) {
-			static constexpr u64_t const rc [8][8] = {
+			static constexpr unsigned int const rc [8][8] = {
 				{ 24, 13,  8, 47,  8, 17, 22, 37 },
 				{ 38, 19, 10, 55, 49, 18, 23, 52 },
 				{ 33,  4, 51, 13, 34, 41, 59, 17 },
