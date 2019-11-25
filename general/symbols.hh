@@ -48,7 +48,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #if    defined (__OpenBSD__) || defined (__gnu_linux__)
 #	define __UnixLike__
-#elif  defined (_WIN32) || defined(_WIN64)
+#elif  defined (_WIN32) || defined (_WIN64)
 #	define __Windows__
 #else
 #	error "OpenBSD, GNU/Linux and Windows the only supported operating systems."
