@@ -39,7 +39,9 @@ namespace ssc {
                 Skein_CSPRNG (void);
 
                 Skein_CSPRNG (void const * const seed,
-                            u64_t const        seed_bytes);
+                              u64_t const        seed_bytes);
+
+		~Skein_CSPRNG (void);
 
                 /* void reseed(seed,seed_bytes)
                  *      Copies in ${seed_bytes} bytes into the state, and
@@ -68,6 +70,9 @@ namespace ssc {
         template<size_t State_Bits>
         Skein_CSPRNG<State_Bits>::Skein_CSPRNG (void)
 	{
+#ifdef __SSC_MemoryLocking__
+		lock_os_memory( state, sizeof(state) );
+#endif
 		obtain_os_entropy( state, sizeof(state) );
         } /* Skein_CSPRNG (void) */
 
@@ -75,8 +80,20 @@ namespace ssc {
         Skein_CSPRNG<State_Bits>::Skein_CSPRNG (void const * const seed,
 		                                u64_t const        seed_bytes)
 	{
+#ifdef __SSC_MemoryLocking__
+		lock_os_memory( state, sizeof(state) );
+#endif
 		std::memset( state, 0, sizeof(state) );
 		this->reseed( seed, seed_bytes );
+	}
+
+	template <size_t State_Bits>
+	Skein_CSPRNG<State_Bits>::~Skein_CSPRNG (void)
+	{
+		zero_sensitive( state, sizeof(state) );
+#ifdef __SSC_MemoryLocking__
+		unlock_os_memory( state, sizeof(state) );
+#endif
 	}
 
         template <size_t State_Bits>
