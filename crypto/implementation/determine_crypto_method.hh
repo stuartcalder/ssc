@@ -87,31 +87,31 @@ namespace ssc {
 #ifdef __SSC_CBC_V2__
 		{
 			using namespace cbc_v2;
-			{
-				static constexpr auto const Smallest_ID = Smallest_ID_String_Size();
-				static constexpr auto const Biggest_ID  = Biggest_ID_String_Size();
-				static_assert (sizeof(CBC_V2_ID) >= Smallest_ID);
-				static_assert (sizeof(CBC_V2_ID) <= Biggest_ID);
-			}
+			static constexpr auto const Smallest_ID = Smallest_ID_String_Size();
+			static constexpr auto const Biggest_ID = Biggest_ID_String_Size();
+			static_assert (sizeof(CBC_V2_ID) >= Smallest_ID);
+			static_assert (sizeof(CBC_V2_ID) <= Biggest_ID);
 			if ((method == Crypto_Method_E::None) && (memcmp( os_map.ptr, CBC_V2_ID, sizeof(CBC_V2_ID) ) == 0)) {
 				method = Crypto_Method_E::CBC_V2;
+				goto end_methods_L;
 			}
+
 		}
 #endif
 #ifdef __SSC_CTR_V1__
 		{
 			using namespace ctr_v1;
-			{
-				static constexpr auto const Smallest_ID = Smallest_ID_String_Size();
-				static constexpr auto const Biggest_ID  = Biggest_ID_String_Size();
-				static_assert (sizeof(CTR_V1_ID) >= Smallest_ID);
-				static_assert (sizeof(CTR_V1_ID) <= Biggest_ID);
-			}
+			static constexpr auto const Smallest_ID = Smallest_ID_String_Size();
+			static constexpr auto const Biggest_ID = Biggest_ID_String_Size();
+			static_assert (sizeof(CTR_V1_ID) >= Smallest_ID);
+			static_assert (sizeof(CTR_V1_ID) <= Biggest_ID);
 			if ((method == Crypto_Method_E::None) && (memcmp( os_map.ptr, CTR_V1_ID, sizeof(CTR_V1_ID) ) == 0)) {
 				method = Crypto_Method_E::CTR_V1;
+				goto end_methods_L;
 			}
 		}
 #endif
+end_methods_L:
 		// Cleanup.
 		unmap_file( os_map );
 		close_os_file( os_map.os_file );
