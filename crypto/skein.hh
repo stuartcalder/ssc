@@ -40,25 +40,25 @@ namespace ssc {
 		/* PUBLIC INTERFACE */
 		// Receive output bytes and output pseudorandom bytes from the hash function.
 		void
-		hash (u8_t * const       bytes_out,
-		      u8_t const * const bytes_in,
-		      u64_t const        num_bytes_in,
-		      u64_t const        num_bytes_out = State_Bytes);
+		hash (byte_t * const       bytes_out,
+		      byte_t const * const bytes_in,
+		      u64_t const          num_bytes_in,
+		      u64_t const          num_bytes_out = State_Bytes);
 
 		// Authenticate the input bytes with the input key.
 		void
-		message_auth_code (u8_t * const       bytes_out,
-		                   u8_t const * const bytes_in,
-		                   u8_t const * const key_in,
-		                   u64_t const        num_bytes_in,
-		                   u64_t const        num_key_bytes_in,
-		                   u64_t const        num_bytes_out = State_Bytes);
+		message_auth_code (byte_t * const       bytes_out,
+		                   byte_t const * const bytes_in,
+		                   byte_t const * const key_in,
+		                   u64_t const          num_bytes_in,
+		                   u64_t const          num_key_bytes_in,
+		                   u64_t const          num_bytes_out = State_Bytes);
 
 		// Hash the input bytes, outputting State_Bytes pseudorandom bytes.
 		void
-		hash_native (u8_t * const       bytes_out,
-		             u8_t const * const bytes_in,
-		             u64_t const        num_bytes_in);
+		hash_native (byte_t * const       bytes_out,
+		             byte_t const * const bytes_in,
+		             u64_t const          num_bytes_in);
 	private:
 		/* PRIVATE DATA */
 		UBI_t ubi;
@@ -68,20 +68,23 @@ namespace ssc {
 		process_config_block_ (u64_t const num_output_bits);
 
 		void
-		process_key_block_ (u8_t const * const key_in, u64_t const key_size);
+		process_key_block_ (byte_t const * const key_in,
+				    u64_t const          key_size);
 
 		void
-		process_message_block_ (u8_t const * const message_in, u64_t const message_size);
+		process_message_block_ (byte_t const * const message_in,
+				        u64_t const          message_size);
 
 		void
-		output_transform_ (u8_t *out, u64_t const num_output_bytes);
+		output_transform_ (byte_t      *out,
+				   u64_t const num_output_bytes);
 	}; /* ! Skein */
     
 	template <size_t State_Bits, bool Sensitive>
 	void
 	Skein<State_Bits,Sensitive>::process_config_block_ (u64_t const num_output_bits) {
 		/* Setup configuration string. */
-		u8_t config [32] = {
+		byte_t config [32] = {
 			// First 4 bytes
 			0x53, 0x48, 0x41, 0x33, // Schema identifier "SHA3"
 			// Next 2 bytes
@@ -103,23 +106,29 @@ namespace ssc {
     
 	template <size_t State_Bits, bool Sensitive>
 	void
-	Skein<State_Bits,Sensitive>::process_key_block_ (u8_t const * const key_in, u64_t const key_size) {
+	Skein<State_Bits,Sensitive>::process_key_block_ (byte_t const * const key_in,
+			                                 u64_t const key_size)
+	{
 		ubi.chain( Type_Mask_E::T_key, key_in, key_size );
 	}
     
 	template <size_t State_Bits, bool Sensitive>
 	void
-	Skein<State_Bits,Sensitive>::process_message_block_ (u8_t const * const message_in, u64_t const message_size) {
+	Skein<State_Bits,Sensitive>::process_message_block_ (byte_t const * const message_in,
+			                                     u64_t const message_size)
+	{
 		ubi.chain( Type_Mask_E::T_msg, message_in, message_size );
 	}
     
 	template <size_t State_Bits, bool Sensitive>
 	void
-	Skein<State_Bits,Sensitive>::output_transform_ (u8_t *out, u64_t const num_output_bytes) {
+	Skein<State_Bits,Sensitive>::output_transform_ (byte_t		*out,
+			                                u64_t const	num_output_bytes)
+	{
 		u64_t bytes_left = num_output_bytes;
 		u64_t i = 0;
 		for (;;) {
-			ubi.chain( Type_Mask_E::T_out, reinterpret_cast<u8_t *>(&i), sizeof(i) );
+			ubi.chain( Type_Mask_E::T_out, reinterpret_cast<byte_t *>(&i), sizeof(i) );
 			++i;
 			if (bytes_left >= State_Bytes) {
 				std::memcpy( out, ubi.get_key_state(), State_Bytes );
@@ -134,8 +143,8 @@ namespace ssc {
     
 	template <size_t State_Bits, bool Sensitive>
 	void
-	Skein<State_Bits,Sensitive>::hash (u8_t * const bytes_out,
-				           u8_t const * const bytes_in,
+	Skein<State_Bits,Sensitive>::hash (byte_t * const bytes_out,
+				           byte_t const * const bytes_in,
 				           u64_t const num_bytes_in,
 				           u64_t const num_bytes_out)
 	{
@@ -148,9 +157,9 @@ namespace ssc {
     
 	template <size_t State_Bits, bool Sensitive>
 	void
-	Skein<State_Bits,Sensitive>::message_auth_code	(u8_t * const       bytes_out,
-						 	 u8_t const * const bytes_in,
-							 u8_t const * const key_in,
+	Skein<State_Bits,Sensitive>::message_auth_code	(byte_t * const       bytes_out,
+						 	 byte_t const * const bytes_in,
+							 byte_t const * const key_in,
 							 u64_t const        num_bytes_in,
 							 u64_t const        num_key_bytes_in,
 							 u64_t const        num_bytes_out)
@@ -165,8 +174,8 @@ namespace ssc {
     
 	template <size_t State_Bits, bool Sensitive>
 	void
-	Skein<State_Bits,Sensitive>::hash_native	(u8_t * const       bytes_out,
-							 u8_t const * const bytes_in,
+	Skein<State_Bits,Sensitive>::hash_native	(byte_t * const       bytes_out,
+							 byte_t const * const bytes_in,
 							 u64_t const        num_bytes_in)
 	{
 		static_assert (State_Bits == 256 ||

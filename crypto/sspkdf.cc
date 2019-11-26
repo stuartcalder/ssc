@@ -23,12 +23,12 @@ namespace ssc
 {
 	static_assert (CHAR_BIT == 8);
 	void
-	sspkdf	(u8_t *__restrict const derived_key,
-		 char const *__restrict password,
-		 int const              password_length,
-		 u8_t const *__restrict salt,
-		 u32_t const            number_iterations,
-		 u32_t const            number_concatenations) {
+	sspkdf	(byte_t *__restrict const derived_key,
+		 char const *__restrict   password,
+		 int const                password_length,
+		 byte_t const *__restrict salt,
+		 u32_t const              number_iterations,
+		 u32_t const              number_concatenations) {
 	using std::memcpy, std::make_unique;
 	static constexpr auto const State_Bits = 512;
 	static constexpr auto const State_Bytes = State_Bits / CHAR_BIT;
@@ -38,7 +38,7 @@ namespace ssc
 	Skein_t skein;
 	using Index_t = u32_t;
 	u64_t const concat_size = (static_cast<u64_t>(password_length) + Salt_Bytes + sizeof(Index_t)) * static_cast<u64_t>(number_concatenations);
-	auto concat_buffer = make_unique<u8_t []>( concat_size );
+	auto concat_buffer = make_unique<byte_t []>( concat_size );
 
 	{
 		Index_t index = 0;
@@ -55,8 +55,8 @@ namespace ssc
 		}
 	}
 	{
-		u8_t	key	[State_Bytes];
-		u8_t	buffer	[State_Bytes];
+		byte_t	key	[State_Bytes];
+		byte_t	buffer	[State_Bytes];
 
 #ifdef __SSC_MemoryLocking__
 		lock_os_memory( key   , sizeof(key)   );

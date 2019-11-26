@@ -29,7 +29,7 @@ namespace ssc {
 		static_assert ( State_Bytes % 8 == 0, "Must be divisible into 64-bit words" );
 		static constexpr size_t const Tweak_Bits  = 128;
 		static constexpr size_t const Tweak_Bytes = Tweak_Bits / 8;
-		enum class Type_Mask_E : u8_t {
+		enum class Type_Mask_E : byte_t {
 			T_key = 0,
 			T_cfg = 4,
 			T_prs = 8,
@@ -46,10 +46,10 @@ namespace ssc {
 		/* Public Interface */
 		void
 		chain	(Type_Mask_E const  type_mask,
-		  	 u8_t const * const message,
+		  	 byte_t const * const message,
 			 u64_t const        message_size);
 
-		u8_t*
+		byte_t *
 		get_key_state	(void);
 
 		void
@@ -59,9 +59,9 @@ namespace ssc {
 	static constexpr const auto & xor_block_ = xor_block<State_Bits>;
 	/* Private Data */
 	Tweakable_Block_Cipher_t block_cipher;
-	u8_t                     tweak_state [Tweak_Bytes];
-	u8_t                     key_state   [State_Bytes];
-	u8_t                     msg_state   [State_Bytes];
+	byte_t	tweak_state [Tweak_Bytes];
+	byte_t	key_state   [State_Bytes];
+	byte_t	msg_state   [State_Bytes];
 	/* Private Interface */
 	inline void
 	set_tweak_first_	(void);
@@ -85,7 +85,7 @@ namespace ssc {
 	clear_msg_		(void);
 
 	u64_t
-	read_msg_block_		(u8_t const * const message_offset,
+	read_msg_block_		(byte_t const * const message_offset,
 				 u64_t const        bytes_left);
 	}; /* class Unique_Block_Iteration */
 
@@ -116,7 +116,7 @@ namespace ssc {
 	template <typename Tweakable_Block_Cipher_t, size_t State_Bits, bool Sensitive>
 	void
 	Unique_Block_Iteration<Tweakable_Block_Cipher_t,State_Bits,Sensitive>::chain (Type_Mask_E const  type_mask,
-									              u8_t const * const message,
+									              byte_t const * const message,
 									              u64_t const        message_size)
 	{
 		using namespace std;
@@ -199,7 +199,7 @@ namespace ssc {
 	template <typename Tweakable_Block_Cipher_t, size_t State_Bits, bool Sensitive>
 	void
 	Unique_Block_Iteration<Tweakable_Block_Cipher_t,State_Bits,Sensitive>::set_tweak_type_ (Type_Mask_E const type_mask) {
-		tweak_state[ sizeof(tweak_state) - 1 ] |= static_cast<u8_t>(type_mask);
+		tweak_state[ sizeof(tweak_state) - 1 ] |= static_cast<byte_t>(type_mask);
 	}
 
 	template <typename Tweakable_Block_Cipher_t, size_t State_Bits, bool Sensitive>
@@ -210,7 +210,7 @@ namespace ssc {
 
 	template <typename Tweakable_Block_Cipher_t, size_t State_Bits, bool Sensitive>
 	u64_t
-	Unique_Block_Iteration<Tweakable_Block_Cipher_t,State_Bits,Sensitive>::read_msg_block_ (u8_t const * const message_offset,
+	Unique_Block_Iteration<Tweakable_Block_Cipher_t,State_Bits,Sensitive>::read_msg_block_ (byte_t const * const message_offset,
 										      u64_t const        bytes_left)
 	{
 		u64_t bytes_read;
@@ -227,7 +227,7 @@ namespace ssc {
 	}
 
 	template <typename Tweakable_Block_Cipher_t, size_t State_Bits, bool Sensitive>
-	u8_t*
+	byte_t *
 	Unique_Block_Iteration<Tweakable_Block_Cipher_t,State_Bits,Sensitive>::get_key_state (void) {
 		return key_state;
 	}
