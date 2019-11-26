@@ -14,10 +14,11 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include <ssc/general/symbols.hh>
 
-#undef ENABLE_MEMORYLOCKING
 // For now only support memory locking on GNU/Linux. It's not necessary on OpenBSD (the swap is encrypted by default).
 #ifdef __gnu_linux__
 #	define ENABLE_MEMORYLOCKING
+#else
+#	undef  ENABLE_MEMORYLOCKING
 #endif
 
 // If __SSC_DISABLE_MEMORYLOCKING is defined, do not support memory locking.
@@ -69,4 +70,4 @@ namespace ssc {
 #	endif
 	}/* unlock_os_memory */
 }/*namespace ssc*/
-#endif /*#if defined (__gnu_linux__) && !defined (__SSC_DISABLE_MEMORYLOCKING)*/
+#endif /*#if defined (ENABLE_MEMORYLOCKING) && !defined (__SSC_DISABLE_MEMORYLOCKING)*/
