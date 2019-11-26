@@ -37,7 +37,8 @@ elif os == 'linux'
 	include = '/usr/include'
 	lib_deps += cc.find_library('tinfo')
 elif os == 'windows'
-	cpp_flags += '/D__BUILD_STATIC'
+	flag = define_flag_prefix + '__BUILD_STATIC'
+	cpp_flags += flag
 	include = 'C:/include'
 	lib_deps += cc.find_library('bcrypt')
 endif
