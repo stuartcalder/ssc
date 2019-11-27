@@ -62,7 +62,7 @@ namespace ssc {
                 get (void * const output_buffer,
                      u64_t const  requested_bytes);
         private:
-		byte_t	state [State_Bytes];
+		u8_t	state [State_Bytes];
                 Skein_t	skein;
 
         }; /* ! class Skein_CSPRNG */
@@ -103,7 +103,7 @@ namespace ssc {
 	{
 		using std::memcpy;
 		u64_t const buffer_size = seed_bytes + sizeof(state);
-		auto buffer = std::make_unique<byte_t []>( buffer_size );
+		auto buffer = std::make_unique<u8_t []>( buffer_size );
 #ifdef __SSC_MemoryLocking__
 		bool const is_lockable = seed_bytes <= Max_Lockable_Bytes;
 		if (is_lockable)
@@ -121,14 +121,14 @@ namespace ssc {
 		if (is_lockable)
 			unlock_os_memory( buffer.get(), buffer_size );
 #endif
-        } /* reseed (byte_t *,u64_t) */
+        } /* reseed (u8_t *,u64_t) */
 
         template <size_t State_Bits>
         void
         Skein_CSPRNG<State_Bits>::os_reseed (u64_t const seed_bytes) {
 		using std::memcpy;
 		u64_t const buffer_size = seed_bytes + sizeof(state);
-		auto buffer = std::make_unique<byte_t []>( buffer_size );
+		auto buffer = std::make_unique<u8_t []>( buffer_size );
 #ifdef __SSC_MemoryLocking__
 		bool const is_lockable = buffer_size <= Max_Lockable_Bytes;
 		if (is_lockable)
@@ -153,7 +153,7 @@ namespace ssc {
                                      u64_t const  requested_bytes) {
 		using std::memcpy;
 		u64_t const buffer_size = requested_bytes + sizeof(state);
-		auto buffer = std::make_unique<byte_t []>( buffer_size );
+		auto buffer = std::make_unique<u8_t []>( buffer_size );
 #ifdef __SSC_MemoryLocking__
 		bool is_lockable = buffer_size <= Max_Lockable_Bytes;
 		if (is_lockable)
@@ -167,5 +167,5 @@ namespace ssc {
 		if (is_lockable)
 			unlock_os_memory( buffer.get(), buffer_size );
 #endif
-        } /* get (byte_t *,u64_t) */
+        } /* get (u8_t *,u64_t) */
 }/* ! namespace ssc */

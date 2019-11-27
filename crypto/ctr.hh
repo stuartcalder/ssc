@@ -52,7 +52,7 @@ namespace ssc {
 			xorcrypt (void *output, void const *input, size_t const input_size, u64_t start = 0);
 		private:
 			Block_Cipher_t	*blk_cipher_p;
-			byte_t		random_nonce	[Nonce_Bytes];
+			u8_t		random_nonce	[Nonce_Bytes];
 	};
 
 	template <typename Block_Cipher_t, size_t Block_Bits>
@@ -79,11 +79,11 @@ namespace ssc {
 	void
 	CounterMode<Block_Cipher_t,Block_Bits>::xorcrypt (void *output, void const *input, size_t const input_size, u64_t start) {
 		using std::memcpy, std::memset;
-		byte_t		keystream_plaintext	[Block_Bytes];
-		byte_t		buffer			[Block_Bytes];
+		u8_t		keystream_plaintext	[Block_Bytes];
+		u8_t		buffer			[Block_Bytes];
 		size_t		bytes_left = input_size;
-		byte_t const	*in  = static_cast<byte_t const *>(input);
-		byte_t		*out = static_cast<byte_t *>(output);
+		u8_t const	*in  = static_cast<u8_t const *>(input);
+		u8_t		*out = static_cast<u8_t *>(output);
 		u64_t		counter = start;
 
 #ifdef __SSC_MemoryLocking__

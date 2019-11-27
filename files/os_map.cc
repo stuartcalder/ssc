@@ -32,7 +32,7 @@ namespace ssc {
 	map_file	(OS_Map & os_map, bool const readonly) {
 #if    defined (__UnixLike__)
 		decltype(PROT_READ) const readwrite_flag = (readonly ? PROT_READ : (PROT_READ | PROT_WRITE));
-		os_map.ptr = static_cast<byte_t *>(mmap( nullptr, os_map.size, readwrite_flag, MAP_SHARED, os_map.os_file, 0 ));
+		os_map.ptr = static_cast<u8_t *>(mmap( nullptr, os_map.size, readwrite_flag, MAP_SHARED, os_map.os_file, 0 ));
 		if ( os_map.ptr == MAP_FAILED )
 			errx( "Error: Failed to mmap() the file descriptor `%d`\n", os_map.os_file );
 #elif  defined (__Win64__)
@@ -52,7 +52,7 @@ namespace ssc {
 
 		if (os_map.win64_filemapping == nullptr)
 			errx( "Error: Failed during CreateFileMapping()\n" );
-		os_map.ptr = static_cast<byte_t *>(MapViewOfFile( os_map.win64_filemapping, map_readwrite_flag, 0, 0, os_map.size ));
+		os_map.ptr = static_cast<u8_t *>(MapViewOfFile( os_map.win64_filemapping, map_readwrite_flag, 0, 0, os_map.size ));
 		if (os_map.ptr == nullptr)
 			errx( "Error: Failed during MapViewOfFile()\n" );
 #else

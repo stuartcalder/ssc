@@ -92,15 +92,15 @@ namespace ssc {
 			for (size_t i = 0; i < (Block_Bits / 64); ++i)
 				first_dword[ i ] ^= second_dword[ i ];
 		} else {
-			byte_t		*first_byte  = static_cast<byte_t *>(block);
-			byte_t const	*second_byte = static_cast<byte_t const *>(add);
+			u8_t *first_byte  = static_cast<u8_t *>(block);
+			u8_t const	*second_byte = static_cast<u8_t const *>(add);
 			for (size_t i = 0; i < Block_Bytes; ++i)
 				first_byte[ i ] ^= second_byte[ i ];
 		}
 	}/* ! xor_block */
 	
 	inline void
-	obtain_os_entropy (byte_t *buffer, size_t num_bytes) {
+	obtain_os_entropy (u8_t *buffer, size_t num_bytes) {
                 using namespace std;
 #if    defined (__UnixLike__)
                 static constexpr size_t const Max_Bytes = 256;
@@ -126,7 +126,7 @@ namespace ssc {
 #else
 #	error "ssc::obtain_os_entropy defined for OpenBSD, GNU/Linux, and MS Windows"
 #endif
-	} /* obtain_os_entropy (byte_t *,size_t) */
+	} /* obtain_os_entropy (u8_t *,size_t) */
 
 	inline void
 	zero_sensitive (void *buffer, size_t num_bytes) {
@@ -138,6 +138,6 @@ namespace ssc {
 #else
 #	error "ssc::zero_sensitive defined for OpenBSD, GNU/Linux, and MS Windows"
 #endif
-	} /* ! zero_sensitive (byte_t *,size_t) */
+	} /* ! zero_sensitive (u8_t *,size_t) */
 	
 }/* ! namespace ssc */

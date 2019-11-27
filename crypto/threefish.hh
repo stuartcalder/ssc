@@ -49,7 +49,7 @@ namespace ssc {
 #endif
 		}
 
-		Threefish (byte_t const *__restrict k, byte_t const *__restrict tw = nullptr)
+		Threefish (u8_t const *__restrict k, u8_t const *__restrict tw = nullptr)
 		{
 #ifdef __SSC_MemoryLocking__
 			lock_os_memory( state       , sizeof(state)        );
@@ -69,13 +69,13 @@ namespace ssc {
 		}
 		/* Public Functions */
 		void
-		cipher (byte_t *out, byte_t const *in);
+		cipher (u8_t *out, u8_t const *in);
 
 		void
-		inverse_cipher (byte_t *out, byte_t const *in);
+		inverse_cipher (u8_t *out, u8_t const *in);
 
 		void
-		rekey		(byte_t const *__restrict new_key, byte_t const *__restrict new_tweak = nullptr);
+		rekey		(u8_t const *__restrict new_key, u8_t const *__restrict new_tweak = nullptr);
 	private:
 		/* Private Data */
 		u64_t	state		[Number_Words];
@@ -88,7 +88,7 @@ namespace ssc {
 		inverse_mix_	(u64_t *__restrict x0, u64_t *__restrict x1, int const round, int const index);
 
 		void
-		expand_key_	(byte_t const *__restrict key, byte_t const *__restrict tweak);
+		expand_key_	(u8_t const *__restrict key, u8_t const *__restrict tweak);
 
 		void
 		add_subkey_	(int const round);
@@ -108,8 +108,8 @@ namespace ssc {
 
 	template <size_t Key_Bits, bool Expansion_MemoryLocking>
 	void
-	Threefish<Key_Bits,Expansion_MemoryLocking>::rekey (byte_t const *__restrict new_key,
-							    byte_t const *__restrict new_tweak) {
+	Threefish<Key_Bits,Expansion_MemoryLocking>::rekey (u8_t const *__restrict new_key,
+							    u8_t const *__restrict new_tweak) {
 		// Expand the key and tweak arguments into the keyschedule.
 		expand_key_( new_key, new_tweak );
 	}
@@ -180,7 +180,7 @@ namespace ssc {
 
 	template <size_t Key_Bits, bool Expansion_MemoryLocking>
 	void
-	Threefish<Key_Bits,Expansion_MemoryLocking>::expand_key_	(byte_t const *__restrict k, byte_t const *__restrict tw) {
+	Threefish<Key_Bits,Expansion_MemoryLocking>::expand_key_ (u8_t const *__restrict k, u8_t const *__restrict tw) {
 		using std::memcpy, std::memset;
 		// key / tweak setup
 		u64_t	key	[Number_Words + 1];
@@ -247,7 +247,7 @@ namespace ssc {
 
 	template <size_t Key_Bits, bool Expansion_MemoryLocking>
 	void
-	Threefish<Key_Bits,Expansion_MemoryLocking>::cipher (byte_t *out, byte_t const *in) {
+	Threefish<Key_Bits,Expansion_MemoryLocking>::cipher (u8_t *out, u8_t const *in) {
 		using std::memcpy;
 
 		memcpy( state, in, sizeof(state) );
@@ -264,7 +264,7 @@ namespace ssc {
 
 	template <size_t Key_Bits, bool Expansion_MemoryLocking>
 	void
-	Threefish<Key_Bits,Expansion_MemoryLocking>::inverse_cipher (byte_t *out, byte_t const *in) {
+	Threefish<Key_Bits,Expansion_MemoryLocking>::inverse_cipher (u8_t *out, u8_t const *in) {
 		using std::memcpy;
 		
 		// We start the inverse_cipher at the "last" round index, and go backwards to 0.

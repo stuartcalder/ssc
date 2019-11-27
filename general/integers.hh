@@ -22,11 +22,10 @@ namespace ssc {
 		// Unsigned integer types
 		using u8_t  = std::uint8_t;
 		static_assert (CHAR_BIT == 8);
-		using byte_t = u8_t;
 		using u16_t = std::uint16_t;
 		using u32_t = std::uint32_t;
 		using u64_t = std::uint64_t;
-		using std::size_t;
+		using	      std::size_t;
 		// Signed types
 		using i8_t  = std::int8_t;
 		using i16_t = std::int16_t;

@@ -17,7 +17,7 @@ namespace ssc
 {
     void print_binary_buffer( const uint8_t * buffer, const size_t num_bytes )
     {
-        auto print_4_bits = [](byte_t i)
+        auto print_4_bits = [](u8_t i)
                             {
                                 switch( i ) {
                                 default:

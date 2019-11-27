@@ -52,12 +52,12 @@ namespace ssc {
 			Entropy_Pool() = delete;
 			Entropy_Pool(CSPRNG_t &&);
 			~Entropy_Pool();
-			byte_t *get(int const requested_bytes);
+			u8_t *get(int const requested_bytes);
 		private:
-			byte_t *pool;
-			byte_t *reset_buffer;
-			byte_t *current;
-			byte_t *to_return;
+			u8_t *pool;
+			u8_t *reset_buffer;
+			u8_t *current;
+			u8_t *to_return;
 			std::mutex pool_reset_mutex;
 			std::mutex prng_mutex;
 			std::atomic<Thread_Status_E> reset_thread_status;
@@ -78,13 +78,13 @@ namespace ssc {
 		  prng_thread_status{ Thread_Status_E::None }, prng_calls_left{ Num_Consec_Prng_Calls }
 	{
 		// Dynamically allocate space for the pool.
-		pool = new(std::nothrow) byte_t [Pool_Bytes];
+		pool = new(std::nothrow) u8_t [Pool_Bytes];
 		if (pool == nullptr) {
 			std::fputs( "Failed to dynamically allocate Entropy_Pool buffer memory\n", stderr );
 			std::exit( EXIT_FAILURE );
 		}
 		// Dynamically allocate space for the reset buffer.
-		reset_buffer = new(std::nothrow) byte_t [Pool_Bytes];
+		reset_buffer = new(std::nothrow) u8_t [Pool_Bytes];
 		if (reset_buffer == nullptr) {
 			std::fputs( "Failed to dynamically allocate Entropy_Pool buffer memory\n", stderr );
 			std::exit( EXIT_FAILURE );
@@ -151,7 +151,7 @@ namespace ssc {
 	}/*reset_prng_()*/
 
 	template <typename CSPRNG_t, size_t Pool_Bits, size_t Max_Bits_Per_Call>
-	byte_t *
+	u8_t *
 	Entropy_Pool<CSPRNG_t,Pool_Bits,Max_Bits_Per_Call>::get (int const requested_bytes) {
 		bool enough_bytes;
 		{

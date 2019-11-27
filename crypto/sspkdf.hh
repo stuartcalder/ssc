@@ -23,10 +23,10 @@ namespace ssc
 {
 	static_assert (sizeof(int) >= sizeof(u32_t));
 	void DLL_PUBLIC
-	sspkdf	(byte_t *__restrict const       derived_key,
+	sspkdf	(u8_t *__restrict const		derived_key,
 		 char const *__restrict const   password,
 		 int const                      password_length,
-		 byte_t const *__restrict const salt,
+		 u8_t const *__restrict const	salt,
 		 u32_t const                    number_iterations,
 		 u32_t const                    number_concatenations);
 }
