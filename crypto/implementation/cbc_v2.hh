@@ -19,6 +19,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #define __SSC_CBC_V2__
 
+#include "common.hh"
+
 #include <cstring>
 #include <cstdlib>
 #include <string>
@@ -81,14 +83,6 @@ namespace ssc::cbc_v2 {
 	// We shall use the Skein_CSPRNG as a cryptographically secure PRNG, with the specified block width.
 	using CSPRNG_t	  = Skein_CSPRNG<Block_Bits>;
 
-	struct DLL_PUBLIC Encrypt_Input {
-		std::string input_filename;
-		std::string output_filename;
-		u32_t       number_sspkdf_iterations;
-		u32_t       number_sspkdf_concatenations;
-		bool        supplement_os_entropy;
-	};/*struct Encrypt_Input */
-
 	template <size_t ID_Bytes>
 	struct DLL_PUBLIC Sspkdf_Header {
 		char  id          [ID_Bytes];
@@ -104,7 +98,7 @@ namespace ssc::cbc_v2 {
 	using CBC_V2_Header_t = Sspkdf_Header<sizeof(CBC_V2_ID)>;
 
 	void DLL_PUBLIC
-	encrypt (Encrypt_Input const & input_abstr);
+	encrypt (Input const & input_abstr);
 
 	void DLL_PUBLIC
 	decrypt (char const *__restrict input_filename,

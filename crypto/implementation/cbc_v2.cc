@@ -37,7 +37,7 @@ namespace ssc::cbc_v2 {
 	}
 
 	void
-	encrypt	(Encrypt_Input const & encr_input) {
+	encrypt	(Input const & encr_input) {
 		using namespace std;
 
 		CSPRNG_t csprng;
