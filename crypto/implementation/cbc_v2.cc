@@ -15,6 +15,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include <ssc/crypto/implementation/cbc_v2.hh>
 
+#include <ssc/crypto/operations.hh>
+#include <ssc/crypto/sspkdf.hh>
 #include <ssc/general/symbols.hh>
 #include <ssc/general/print.hh>
 #include <ssc/general/error_conditions.hh>
@@ -23,11 +25,11 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/interface/terminal.hh>
 #include <ssc/memory/os_memory_locking.hh>
 
-namespace ssc::cbc_v2 {
+namespace ssc::crypto_impl::cbc_v2 {
 
 	static u64_t
 	calculate_encrypted_size	(u64_t const pre_encryption_size) {
-		constexpr auto const File_Metadata_Size = CBC_V2_Header_t::Total_Size + MAC_Bytes;
+		constexpr auto const File_Metadata_Size = CBC_V2_Header::Total_Size + MAC_Bytes;
 		auto s = pre_encryption_size;
 		if ( s < Block_Bytes )
 			s = Block_Bytes;
@@ -57,7 +59,6 @@ namespace ssc::cbc_v2 {
 		map_file( input_map , true  );
 		map_file( output_map, false );
 		// Get the password
-		static constexpr auto const Password_Buffer_Bytes = Max_Password_Length + 1;
 		char password [Password_Buffer_Bytes];
 		int password_length;
 		{
@@ -67,13 +68,13 @@ namespace ssc::cbc_v2 {
 			lock_os_memory( password, Password_Buffer_Bytes );
 			lock_os_memory( pwcheck , Password_Buffer_Bytes );
 #endif
-			for (;;) {
+			while (true) {
 				static_assert (sizeof(password) == Password_Buffer_Bytes);
 				static_assert (sizeof(pwcheck)  == Password_Buffer_Bytes);
 				memset( password, 0, Password_Buffer_Bytes );
 				memset( pwcheck , 0, Password_Buffer_Bytes );
-				password_length = term.get_pw( password, Max_Password_Length, 1, Password_Prompt );
-				static_cast<void>(term.get_pw( pwcheck , Max_Password_Length, 1, Password_Reentry_Prompt ));
+				password_length = term.get_pw( password, Max_Password_Chars, 1, Password_Prompt );
+				static_cast<void>(term.get_pw( pwcheck , Max_Password_Chars, 1, Password_Reentry_Prompt ));
 				if (memcmp( password, pwcheck, Password_Buffer_Bytes ) == 0)
 					break;
 				term.notify( "Passwords don't match." );
@@ -86,16 +87,17 @@ namespace ssc::cbc_v2 {
 		// Mix in additional entropy from the keyboard if specified
 		if (encr_input.supplement_os_entropy) {
 			u8_t	hash		[Block_Bytes];
-			char	char_input	[Max_Supplementary_Entropy_Chars + 1] = { 0 };
+			char	char_input	[Max_Entropy_Chars + 1];
 			Skein_t skein;
 			Terminal term;
+			int num_input_chars;
 
 #ifdef	__SSC_MemoryLocking__
 			lock_os_memory( hash      , sizeof(hash)       );
 			lock_os_memory( char_input, sizeof(char_input) );
 #endif
 
-			int num_input_chars = term.get_pw( char_input, Max_Supplementary_Entropy_Chars, 1, Supplementary_Entropy_Prompt );
+			num_input_chars = term.get_pw( char_input, Max_Entropy_Chars, 1, Entropy_Prompt );
 			static_assert (Skein_t::State_Bytes == sizeof(hash));
 			skein.hash_native( hash, reinterpret_cast<u8_t *>(char_input), num_input_chars );
 			csprng.reseed( hash, sizeof(hash) );
@@ -109,7 +111,7 @@ namespace ssc::cbc_v2 {
 #endif
 		}
 		// Create a header
-		CBC_V2_Header_t header;
+		CBC_V2_Header header;
 		static_assert (sizeof(header.id) == sizeof(CBC_V2_ID));
 		memcpy( header.id, CBC_V2_ID, sizeof(header.id) );
 		header.total_size = static_cast<decltype(header.total_size)>(output_map.size);
@@ -194,7 +196,7 @@ namespace ssc::cbc_v2 {
 		// For now, assume the size of the output file will be the same size as the input file.
 		output_map.size = input_map.size;
 		// Check to see if the input file is too small to have possibly been 3CRYPT_CBC_V2 encrypted.
-		static constexpr auto const Minimum_Possible_File_Size = CBC_V2_Header_t::Total_Size + Block_Bytes + MAC_Bytes;
+		static constexpr auto const Minimum_Possible_File_Size = CBC_V2_Header::Total_Size + Block_Bytes + MAC_Bytes;
 		if (input_map.size < Minimum_Possible_File_Size) {
 			close_os_file( input_map.os_file );
 			close_os_file( output_map.os_file );
@@ -208,8 +210,8 @@ namespace ssc::cbc_v2 {
 		map_file( output_map, false );
 		// The `in` pointer is used for reading from the input files, and incremented as it's used to read.
 		u8_t const *in = input_map.ptr;
-		CBC_V2_Header_t header;
-		// Copy all the fields of CBC_V2_Header_t from the memory-mapped input file into the header struct.
+		CBC_V2_Header header;
+		// Copy all the fields of CBC_V2_Header from the memory-mapped input file into the header struct.
 		{
 			memcpy( header.id, in, sizeof(header.id) );
 			in += sizeof(header.id);
@@ -252,14 +254,14 @@ namespace ssc::cbc_v2 {
 			errx( "Error: Input file size (%zu) does not equal file size in the file header of the input file (%zu)\n", input_map.size, header.total_size );
 		}
 		// Get the password
-		char password [Max_Password_Length + 1] = { 0 };
+		char password [Password_Buffer_Bytes] = { 0 };
 		int  password_length;
 #ifdef __SSC_MemoryLocking__
 		lock_os_memory( password, sizeof(password) );
 #endif
 		{
 			Terminal term;
-			password_length = term.get_pw( password, Max_Password_Length, 1, Password_Prompt );
+			password_length = term.get_pw( password, Max_Password_Chars, 1, Password_Prompt );
 		}
 		// Generate a 512-bit symmetric key from the given password.
 		u8_t derived_key [Block_Bytes];
@@ -307,7 +309,7 @@ namespace ssc::cbc_v2 {
 #ifdef __SSC_MemoryLocking__
 			unlock_os_memory( derived_key, sizeof(derived_key) );
 #endif
-			static constexpr auto const File_Metadata_Size = CBC_V2_Header_t::Total_Size + MAC_Bytes;
+			static constexpr auto const File_Metadata_Size = CBC_V2_Header::Total_Size + MAC_Bytes;
 			plaintext_size = cbc.decrypt( in,
 						      output_map.ptr,
 						      input_map.size - File_Metadata_Size,
@@ -332,14 +334,14 @@ namespace ssc::cbc_v2 {
 		OS_Map os_map;
 		os_map.os_file = open_existing_os_file( filename, true );
 		os_map.size    = get_file_size( os_map.os_file );
-		static constexpr auto const Minimum_Size = CBC_V2_Header_t::Total_Size + Block_Bytes + MAC_Bytes;
+		static constexpr auto const Minimum_Size = CBC_V2_Header::Total_Size + Block_Bytes + MAC_Bytes;
 		if (os_map.size < Minimum_Size) {
 			close_os_file( os_map.os_file );
 			errx( "File `%s` looks too small to be CBC_V2 encrypted\n", filename );
 		}
 		map_file( os_map, true );
 
-		CBC_V2_Header_t header;
+		CBC_V2_Header header;
 		u8_t mac [MAC_Bytes];
 		{
 			u8_t const *p = os_map.ptr;
@@ -384,4 +386,4 @@ namespace ssc::cbc_v2 {
 		print_integral_buffer<u8_t>( mac, sizeof(mac) );
 		putchar( '\n' );
 	}/* ! dump_header */
-}/*namespace ssc::cbc_v2*/
+}/*namespace ssc::crypto_impl::cbc_v2*/

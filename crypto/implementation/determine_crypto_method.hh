@@ -15,19 +15,13 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include <ssc/general/symbols.hh>
 #include <ssc/general/integers.hh>
-#include <ssc/files/files.hh>
 #include <ssc/files/os_map.hh>
 
-#include <ssc/crypto/implementation/cbc_v2.hh>
-#ifdef __SSC_ENABLE_EXPERIMENTAL
-#	include <ssc/crypto/implementation/ctr_v1.hh>
-#endif
-
 #if    (!defined (__SSC_CBC_V2__) && !defined (__SSC_CTR_V1__))
-#	error "The only two supported methods are not enabled..."
+#	error "Crypto implementations must be #include'd before this file."
 #endif
 
-namespace ssc {
+namespace ssc::crypto_impl {
 
 	// Enums
 	enum class Crypto_Method_E {
@@ -117,4 +111,4 @@ end_methods_L:
 		close_os_file( os_map.os_file );
 		return method;
 	}/*determine_crypto_method*/
-}/*namespace ssc*/
+}/*namespace ssc::crypto_impl*/

@@ -28,13 +28,10 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include <ssc/general/symbols.hh>
 #include <ssc/general/integers.hh>
-#include <ssc/crypto/threefish.hh>
-#include <ssc/crypto/skein.hh>
-#include <ssc/crypto/skein_csprng.hh>
 #include <ssc/crypto/cipher_block_chaining.hh>
-#include <ssc/crypto/sspkdf.hh>
 
-namespace ssc::cbc_v2 {
+namespace ssc::crypto_impl::cbc_v2 {
+#if 0
 	static_assert (CHAR_BIT == 8);
 	/* Compile-Time Constants */
 	// CBC_V2_ID will be the "magic" C-string at the beginning of CBC_V2 encrypted files, to indicate the method to use for decryption.
@@ -82,20 +79,22 @@ namespace ssc::cbc_v2 {
 	using CBC_t	  = Cipher_Block_Chaining<Threefish_t, Block_Bits>;
 	// We shall use the Skein_CSPRNG as a cryptographically secure PRNG, with the specified block width.
 	using CSPRNG_t	  = Skein_CSPRNG<Block_Bits>;
+#endif
+	static constexpr auto const &CBC_V2_ID = "3CRYPT_CBC_V2";
+	using CBC_t = Cipher_Block_Chaining<Threefish_t, Block_Bits>;
 
-	template <size_t ID_Bytes>
-	struct DLL_PUBLIC Sspkdf_Header {
-		char  id          [ID_Bytes];
-		u64_t total_size;
-		u8_t  tweak	  [Tweak_Bytes];
-		u8_t  sspkdf_salt [Salt_Bytes];
-		u8_t  cbc_iv      [Block_Bytes];
-		u32_t num_iter;
-		u32_t num_concat;
-		static constexpr auto const Total_Size = sizeof(id) + sizeof(total_size) + sizeof(tweak) +
-			                                 sizeof(sspkdf_salt) + sizeof(cbc_iv) + sizeof(num_iter) + sizeof(num_concat);
+	struct DLL_PUBLIC CBC_V2_Header {
+		char	id		[sizeof(CBC_V2_ID)];
+		u64_t	total_size;
+		u8_t	tweak		[Tweak_Bytes];
+		u8_t	sspkdf_salt	[Salt_Bytes];
+		u8_t	cbc_iv		[Block_Bytes];
+		u32_t	num_iter;
+		u32_t	num_concat;
+		static constexpr size_t const Total_Size =
+			sizeof(id) + sizeof(total_size) + sizeof(tweak) +
+			sizeof(sspkdf_salt) + sizeof(cbc_iv) + sizeof(num_iter) + sizeof(num_concat);
 	};
-	using CBC_V2_Header_t = Sspkdf_Header<sizeof(CBC_V2_ID)>;
 
 	void DLL_PUBLIC
 	encrypt (Input const & input_abstr);
@@ -107,4 +106,4 @@ namespace ssc::cbc_v2 {
 	void DLL_PUBLIC
 	dump_header (char const *filename);
 
-}/*namespace ssc::cbc_v2*/
+}/*namespace ssc::crypto_impl::cbc_v2*/

@@ -19,6 +19,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include <ssc/crypto/implementation/ctr_v1.hh>
 
+#include <ssc/crypto/sspkdf.hh>
 #include <ssc/general/symbols.hh>
 #include <ssc/general/print.hh>
 #include <ssc/general/error_conditions.hh>
@@ -27,7 +28,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/interface/terminal.hh>
 #include <ssc/memory/os_memory_locking.hh>
 
-namespace ssc::ctr_v1 {
+namespace ssc::crypto_impl::ctr_v1 {
 
 	void
 	encrypt	(Input const & input) {
@@ -372,4 +373,4 @@ namespace ssc::ctr_v1 {
 		print_integral_buffer<u8_t>( mac, sizeof(mac) );
 		putchar( '\n' );
 	}/* ! dump_header */
-}/*namespace ssc::cbc_v2*/
+}/*namespace ssc::crypto_impl::ctr_v1*/

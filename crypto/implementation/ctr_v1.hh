@@ -28,13 +28,10 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include <ssc/general/symbols.hh>
 #include <ssc/general/integers.hh>
-#include <ssc/crypto/threefish.hh>
-#include <ssc/crypto/skein.hh>
-#include <ssc/crypto/skein_csprng.hh>
 #include <ssc/crypto/ctr.hh>
-#include <ssc/crypto/sspkdf.hh>
 
-namespace ssc::ctr_v1 {
+namespace ssc::crypto_impl::ctr_v1 {
+#if 0
 	static_assert (CHAR_BIT == 8);
 	/* Compile-Time Constants */
 	// CTR_V1_ID will be the "magic" C-string at the beginning of CTR_V1 encrypted files, to indicate the method to use for decryption.
@@ -84,6 +81,13 @@ namespace ssc::ctr_v1 {
 	using CTR_t	  = CounterMode<Threefish_t, Block_Bits>;
 	// We shall use the Skein_CSPRNG as a cryptographically secure PRNG, with the specified block width.
 	using CSPRNG_t	  = Skein_CSPRNG<Block_Bits>;
+#endif
+	static constexpr auto const &CTR_V1_ID = "SSC_CTR_V1";
+
+	static_assert (Block_Bits % 2 == 0);
+	static constexpr auto const Nonce_Bits  = Block_Bits / 2;
+	static constexpr auto const Nonce_Bytes = Nonce_Bits / CHAR_BIT;
+	using CTR_t = CounterMode<Threefish_t, Block_Bits>;
 
 	struct DLL_PUBLIC CTR_V1_Header {
 		char	id		[sizeof(CTR_V1_ID)];
@@ -109,4 +113,4 @@ namespace ssc::ctr_v1 {
 	void DLL_PUBLIC
 	dump_header (char const *filename);
 
-}/*namespace ssc::ctr_v1*/
+}/*namespace ssc::crypto_impl::ctr_v1*/
