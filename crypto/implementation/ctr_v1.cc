@@ -51,57 +51,14 @@ namespace ssc::crypto_impl::ctr_v1 {
 		map_file( input_map , true  );
 		map_file( output_map, false );
 		// Get the password
-		static constexpr auto const Password_Buffer_Bytes = Max_Password_Length + 1;
 		char password [Password_Buffer_Bytes];
-		int password_length;
-		{
-			Terminal term;
-			char pwcheck [Password_Buffer_Bytes];
 #ifdef __SSC_MemoryLocking__
-			lock_os_memory( password, Password_Buffer_Bytes );
-			lock_os_memory( pwcheck , Password_Buffer_Bytes );
+		lock_os_memory( password, sizeof(password) );
 #endif
-			for (;;) {
-				static_assert (sizeof(password) == Password_Buffer_Bytes);
-				static_assert (sizeof(pwcheck)  == Password_Buffer_Bytes);
-				memset( password, 0, Password_Buffer_Bytes );
-				memset( pwcheck , 0, Password_Buffer_Bytes );
-				password_length = term.get_pw( password, Max_Password_Length, 1, Password_Prompt );
-				static_cast<void>(term.get_pw( pwcheck , Max_Password_Length, 1, Password_Reentry_Prompt ));
-				if (memcmp( password, pwcheck, Password_Buffer_Bytes ) == 0)
-					break;
-				term.notify( "Passwords don't match." );
-			}
-			zero_sensitive( pwcheck, Password_Buffer_Bytes );
-#ifdef __SSC_MemoryLocking__
-			unlock_os_memory( pwcheck, Password_Buffer_Bytes );
-#endif
-		}
+		int password_length = obtain_password( password, Password_Prompt, Password_Reentry_Prompt, sizeof(password) );
 		// Mix in additional entropy from the keyboard if specified
-		if (input.supplement_os_entropy) {
-			u8_t	hash		[Block_Bytes];
-			char	char_input	[Max_Supplementary_Entropy_Chars + 1] = { 0 };
-			Skein_t skein;
-			Terminal term;
-
-#ifdef	__SSC_MemoryLocking__
-			lock_os_memory( hash      , sizeof(hash)       );
-			lock_os_memory( char_input, sizeof(char_input) );
-#endif
-
-			int num_input_chars = term.get_pw( char_input, Max_Supplementary_Entropy_Chars, 1, Supplementary_Entropy_Prompt );
-			static_assert (Skein_t::State_Bytes == sizeof(hash));
-			skein.hash_native( hash, reinterpret_cast<u8_t *>(char_input), num_input_chars );
-			csprng.reseed( hash, sizeof(hash) );
-
-			zero_sensitive( hash      , sizeof(hash)       );
-			zero_sensitive( char_input, sizeof(char_input) );
-
-#ifdef __SSC_MemoryLocking__
-			unlock_os_memory( hash      , sizeof(hash)       );
-			unlock_os_memory( char_input, sizeof(char_input) );
-#endif
-		}
+		if (input.supplement_os_entropy)
+			supplement_entropy( csprng );
 		// Create a header
 		CTR_V1_Header header;
 		static_assert (sizeof(header.id) == sizeof(CTR_V1_ID));
@@ -136,22 +93,40 @@ namespace ssc::crypto_impl::ctr_v1 {
 			memcpy( out, &header.num_concat, sizeof(header.num_concat) );
 			out += sizeof(header.num_concat);
 		}
-
+		// Generate 1024 pseudorandom bits using sspkdf.
+		u8_t master_secret [Block_Bytes * 2];
+#ifdef __SSC_MemoryLocking__
+		lock_os_memory( master_secret, sizeof(master_secret) );
+#endif
+		u8_t *confidentiality_key = master_secret;
+		u8_t *authentication_key  = master_secret + Block_Bytes;
+		sspkdf( master_secret, password, password_length, header.sspkdf_salt, header.num_iter, header.num_concat );
+		{
+			Skein_t skein;
+			skein.hash( master_secret, master_secret, Block_Bytes, sizeof(master_secret) );
+		}
+#if 0
 		// Generate a 512-bit symmetric key using the password we got earlier as input
 		u8_t derived_key [Block_Bytes];
 #ifdef __SSC_MemoryLocking__
 		lock_os_memory( derived_key, sizeof(derived_key) );
 #endif
 		sspkdf( derived_key, password, password_length, header.sspkdf_salt, header.num_iter, header.num_concat );
+#endif
 		// Securely zero over the password buffer after we've used it to generate the symmetric key
 		zero_sensitive( password, sizeof(password) );
 #ifdef __SSC_MemoryLocking__
 		unlock_os_memory( password, sizeof(password) );
 #endif
 		{
+#if 0
 			// Encrypt the input file, writing the ciphertext into the memory-mapped output file
 			Threefish_t threefish{ derived_key, header.tweak };
 			CTR_t ctr{ &threefish, header.ctr_nonce };
+			ctr.xorcrypt( out, input_map.ptr, input_map.size );
+			out += input_map.size;
+#endif
+			CTR_t ctr{ header.ctr_nonce, confidentiality_key, header.tweak };
 			ctr.xorcrypt( out, input_map.ptr, input_map.size );
 			out += input_map.size;
 		}
@@ -159,12 +134,18 @@ namespace ssc::crypto_impl::ctr_v1 {
 			// Create a 512-bit Message Authentication Code of the ciphertext, using the derived key and the ciphertext with Skein's native MAC
 			// then append the MAC to the end of the ciphertext.
 			Skein_t skein;
-			skein.message_auth_code( out, output_map.ptr, derived_key, output_map.size - MAC_Bytes, sizeof(derived_key), MAC_Bytes );
+			skein.message_auth_code( out, output_map.ptr, authentication_key, output_map.size - MAC_Bytes, Block_Bytes, MAC_Bytes );
 		}
+#if 0
 		// Securely zero over the derived key
 		zero_sensitive( derived_key, sizeof(derived_key) );
 #ifdef __SSC_MemoryLocking__
 		unlock_os_memory( derived_key, sizeof(derived_key) );
+#endif
+#endif
+		zero_sensitive( master_secret, sizeof(master_secret) );
+#ifdef __SSC_MemoryLocking__
+		unlock_os_memory( master_secret, sizeof(master_secret) );
 #endif
 		// Synchronize everything written to the output file
 		sync_map( output_map );
@@ -246,8 +227,12 @@ namespace ssc::crypto_impl::ctr_v1 {
 			errx( "Error: Input file size (%zu) does not equal file size in the file header of the input file (%zu)\n", input_map.size, header.total_size );
 		}
 		// Get the password
-		char password [Max_Password_Length + 1] = { 0 };
-		int  password_length;
+		char password [Password_Buffer_Bytes] = { 0 };
+#ifdef __SSC_MemoryLocking__
+		lock_os_memory( password, sizeof(password) );
+#endif
+		int  password_length = obtain_password( password, Password_Prompt, Max_Password_Chars );
+#if 0
 #ifdef __SSC_MemoryLocking__
 		lock_os_memory( password, sizeof(password) );
 #endif
@@ -255,12 +240,18 @@ namespace ssc::crypto_impl::ctr_v1 {
 			Terminal term;
 			password_length = term.get_pw( password, Max_Password_Length, 1, Password_Prompt );
 		}
-		// Generate a 512-bit symmetric key from the given password.
-		u8_t derived_key [Block_Bytes];
-#ifdef __SSC_MemoryLocking__
-		lock_os_memory( derived_key, sizeof(derived_key) );
 #endif
-		sspkdf( derived_key, password, password_length, header.sspkdf_salt, header.num_iter, header.num_concat );
+		u8_t master_secret [Block_Bytes * 2];
+		u8_t *confidentiality_key = master_secret;
+		u8_t *authentication_key  = master_secret + Block_Bytes;
+#ifdef __SSC_MemoryLocking__
+		lock_os_memory( master_secret, sizeof(master_secret) );
+#endif
+		sspkdf( master_secret, password, password_length, header.sspkdf_salt, header.num_iter, header.num_concat );
+		{
+			Skein_t skein;
+			skein.hash( master_secret, master_secret, Block_Bytes, sizeof(master_secret) );
+		}
 		// Securely zero over the password now that we have the derived key.
 		zero_sensitive( password, sizeof(password) );
 #ifdef __SSC_MemoryLocking__
@@ -272,16 +263,16 @@ namespace ssc::crypto_impl::ctr_v1 {
 			{
 				Skein_t skein;
 				skein.message_auth_code( generated_mac,
-							 input_map.ptr,
-							 derived_key,
+						         input_map.ptr,
+							 authentication_key,
 							 input_map.size - MAC_Bytes,
-							 sizeof(derived_key),
+							 Block_Bytes,
 							 sizeof(generated_mac) );
 			}
 			if (memcmp( generated_mac, (input_map.ptr + input_map.size - MAC_Bytes), MAC_Bytes) != 0) {
-				zero_sensitive( derived_key, sizeof(derived_key) );
+				zero_sensitive( master_secret, sizeof(master_secret) );
 #ifdef __SSC_MemoryLocking__
-				unlock_os_memory( derived_key, sizeof(derived_key) );
+				unlock_os_memory( master_secret, sizeof(master_secret) );
 #endif
 				unmap_file( input_map );
 				unmap_file( output_map );
@@ -293,6 +284,9 @@ namespace ssc::crypto_impl::ctr_v1 {
 			}
 		}
 		{
+			CTR_t ctr{ header.ctr_nonce, confidentiality_key, header.tweak };
+			ctr.xorcrypt( output_map.ptr, in, input_map.size - Metadata_Bytes );
+#if 0
 			// Decrypt the input file's ciphertext into the output file, recording the number of bytes of plaintext in `plaintext_size`.
 			Threefish_t threefish{ derived_key, header.tweak };
 			CTR_t ctr{ &threefish, header.ctr_nonce };
@@ -302,7 +296,12 @@ namespace ssc::crypto_impl::ctr_v1 {
 			unlock_os_memory( derived_key, sizeof(derived_key) );
 #endif
 			ctr.xorcrypt( output_map.ptr, in, input_map.size - Metadata_Bytes );
+#endif
 		}
+		zero_sensitive( master_secret, sizeof(master_secret) );
+#ifdef __SSC_MemoryLocking__
+		unlock_os_memory( master_secret, sizeof(master_secret) );
+#endif
 		// Synchronize the output file.
 		sync_map( output_map );
 		// Unmap the memory-mapped input and output files.

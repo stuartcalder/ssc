@@ -41,9 +41,8 @@ namespace ssc {
 			/* Public Interface */
 			CounterMode (void) = delete;
 
-			CounterMode (Block_Cipher_t *cipher_p);
-
-			CounterMode (Block_Cipher_t *cipher_p, void const *nonce);
+			template <typename... Args>
+			CounterMode (void const *nonce, Args... args);
 
 			inline void
 			set_nonce (void const *nonce);
@@ -51,22 +50,17 @@ namespace ssc {
 			void
 			xorcrypt (void *output, void const *input, size_t const input_size, u64_t start = 0);
 		private:
-			Block_Cipher_t	*blk_cipher_p;
+			Block_Cipher_t	blk_cipher;
 			u8_t		random_nonce	[Nonce_Bytes];
 	};
 
 	template <typename Block_Cipher_t, size_t Block_Bits>
-	CounterMode<Block_Cipher_t,Block_Bits>::CounterMode (Block_Cipher_t *cipher_p)
-		: blk_cipher_p{ cipher_p }
+	template <typename... Args>
+	CounterMode<Block_Cipher_t,Block_Bits>::CounterMode (void const *nonce, Args... args)
+		: blk_cipher{ args... }
 	{
-		obtain_os_entropy( random_nonce, sizeof(random_nonce) );
-	}
-
-	template <typename Block_Cipher_t, size_t Block_Bits>
-	CounterMode<Block_Cipher_t,Block_Bits>::CounterMode (Block_Cipher_t *cipher_p, void const *nonce)
-		: blk_cipher_p{ cipher_p }
-	{
-		set_nonce( nonce );
+		if (nonce != nullptr)
+			set_nonce( nonce );
 	}
 
 	template <typename Block_Cipher_t, size_t Block_Bits>
@@ -103,7 +97,7 @@ namespace ssc {
 			// Copy the counter into the keystream_plaintext.
 			memcpy( keystream_plaintext, &counter, sizeof(counter) );
 			// Encrypt a block of keystream_plaintext.
-			blk_cipher_p->cipher( buffer, keystream_plaintext );
+			blk_cipher.cipher( buffer, keystream_plaintext );
 			// xor that block of keystream_plaintext with a block of inputtext.
 			xor_block<Block_Bits>( buffer, in );
 			// Copy the post-xor-text out.
@@ -120,7 +114,7 @@ namespace ssc {
 		if (bytes_left > 0) {
 			memcpy( keystream_plaintext, &counter, sizeof(counter) );
 			// Encrypt the last block to xor with.
-			blk_cipher_p->cipher( buffer, keystream_plaintext );
+			blk_cipher.cipher( buffer, keystream_plaintext );
 			// For each byte left, xor them all together.
 			for (int i = 0; i < static_cast<int>(bytes_left); ++i)
 				buffer[ i ] ^= in[ i ];
