@@ -2,11 +2,15 @@
 
 #include <ssc/general/symbols.hh>
 #include <ssc/general/integers.hh>
+#include <ssc/crypto/operations.hh>
 #include <ssc/crypto/threefish.hh>
 #include <ssc/crypto/skein.hh>
 #include <ssc/crypto/skein_csprng.hh>
-#include <string>
+#include <ssc/memory/os_memory_locking.hh>
+
 #include <climits>
+#include <cstring>
+#include <string>
 
 #define CTIME_CONST static constexpr auto const
 
@@ -46,6 +50,21 @@ namespace ssc::crypto_impl {
 		u32_t		number_sspkdf_concatenations;
 		bool		supplement_os_entropy;
 	};
+
+	int DLL_PUBLIC
+	obtain_password (char       *password,
+			 char const *entry_prompt,
+			 int const   buffer_size);
+
+	int DLL_PUBLIC
+	obtain_password (char       *password,
+			 char const *entry_prompt,
+			 char const *reentry_prompt,
+			 int const   buffer_size);
+
+	void DLL_PUBLIC
+	supplement_entropy (CSPRNG_t &csprng);
+
 }/*namespace ssc::crypto_impl*/
 
 #undef OS_PROMPT

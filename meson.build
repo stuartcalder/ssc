@@ -18,6 +18,7 @@ ssc_src = [
 	'files/files.cc', 'files/os_map.cc',
 	# `Crypto` Files
 	'crypto/sspkdf.cc', 'crypto/implementation/cbc_v2.cc',
+	'crypto/implementation/common.cc',
 	# `Interface` Files
 	'interface/terminal.cc'
 	]

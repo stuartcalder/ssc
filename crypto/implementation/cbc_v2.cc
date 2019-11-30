@@ -60,56 +60,12 @@ namespace ssc::crypto_impl::cbc_v2 {
 		map_file( output_map, false );
 		// Get the password
 		char password [Password_Buffer_Bytes];
-		int password_length;
-		{
-			Terminal term;
-			char pwcheck [Password_Buffer_Bytes];
 #ifdef __SSC_MemoryLocking__
-			lock_os_memory( password, Password_Buffer_Bytes );
-			lock_os_memory( pwcheck , Password_Buffer_Bytes );
+		lock_os_memory( password, sizeof(password) );
 #endif
-			while (true) {
-				static_assert (sizeof(password) == Password_Buffer_Bytes);
-				static_assert (sizeof(pwcheck)  == Password_Buffer_Bytes);
-				memset( password, 0, Password_Buffer_Bytes );
-				memset( pwcheck , 0, Password_Buffer_Bytes );
-				password_length = term.get_pw( password, Max_Password_Chars, 1, Password_Prompt );
-				static_cast<void>(term.get_pw( pwcheck , Max_Password_Chars, 1, Password_Reentry_Prompt ));
-				if (memcmp( password, pwcheck, Password_Buffer_Bytes ) == 0)
-					break;
-				term.notify( "Passwords don't match." );
-			}
-			zero_sensitive( pwcheck, Password_Buffer_Bytes );
-#ifdef __SSC_MemoryLocking__
-			unlock_os_memory( pwcheck, Password_Buffer_Bytes );
-#endif
-		}
-		// Mix in additional entropy from the keyboard if specified
-		if (encr_input.supplement_os_entropy) {
-			u8_t	hash		[Block_Bytes];
-			char	char_input	[Max_Entropy_Chars + 1];
-			Skein_t skein;
-			Terminal term;
-			int num_input_chars;
-
-#ifdef	__SSC_MemoryLocking__
-			lock_os_memory( hash      , sizeof(hash)       );
-			lock_os_memory( char_input, sizeof(char_input) );
-#endif
-
-			num_input_chars = term.get_pw( char_input, Max_Entropy_Chars, 1, Entropy_Prompt );
-			static_assert (Skein_t::State_Bytes == sizeof(hash));
-			skein.hash_native( hash, reinterpret_cast<u8_t *>(char_input), num_input_chars );
-			csprng.reseed( hash, sizeof(hash) );
-
-			zero_sensitive( hash      , sizeof(hash)       );
-			zero_sensitive( char_input, sizeof(char_input) );
-
-#ifdef __SSC_MemoryLocking__
-			unlock_os_memory( hash      , sizeof(hash)       );
-			unlock_os_memory( char_input, sizeof(char_input) );
-#endif
-		}
+		int password_length = obtain_password( password, Password_Prompt, Password_Reentry_Prompt, sizeof(password) );
+		if (encr_input.supplement_os_entropy)
+			supplement_entropy( csprng );
 		// Create a header
 		CBC_V2_Header header;
 		static_assert (sizeof(header.id) == sizeof(CBC_V2_ID));
@@ -260,8 +216,7 @@ namespace ssc::crypto_impl::cbc_v2 {
 		lock_os_memory( password, sizeof(password) );
 #endif
 		{
-			Terminal term;
-			password_length = term.get_pw( password, Max_Password_Chars, 1, Password_Prompt );
+			password_length = obtain_password( password, Password_Prompt, sizeof(password) );
 		}
 		// Generate a 512-bit symmetric key from the given password.
 		u8_t derived_key [Block_Bytes];
