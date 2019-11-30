@@ -31,55 +31,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/crypto/cipher_block_chaining.hh>
 
 namespace ssc::crypto_impl::cbc_v2 {
-#if 0
-	static_assert (CHAR_BIT == 8);
-	/* Compile-Time Constants */
-	// CBC_V2_ID will be the "magic" C-string at the beginning of CBC_V2 encrypted files, to indicate the method to use for decryption.
-	static constexpr auto const & CBC_V2_ID = "3CRYPT_CBC_V2";
-	// For CBC_V2, we use the `sspkdf` key derivation function, which takes 128 bits (16 bytes) of random salt.
-	static constexpr auto const Salt_Bits = 128;
-	static constexpr auto const Salt_Bytes = Salt_Bits / CHAR_BIT;
-	// All three variants of the Threefish tweakable block cipher use a 128-bit tweak.
-	static constexpr auto const Tweak_Bits = 128;
-	static constexpr auto const Tweak_Bytes = Tweak_Bits / CHAR_BIT;
-	// CBC_V2 aims for 512 bits of security, so we'll be using 512-bit wide blocks and keys.
-	static constexpr auto const Block_Bits = 512;
-	static constexpr auto const Block_Bytes = Block_Bits / CHAR_BIT;
-	// The Message Authentication Code appended to the end of CBC_V2 encrypted files shall have an authentication code the same width as an encrypted block.
-	static constexpr auto const MAC_Bytes = Block_Bytes;
-	// We will arbitrarily limit password lengths to 120 characters.
-	static constexpr auto const Max_Password_Length = 120;
-	// We will arbitrarily limit supplementary entropy characters to 120 characters.
-	static constexpr auto const Max_Supplementary_Entropy_Chars = 120;
-	/* OS-Specific Compile-Time Constants */
-#if    defined (__UnixLike__)
-	static_assert (Max_Password_Length == 120);
-	static constexpr auto const Password_Prompt = "Please input a password (max length 120 characters).\n> ";
-	static constexpr auto const Password_Reentry_Prompt = "Good. Please input the same password again (max length 120 characters).\n> ";
-	static_assert (Max_Supplementary_Entropy_Chars == 120);
-	static constexpr auto const Supplementary_Entropy_Prompt = "Please input up to 120 random characters.\n> ";
-/* For the functions we're going to use in the win64 implementation of ssc::Terminal, we require
- * lines to be terminated by \n\r instead of just \n.
- */
-#elif  defined (__Win64__)
-	static_assert (Max_Password_Length == 120);
-	static constexpr auto const Password_Prompt = "Please input a password (max length 120 characters).\n\r> ";
-	static constexpr auto const Password_Reentry_Prompt = "Good. Please input the same password again (max length 120 characters).\n\r> ";
-	static_assert (Max_Supplementary_Entropy_Chars == 120);
-	static constexpr auto const Supplementary_Entropy_Prompt = "Please input up to 120 random characters.\n\r> ";
-#else
-#	error "Only defined for Unix-like operating system and 64-bit MS windows"
-#endif
-	/* Compile-Time Type Aliases */
-	// We shall use Threefish with the desired block width.
-	using Threefish_t = Threefish<Block_Bits>;
-	// We shall use Skein with the desired block width.
-	using Skein_t     = Skein    <Block_Bits, true>;
-	// We shall use Threefish in cipher-block-chaining mode, with the specified block width.
-	using CBC_t	  = Cipher_Block_Chaining<Threefish_t, Block_Bits>;
-	// We shall use the Skein_CSPRNG as a cryptographically secure PRNG, with the specified block width.
-	using CSPRNG_t	  = Skein_CSPRNG<Block_Bits>;
-#endif
 	static constexpr auto const &CBC_V2_ID = "3CRYPT_CBC_V2";
 	using CBC_t = Cipher_Block_Chaining<Threefish_t, Block_Bits>;
 
