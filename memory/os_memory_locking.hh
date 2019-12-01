@@ -14,8 +14,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include <ssc/general/symbols.hh>
 
-// For now only support memory locking on GNU/Linux. It's not necessary on OpenBSD (the swap is encrypted by default).
-#ifdef __gnu_linux__
+// Support GNU/Linux, and experiment with support for Win64.
+#if    defined (__gnu_linux__) || defined (__Win64__)
 #	define ENABLE_MEMORYLOCKING
 #else
 #	undef  ENABLE_MEMORYLOCKING
@@ -63,8 +63,15 @@ namespace ssc {
 		if (munlock( addr, length ) != 0)
 			errx( "Error: Failed to munlock()\n" );
 #	elif  defined (__Win64__)
+		if (VirtualUnlock( const_cast<void *>(addr), length ) == 0) {
+			if (GetLastError() != ERROR_NOT_LOCKED)
+				errx( "Error: Failed to VirtualUnlock()\n" );
+		}
+	//FIXME
+#	if 0
 		if (VirtualUnlock( const_cast<void *>(addr), length ) == 0)
 			errx( "Error: Failed to VirtualUnlock()\n" );
+#	endif
 #	else
 #		error "unlock_memory only implemented on win64 and unix-like operating systems."
 #	endif
