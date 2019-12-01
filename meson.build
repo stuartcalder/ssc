@@ -62,7 +62,7 @@ if get_option('enable_experimental_features')
 endif
 
 if os == 'windows'
-	static_library('ssc', source: ssc_src, dependencies: lib_deps,
+	static_library('ssc', sources: ssc_src, dependencies: lib_deps,
 		       cpp_args: cpp_flags, include_directories: inc_dir)
 else
 	shared_library('ssc', sources: ssc_src, dependencies: lib_deps,
