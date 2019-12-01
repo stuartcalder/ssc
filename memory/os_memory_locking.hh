@@ -49,7 +49,7 @@ namespace ssc {
 		if (mlock( addr, length ) != 0)
 			errx( "Error: Failed to mlock()\n" );
 #	elif  defined (__Win64__)
-		if (VirtualLock( addr, length ) == 0)
+		if (VirtualLock( const_cast<void *>(addr), length ) == 0)
 			errx( "Error: Failed to VirtualLock()\n" );
 #	else
 #		error "lock_memory only implemented on win64 and unix-like operating systems."
@@ -63,7 +63,7 @@ namespace ssc {
 		if (munlock( addr, length ) != 0)
 			errx( "Error: Failed to munlock()\n" );
 #	elif  defined (__Win64__)
-		if (VirtualUnlock( addr, length ) == 0)
+		if (VirtualUnlock( const_cast<void *>(addr), length ) == 0)
 			errx( "Error: Failed to VirtualUnlock()\n" );
 #	else
 #		error "unlock_memory only implemented on win64 and unix-like operating systems."
