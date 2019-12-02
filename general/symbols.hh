@@ -47,17 +47,33 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 /* Operating System Macros */
 
 #if    defined (__OpenBSD__) || defined (__gnu_linux__)
-#	define __UnixLike__
+#	ifndef __UnixLike__
+#		define __UnixLike__
+#	else
+#		error "Already defined"
+#	endif
 #elif  defined (_WIN32) || defined (_WIN64)
-#	define __Windows__
+#	ifndef __Windows__
+#		define __Windows__
+#	else
+#		error "Already defined"
+#	endif
 #else
-#	error "OpenBSD, GNU/Linux and Windows the only supported operating systems."
+#	error "OpenBSD, GNU/Linux, and Win64 are the only supported operating systems."
 #endif
 
 #ifdef __Windows__
-#	if   !defined (_WIN64)
-#		define __Win32__
+#	ifndef _WIN64
+#		ifndef __Win32__
+#			define __Win32__
+#		else
+#			error "Already defined"
+#		endif
 #	else
-#		define __Win64__
+#		ifndef __Win64__
+#			define __Win64__
+#		else
+#			error "Already defined"
+#		endif
 #	endif
 #endif

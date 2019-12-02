@@ -12,14 +12,22 @@
 #include <cstring>
 #include <string>
 
-#define CTIME_CONST static constexpr auto const
-
-#if    defined (__UnixLike__)
-#	define OS_PROMPT	"\n> "
-#elif  defined (__Windows__)
-#	define OS_PROMPT	"\n\r> "
+#ifndef CTIME_CONST
+#	define CTIME_CONST static constexpr auto const
 #else
-#	error "Unsupported OS"
+#	error "Already defined"
+#endif
+
+#ifndef OS_PROMPT
+#	if    defined (__UnixLike__)
+#		define OS_PROMPT	"\n> "
+#	elif  defined (__Windows__)
+#		define OS_PROMPT	"\n\r> "
+#	else
+#		error "Unsupported OS"
+#	endif
+#else
+#	error "Already defined"
 #endif
 
 namespace ssc::crypto_impl {
@@ -66,6 +74,5 @@ namespace ssc::crypto_impl {
 	supplement_entropy (CSPRNG_t &csprng);
 
 }/*namespace ssc::crypto_impl*/
-
 #undef OS_PROMPT
 #undef CTIME_CONST

@@ -16,7 +16,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/files/os_map.hh>
 #include <ssc/general/error_conditions.hh>
 
-extern "C" {
 #if    defined (__UnixLike__)
 #	include <sys/mman.h>
 #elif  defined (__Win64__)
@@ -25,7 +24,6 @@ extern "C" {
 #else
 #	error "Only defined for OpenBSD, GNU/Linux, and Win64"
 #endif
-}/* extern "C" */
 
 namespace ssc {
 	void

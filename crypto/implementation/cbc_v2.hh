@@ -13,11 +13,11 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 */
 #pragma once
 
-#ifdef __SSC_CBC_V2__
-#	error "Somehow, __SSC_CBC_V2__ is already defined..."
+#ifndef __SSC_CBC_V2__
+#	define __SSC_CBC_V2__
+#else
+#	error "Already defined"
 #endif
-
-#define __SSC_CBC_V2__
 
 #include "common.hh"
 

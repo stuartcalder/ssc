@@ -14,20 +14,25 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include <ssc/general/symbols.hh>
 
-// Support GNU/Linux, and experiment with support for Win64.
-#if    defined (__gnu_linux__) || defined (__Win64__)
-#	define ENABLE_MEMORYLOCKING
+#ifndef ENABLE_MEMORYLOCKING
+	// Memory-lock on GNU/Linux and Win64. Not on OpenBSD, since it encrypts swap by default.
+#	if    defined (__gnu_linux__) || defined (__Win64__)
+#		define ENABLE_MEMORYLOCKING
+#	endif
 #else
-#	undef  ENABLE_MEMORYLOCKING
+#	error "Already defined"
 #endif
 
 // If __SSC_DISABLE_MEMORYLOCKING is defined, do not support memory locking.
 #if    defined (ENABLE_MEMORYLOCKING) && !defined (__SSC_DISABLE_MEMORYLOCKING)
 // If this macro is defined, consider memory locking to be supported.
-#	define __SSC_MemoryLocking__
+#	ifndef __SSC_MemoryLocking__
+#		define __SSC_MemoryLocking__
+#	else
+#		error "Already defined"
+#	endif
 
 #	include <cstdlib>
-#	include <cstdio>
 #	include <ssc/general/integers.hh>
 #	include <ssc/general/error_conditions.hh>
 
@@ -67,14 +72,10 @@ namespace ssc {
 			if (GetLastError() != ERROR_NOT_LOCKED)
 				errx( "Error: Failed to VirtualUnlock()\n" );
 		}
-	//FIXME
-#	if 0
-		if (VirtualUnlock( const_cast<void *>(addr), length ) == 0)
-			errx( "Error: Failed to VirtualUnlock()\n" );
-#	endif
 #	else
 #		error "unlock_memory only implemented on win64 and unix-like operating systems."
 #	endif
 	}/* unlock_os_memory */
 }/*namespace ssc*/
 #endif /*#if defined (ENABLE_MEMORYLOCKING) && !defined (__SSC_DISABLE_MEMORYLOCKING)*/
+#undef ENABLE_MEMORYLOCKING

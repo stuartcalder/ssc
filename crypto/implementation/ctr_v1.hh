@@ -13,11 +13,11 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 */
 #pragma once
 
-#ifdef __SSC_CTR_V1__
-#	error "Somehow, __SSC_CTR_V1__ is already defined..."
+#ifndef __SSC_CTR_V1__
+#	define __SSC_CTR_V1__
+#else
+#	error "Already defined"
 #endif
-
-#define __SSC_CTR_V1__
 
 #include "common.hh"
 

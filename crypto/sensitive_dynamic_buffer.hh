@@ -10,10 +10,14 @@
 #	include <ssc/crypto/operations.hh>
 #	include <ssc/memory/os_memory_locking.hh>
 
-#	ifdef __SSC_MemoryLocking__
-#		define DEFAULT_ARG = true
+#	ifndef DEFAULT_ARG
+#		ifdef __SSC_MemoryLocking__
+#			define DEFAULT_ARG = true
+#		else
+#			define DEFAULT_ARG = false
+#		endif
 #	else
-#		define DEFAULT_ARG = false
+#		error "Already defined"
 #	endif
 
 namespace ssc {
@@ -23,7 +27,6 @@ namespace ssc {
 			Sensitive_Dynamic_Buffer (bool DEFAULT_ARG);
 
 			Sensitive_Dynamic_Buffer (size_t const, bool const DEFAULT_ARG);
-#	undef DEFAULT_ARG
 
 			~Sensitive_Dynamic_Buffer (void);
 
@@ -131,3 +134,4 @@ namespace ssc {
 	
 }/*namespace ssc*/
 #endif/*#ifdef __SSC_ENABLE_EXPERIMENTAL*/
+#undef DEFAULT_ARG
