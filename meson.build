@@ -12,10 +12,10 @@ endif
 
 ssc_src = [
 	# `General` Files
-	'general/arg_mapping.cc', 'general/base64.cc', 'general/print.cc',
-	'general/parse_string.cc',
+	'general/arg_mapping.cc', 'general/print.cc', 'general/parse_string.cc',
 	# `Files` Files
-	'files/files.cc', 'files/os_map.cc',
+	#	'files/files.cc', 'files/os_map.cc',
+	#'files/os_map.cc',
 	# `Crypto` Files
 	'crypto/sspkdf.cc', 'crypto/implementation/cbc_v2.cc',
 	'crypto/implementation/common.cc',
