@@ -5,8 +5,10 @@ project('ssc', 'cpp',
 cc = meson.get_compiler('cpp')
 
 os = host_machine.system()
-DEFINE_FLAG_PREFIX = '-D'
-if os == 'windows'
+
+if os != 'windows'
+	DEFINE_FLAG_PREFIX = '-D'
+else
 	DEFINE_FLAG_PREFIX = '/D'
 endif
 

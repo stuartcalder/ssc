@@ -240,8 +240,10 @@ namespace ssc::crypto_impl::cbc_v2 {
 		input_map.size = get_file_size( input_map.os_file );
 		// For now, assume the size of the output file will be the same size as the input file.
 		output_map.size = input_map.size;
+
 		// Check to see if the input file is too small to have possibly been 3CRYPT_CBC_V2 encrypted.
 		CTIME_CONST(decltype(input_map.size)) Minimum_Possible_File_Size = CBC_V2_Header::Total_Size + Block_Bytes + MAC_Bytes;
+
 		if (input_map.size < Minimum_Possible_File_Size) {
 			close_os_file( input_map.os_file );
 			close_os_file( output_map.os_file );
@@ -351,11 +353,14 @@ namespace ssc::crypto_impl::cbc_v2 {
 		Skein_t	    skein    { &ubi };
 		password_length = obtain_password( password, Password_Prompt, Password_Buffer_Bytes );
 
+#if 0
 		sspkdf( derived_key,
 			skein,
 			{password, password_length,
 			 header.sspkdf_salt, header.num_iter,
 			 header.num_concat} );
+#endif
+		sspkdf( derived_key, skein, password, password_length, header.sspkdf_salt, header.num_iter, header.num_concat );
 		zero_sensitive( password, Password_Buffer_Bytes );
 #if 0
 		// Securely zero over the password now that we have the derived key.
@@ -375,9 +380,6 @@ namespace ssc::crypto_impl::cbc_v2 {
 							 input_map.ptr,
 							 derived_key,
 							 input_map.size - MAC_Bytes,
-#if 0
-							 sizeof(derived_key),
-#endif
 							 Block_Bytes,
 							 sizeof(generated_mac) );
 			}
