@@ -30,21 +30,26 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/general/integers.hh>
 #include <ssc/crypto/cipher_block_chaining.hh>
 
+#ifndef CTIME_CONST
+#	define CTIME_CONST(type) static constexpr const type
+#else
+#	error "Already defined"
+#endif
+
 namespace ssc::crypto_impl::cbc_v2 {
-	static constexpr auto const &CBC_V2_ID = "3CRYPT_CBC_V2";
+	CTIME_CONST(auto &)	CBC_V2_ID = "3CRYPT_CBC_V2";
 	using CBC_t = Cipher_Block_Chaining<Threefish_t, Block_Bits>;
 
 	struct DLL_PUBLIC CBC_V2_Header {
-		char	id		[sizeof(CBC_V2_ID)];
-		u64_t	total_size;
-		u8_t	tweak		[Tweak_Bytes];
-		u8_t	sspkdf_salt	[Salt_Bytes];
-		u8_t	cbc_iv		[Block_Bytes];
-		u32_t	num_iter;
-		u32_t	num_concat;
-		static constexpr size_t const Total_Size =
-			sizeof(id) + sizeof(total_size) + sizeof(tweak) +
-			sizeof(sspkdf_salt) + sizeof(cbc_iv) + sizeof(num_iter) + sizeof(num_concat);
+		char			id		[sizeof(CBC_V2_ID)];
+		u64_t			total_size;
+		u8_t			tweak		[Tweak_Bytes];
+		u8_t			sspkdf_salt	[Salt_Bytes];
+		u8_t			cbc_iv		[Block_Bytes];
+		u32_t			num_iter;
+		u32_t			num_concat;
+		CTIME_CONST(int)	Total_Size = sizeof(id) + sizeof(total_size) + sizeof(tweak) +
+			                             sizeof(sspkdf_salt) + sizeof(cbc_iv) + sizeof(num_iter) + sizeof(num_concat);
 	};
 
 	void DLL_PUBLIC
@@ -58,3 +63,4 @@ namespace ssc::crypto_impl::cbc_v2 {
 	dump_header (char const *filename);
 
 }/*namespace ssc::crypto_impl::cbc_v2*/
+#undef CTIME_CONST

@@ -3,3 +3,4 @@
 option('disable_memorylocking',		type: 'boolean', value: false)
 option('enable_experimental_features',	type: 'boolean', value: false)
 option('include_directories',           type: 'array'  , value: []   )
+option('enable_testing',		type: 'boolean', value: false)
