@@ -212,7 +212,7 @@ namespace ssc {
 			errx( "Error: Failed to set size of file descriptor %d to %zu\n", os_file, new_size );
 #elif  defined (__Win64__)
 		LARGE_INTEGER lg_int;
-		lg_int.QuadPart = static_cast<decltype(large_int.QuadPart)>(new_size);
+		lg_int.QuadPart = static_cast<decltype(lg_int.QuadPart)>(new_size);
 		if (SetFilePointerEx( os_file, lg_int, nullptr, FILE_BEGIN ) == 0)
 			errx( "Error: Failed to SetFilePointerEx()\n" );
 		if (SetEndOfFile( os_file ) == 0)
