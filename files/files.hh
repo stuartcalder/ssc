@@ -81,7 +81,7 @@ namespace ssc {
 #elif  defined (__Win64__)
 		OS_File_t os_file = open_existing_os_file( filename, true );
 		size_t const size = get_file_size( os_file );
-		close( os_file );
+		close_os_file( os_file );
 		return size;
 #else
 		size_t num_bytes = 0;
