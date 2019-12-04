@@ -70,7 +70,9 @@ namespace ssc {
 		clear_key_state	(void);
 	private:
 	/* Private Compile-Time constants */
+#if 0
 		CTIME_CONST(auto &)	xor_block_ = xor_block<State_Bits>;
+#endif
 	/* Private Data */
 #if 0
 		Tweakable_Block_Cipher_t block_cipher;
@@ -160,7 +162,7 @@ namespace ssc {
 		twk_blk_cipher->rekey( key_state, tweak_state );
 		// First block
 		twk_blk_cipher->cipher( key_state, msg_state );
-		xor_block_( key_state, msg_state );
+		xor_block<State_Bits>( key_state, msg_state );
 		clear_tweak_first_();
 		// Intermediate blocks (assuming first block wasn't also the last block)
 		while (message_bytes_left > State_Bytes ) {
@@ -170,7 +172,7 @@ namespace ssc {
 			(*position)         += bytes_just_read;
 			twk_blk_cipher->rekey( key_state, tweak_state );
 			twk_blk_cipher->cipher( key_state, msg_state );
-			xor_block_( key_state, msg_state );
+			xor_block<State_Bits>( key_state, msg_state );
 		}
 		// Last block (assuming first block wasn't also the last block)
 		if (message_bytes_left > 0) {
@@ -178,7 +180,7 @@ namespace ssc {
 			(*position) += read_msg_block_( message_offset, message_bytes_left );
 			twk_blk_cipher->rekey( key_state, tweak_state );
 			twk_blk_cipher->cipher( key_state, msg_state );
-			xor_block_( key_state, msg_state );
+			xor_block<State_Bits>( key_state, msg_state );
 		}
 #if 0
 		using namespace std;
