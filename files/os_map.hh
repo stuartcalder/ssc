@@ -77,7 +77,7 @@ namespace ssc {
 #elif  defined (__Win64__)
 		if (UnmapViewOfFile( static_cast<LPCVOID>(os_map.ptr) ) == 0)
 			errx( "Error: Failed to UnmapViewOfFile()\n" );
-		close_os_file( os_map.win64_filemapping;
+		close_os_file( os_map.win64_filemapping );
 #else
 #	error "Unsupported OS"
 #endif
