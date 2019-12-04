@@ -61,7 +61,7 @@ namespace ssc {
 		if (os_map.win64_filemapping == nullptr)
 			errx( "Error: Failed during CreateFileMappingA()\n" );
 		os_map.ptr = static_cast<u8_t *>(MapViewOfFile( os_map.win64_filemapping, map_readwrite_flag, 0, 0, os_map.size ));
-		if (os_map == nullptr)
+		if (os_map.ptr == nullptr)
 			errx( "Error: Failed during MapViewOfFile()\n" );
 #else
 #	error "Unsupported OS"
@@ -77,7 +77,7 @@ namespace ssc {
 #elif  defined (__Win64__)
 		if (UnmapViewOfFile( static_cast<LPCVOID>(os_map.ptr) ) == 0)
 			errx( "Error: Failed to UnmapViewOfFile()\n" );
-		close_os_file( os_map.win64_filemapping;
+		close_os_file( os_map.win64_filemapping );
 #else
 #	error "Unsupported OS"
 #endif

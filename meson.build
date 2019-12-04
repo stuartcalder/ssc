@@ -5,19 +5,21 @@ project('ssc', 'cpp',
 cc = meson.get_compiler('cpp')
 
 os = host_machine.system()
-define_flag_prefix = '-D'
-if os == 'windows'
-	define_flag_prefix = '/D'
+
+if os != 'windows'
+	DEFINE_FLAG_PREFIX = '-D'
+else
+	DEFINE_FLAG_PREFIX = '/D'
 endif
 
 ssc_src = [
 	# `General` Files
-	'general/arg_mapping.cc', 'general/print.cc', 'general/parse_string.cc',
-	# `Files` Files
-	#	'files/files.cc', 'files/os_map.cc',
-	#'files/os_map.cc',
+	'general/arg_mapping.cc',
+	'general/print.cc',
+	'general/parse_string.cc',
 	# `Crypto` Files
-	'crypto/sspkdf.cc', 'crypto/implementation/cbc_v2.cc',
+	'crypto/implementation/sspkdf.cc',
+	'crypto/implementation/cbc_v2.cc',
 	'crypto/implementation/common.cc',
 	# `Interface` Files
 	'interface/terminal.cc'
@@ -38,7 +40,7 @@ elif os == 'linux'
 	include = '/usr/include'
 	lib_deps += cc.find_library('tinfo')
 elif os == 'windows'
-	flag = define_flag_prefix + '__BUILD_STATIC'
+	flag = DEFINE_FLAG_PREFIX + '__BUILD_STATIC'
 	cpp_flags += flag
 	include = 'C:/include'
 	lib_deps += cc.find_library('bcrypt')
@@ -51,12 +53,17 @@ endif
 inc_dir += include
 
 if get_option('disable_memorylocking')
-	flag = define_flag_prefix + '__SSC_DISABLE_MEMORYLOCKING'
+	flag = DEFINE_FLAG_PREFIX + '__SSC_DISABLE_MEMORYLOCKING'
+	cpp_flags += flag
+endif
+
+if get_option('enable_testing')
+	flag = DEFINE_FLAG_PREFIX + '__SSC_ENABLE_TESTING'
 	cpp_flags += flag
 endif
 
 if get_option('enable_experimental_features')
-	flag = define_flag_prefix + '__SSC_ENABLE_EXPERIMENTAL'
+	flag = DEFINE_FLAG_PREFIX + '__SSC_ENABLE_EXPERIMENTAL'
 	cpp_flags += flag
 	ssc_src += 'crypto/implementation/ctr_v1.cc'
 endif

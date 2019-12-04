@@ -18,26 +18,33 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/general/integers.hh>
 #include <ssc/general/symbols.hh>
 
+#ifndef CTIME_CONST
+#	define CTIME_CONST(type) static constexpr const type
+#else
+#	error "Already defined"
+#endif
 
 namespace ssc {
 	template <size_t State_Bits, bool Sensitive = true>
 	class Skein {
 	public:
 		/* PUBLIC CONSTANTS and COMPILE-TIME CHECKS */
-		static_assert (CHAR_BIT == 8);
-		static_assert ((State_Bits ==  256 ||
-		                State_Bits ==  512 ||
-		                State_Bits == 1024),
-		                "Skein is only defined for 256, 512, 1024 bit states.");
-		// Use Threefish with a block size of (State_Bits/8) and do NOT memory lock on key expansion operations.
-		using Threefish_t = Threefish<State_Bits, false>;
-		// Skein is based upon the Unique Block Iteration mode for the Threefish tweakable block cipher.
-		using UBI_t       = Unique_Block_Iteration<Threefish_t, State_Bits, Sensitive>;
-		// Use the "type mask" defined by UBI_t when processing config blocks, key blocks, etc.
+		static_assert	(CHAR_BIT == 8);
+		static_assert	(State_Bits == 256 || State_Bits == 512 || State_Bits == 1024);
+
+		using Threefish_t = Threefish<State_Bits>;
+		using UBI_t	  = Unique_Block_Iteration<Threefish_t, State_Bits>;
 		using Type_Mask_E = typename UBI_t::Type_Mask_E;
-		static constexpr const size_t State_Bytes = State_Bits / 8;
+
+		CTIME_CONST(size_t)	State_Bytes = State_Bits / CHAR_BIT;
 
 		/* PUBLIC INTERFACE */
+		Skein (void) = delete;
+		Skein (UBI_t *u)
+			: ubi{ u }
+		{
+		}
+
 		// Receive output bytes and output pseudorandom bytes from the hash function.
 		void
 		hash (u8_t * const         bytes_out,
@@ -61,17 +68,17 @@ namespace ssc {
 		             u64_t const          num_bytes_in);
 	private:
 		/* PRIVATE DATA */
-		UBI_t ubi;
+		UBI_t	*ubi;
 		
 		/* PRIVATE INTERFACE */
 		void
 		process_config_block_ (u64_t const num_output_bits);
 
-		void
+		inline void
 		process_key_block_ (u8_t const * const   key_in,
 				    u64_t const          key_size);
 
-		void
+		inline void
 		process_message_block_ (u8_t const * const   message_in,
 				        u64_t const          message_size);
 
@@ -101,7 +108,7 @@ namespace ssc {
 			0x00, 0x00, 0x00, 0x00
 		};
 		std::memcpy( config + 8, &num_output_bits, sizeof(num_output_bits) );
-		ubi.chain( Type_Mask_E::T_cfg, config, sizeof(config) );
+		ubi->chain( Type_Mask_E::T_cfg, config, sizeof(config) );
 	} /* process_config_block_ */
     
 	template <size_t State_Bits, bool Sensitive>
@@ -109,7 +116,7 @@ namespace ssc {
 	Skein<State_Bits,Sensitive>::process_key_block_ (u8_t const * const key_in,
 			                                 u64_t const        key_size)
 	{
-		ubi.chain( Type_Mask_E::T_key, key_in, key_size );
+		ubi->chain( Type_Mask_E::T_key, key_in, key_size );
 	}
     
 	template <size_t State_Bits, bool Sensitive>
@@ -117,7 +124,7 @@ namespace ssc {
 	Skein<State_Bits,Sensitive>::process_message_block_ (u8_t const * const message_in,
 			                                     u64_t const        message_size)
 	{
-		ubi.chain( Type_Mask_E::T_msg, message_in, message_size );
+		ubi->chain( Type_Mask_E::T_msg, message_in, message_size );
 	}
     
 	template <size_t State_Bits, bool Sensitive>
@@ -127,15 +134,15 @@ namespace ssc {
 	{
 		u64_t bytes_left = num_output_bytes;
 		u64_t i = 0;
-		for (;;) {
-			ubi.chain( Type_Mask_E::T_out, reinterpret_cast<u8_t *>(&i), sizeof(i) );
+		while (true) {
+			ubi->chain( Type_Mask_E::T_out, reinterpret_cast<u8_t *>(&i), sizeof(i) );
 			++i;
 			if (bytes_left >= State_Bytes) {
-				std::memcpy( out, ubi.get_key_state(), State_Bytes );
+				std::memcpy( out, ubi->get_key_state(), State_Bytes );
 				out        += State_Bytes;
 				bytes_left -= State_Bytes;
 			} else {
-				std::memcpy( out, ubi.get_key_state(), bytes_left );
+				std::memcpy( out, ubi->get_key_state(), bytes_left );
 				break;
 			}
 		}
@@ -148,7 +155,7 @@ namespace ssc {
 				           u64_t const		num_bytes_in,
 				           u64_t const		num_bytes_out)
 	{
-		ubi.clear_key_state();
+		ubi->clear_key_state();
 		static_assert (CHAR_BIT == 8);
 		process_config_block_( num_bytes_out * CHAR_BIT );
 		process_message_block_( bytes_in, num_bytes_in );
@@ -164,7 +171,7 @@ namespace ssc {
 							 u64_t const        num_key_bytes_in,
 							 u64_t const        num_bytes_out)
 	{
-		ubi.clear_key_state();
+		ubi->clear_key_state();
 		process_key_block_( key_in, num_key_bytes_in );
 		static_assert (CHAR_BIT == 8);
 		process_config_block_( num_bytes_out * CHAR_BIT );
@@ -189,7 +196,7 @@ namespace ssc {
 				0xb3'3b'c3'89'66'56'84'0f,
 				0x6a'54'e9'20'fd'e8'da'69
 			};
-			std::memcpy( ubi.get_key_state(), init_chain, sizeof(init_chain) );
+			std::memcpy( ubi->get_key_state(), init_chain, sizeof(init_chain) );
 		} else if constexpr(State_Bits == 512) {
 			static constexpr u64_t const init_chain [8] = {
 				0x49'03'ad'ff'74'9c'51'ce,
@@ -201,7 +208,7 @@ namespace ssc {
 				0x99'11'12'c7'1a'75'b5'23,
 				0xae'18'a4'0b'66'0f'cc'33
 			};
-			std::memcpy( ubi.get_key_state(), init_chain, sizeof(init_chain) );
+			std::memcpy( ubi->get_key_state(), init_chain, sizeof(init_chain) );
 		} else if constexpr(State_Bits == 1024) {
 			static constexpr u64_t const init_chain[16] = {
 				0xd5'93'da'07'41'e7'23'55, // 0
@@ -221,10 +228,10 @@ namespace ssc {
 				0x61'fd'30'62'd0'0a'57'9a, //14
 				0x1d'e0'53'6e'86'82'e5'39  //15
 			};
-			std::memcpy( ubi.get_key_state(), init_chain, sizeof(init_chain) );
+			std::memcpy( ubi->get_key_state(), init_chain, sizeof(init_chain) );
 		}
 		process_message_block_( bytes_in, num_bytes_in );
 		output_transform_( bytes_out, State_Bytes );
 	} /* hash_native */
 } /* ! namespace ssc */
-    
+#undef CTIME_CONST

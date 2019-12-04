@@ -13,10 +13,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 */
 #include <cstdio>
 
-#include <ssc/crypto/implementation/cbc_v2.hh>
-
 #include <ssc/crypto/operations.hh>
-#include <ssc/crypto/sspkdf.hh>
 #include <ssc/general/symbols.hh>
 #include <ssc/general/print.hh>
 #include <ssc/general/error_conditions.hh>
@@ -25,11 +22,21 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/interface/terminal.hh>
 #include <ssc/memory/os_memory_locking.hh>
 
+#include "sspkdf.hh"
+#include "cbc_v2.hh"
+
+#ifndef CTIME_CONST
+#	define CTIME_CONST(type) static constexpr const type
+#else
+#	error "Already defined"
+#endif
+
 namespace ssc::crypto_impl::cbc_v2 {
 
 	static u64_t
 	calculate_encrypted_size	(u64_t const pre_encryption_size) {
-		constexpr auto const File_Metadata_Size = CBC_V2_Header::Total_Size + MAC_Bytes;
+		CTIME_CONST(int) File_Metadata_Size = CBC_V2_Header::Total_Size + MAC_Bytes;
+
 		auto s = pre_encryption_size;
 		if ( s < Block_Bytes )
 			s = Block_Bytes;
@@ -41,8 +48,10 @@ namespace ssc::crypto_impl::cbc_v2 {
 	void
 	encrypt	(Input const & encr_input) {
 		using namespace std;
-
+#if 0
 		CSPRNG_t csprng;
+		OS_Map input_map, output_map;
+#endif
 		OS_Map input_map, output_map;
 
 		// Open input file
@@ -58,6 +67,34 @@ namespace ssc::crypto_impl::cbc_v2 {
 		// Memory-Map the files
 		map_file( input_map , true  );
 		map_file( output_map, false );
+
+		// We're going to need raw Threefish, Threefish in UBI mode for Skein, and Threefish in CBC mode for encryption.
+		CTIME_CONST(int) CSPRNG_Buffer_Bytes = 128;
+		CTIME_CONST(int) Locked_Buffer_Size = []() -> int {
+			int size = 0;
+			size += (Password_Buffer_Bytes * 2); // Two password buffers
+			size += Block_Bytes;		     // Derived key
+			size += Threefish_t::Buffer_Bytes;   // Threefish data
+			size +=       UBI_t::Buffer_Bytes;   // UBI data
+			size += (CSPRNG_Buffer_Bytes > CBC_t::Buffer_Bytes ? CSPRNG_Buffer_Bytes : CBC_t::Buffer_Bytes);
+			size += Supplement_Entropy_Buffer_Bytes;
+			size += (size % sizeof(u64_t));
+			return size;
+		}();
+		u8_t	locked_buffer [Locked_Buffer_Size];
+#ifdef __SSC_MemoryLocking__
+		lock_os_memory( locked_buffer, sizeof(locked_buffer) );
+#endif
+		CTIME_CONST(int) Password_Offset       = 0;
+		CTIME_CONST(int) Password_Check_Offset = Password_Offset       + Password_Buffer_Bytes;
+		CTIME_CONST(int) Derived_Key_Offset    = Password_Check_Offset + Password_Buffer_Bytes;
+		CTIME_CONST(int) Threefish_Data_Offset = Derived_Key_Offset    + Block_Bytes;
+		CTIME_CONST(int) UBI_Data_Offset       = Threefish_Data_Offset + Threefish_t::Buffer_Bytes;
+		CTIME_CONST(int) CSPRNG_Data_Offset    = UBI_Data_Offset       + UBI_t::Buffer_Bytes;
+		CTIME_CONST(int) Entropy_Data_Offset   = CSPRNG_Data_Offset    + (CSPRNG_Buffer_Bytes > CBC_t::Buffer_Bytes ? CSPRNG_Buffer_Bytes : CBC_t::Buffer_Bytes);
+		// After we use the CSPRNG, we can store the CBC data in the same memory region.
+		CTIME_CONST(int) CBC_Data_Offset       = CSPRNG_Data_Offset;
+#if 0
 		// Get the password
 		char password [Password_Buffer_Bytes];
 #ifdef __SSC_MemoryLocking__
@@ -66,14 +103,36 @@ namespace ssc::crypto_impl::cbc_v2 {
 		int password_length = obtain_password( password, Password_Prompt, Password_Reentry_Prompt, sizeof(password) );
 		if (encr_input.supplement_os_entropy)
 			supplement_entropy( csprng );
-		// Create a header
+#endif
+		Threefish_t threefish{ reinterpret_cast<u64_t *>(locked_buffer + Threefish_Data_Offset) };
+		UBI_t       ubi      { &threefish, (locked_buffer + UBI_Data_Offset) };
+		Skein_t	    skein    { &ubi };
 		CBC_V2_Header header;
-		static_assert (sizeof(header.id) == sizeof(CBC_V2_ID));
-		memcpy( header.id, CBC_V2_ID, sizeof(header.id) );
-		header.total_size = static_cast<decltype(header.total_size)>(output_map.size);
-		csprng.get( header.tweak      , sizeof(header.tweak)       );
-		csprng.get( header.sspkdf_salt, sizeof(header.sspkdf_salt) );
-		csprng.get( header.cbc_iv     , sizeof(header.cbc_iv)      );
+		int	password_length;
+		char	*password    = reinterpret_cast<char *>(locked_buffer + Password_Offset);
+		{
+			u8_t		*csprng_data = locked_buffer + CSPRNG_Data_Offset;
+			CSPRNG_t	csprng   { &skein, csprng_data, CSPRNG_Buffer_Bytes };
+			{
+				static_assert (sizeof(char) == sizeof(u8_t));
+				char	*password_check = reinterpret_cast<char *>(locked_buffer + Password_Check_Offset);
+
+				password_length = obtain_password( password, password_check, Password_Prompt, Password_Reentry_Prompt, Password_Buffer_Bytes );
+				zero_sensitive( password_check, Password_Buffer_Bytes );
+			}
+			if (encr_input.supplement_os_entropy) {
+				u8_t	*entropy_data = locked_buffer + Entropy_Data_Offset;
+				supplement_entropy( csprng, skein, entropy_data );
+				zero_sensitive( entropy_data, Supplement_Entropy_Buffer_Bytes );
+			}
+			static_assert (sizeof(header.id) == sizeof(CBC_V2_ID));
+			memcpy( header.id, CBC_V2_ID, sizeof(header.id) );
+			header.total_size = static_cast<decltype(header.total_size)>(output_map.size);
+			csprng.get( header.tweak      , sizeof(header.tweak)       );
+			csprng.get( header.sspkdf_salt, sizeof(header.sspkdf_salt) );
+			csprng.get( header.cbc_iv     , sizeof(header.cbc_iv)      );
+			zero_sensitive( csprng_data, CSPRNG_Buffer_Bytes );
+		}
 		header.num_iter   = encr_input.number_sspkdf_iterations;
 		header.num_concat = encr_input.number_sspkdf_concatenations;
 		// Copy header into the file, field at a time, advancing the pointer
@@ -100,33 +159,63 @@ namespace ssc::crypto_impl::cbc_v2 {
 			memcpy( out, &header.num_concat, sizeof(header.num_concat) );
 			out += sizeof(header.num_concat);
 		}
-
+#if 0
 		// Generate a 512-bit symmetric key using the password we got earlier as input
 		u8_t derived_key [Block_Bytes];
 #ifdef __SSC_MemoryLocking__
 		lock_os_memory( derived_key, sizeof(derived_key) );
 #endif
+#endif
+		u8_t	*derived_key = locked_buffer + Derived_Key_Offset;
+#if 0
 		sspkdf( derived_key, password, password_length, header.sspkdf_salt, header.num_iter, header.num_concat );
+		sspkdf ( derived_key,
+			 skein,
+			 {password, password_length,
+			  header.sspkdf_salt,
+			  header.num_iter,
+			  header.num_concat} );
+#endif
+		sspkdf( derived_key, skein, password, password_length, header.sspkdf_salt, header.num_iter, header.num_concat );
+		zero_sensitive( password, Password_Buffer_Bytes );
+#if 0
 		// Securely zero over the password buffer after we've used it to generate the symmetric key
 		zero_sensitive( password, sizeof(password) );
 #ifdef __SSC_MemoryLocking__
 		unlock_os_memory( password, sizeof(password) );
 #endif
+#endif
 		{
+#if 0
 			// Encrypt the input file, writing the ciphertext into the memory-mapped output file
 			CBC_t cbc{ derived_key, header.tweak };
 			out += cbc.encrypt( input_map.ptr, out, input_map.size, header.cbc_iv );
+#endif
+			u8_t	*cbc_data = locked_buffer + CBC_Data_Offset;
+			threefish.rekey( derived_key, header.tweak );
+			CBC_t	cbc{ &threefish, cbc_data };
+			out += cbc.encrypt( out, input_map.ptr, input_map.size, header.cbc_iv );
+			zero_sensitive( cbc_data, CBC_t::Buffer_Bytes );
 		}
 		{
+#if 0
 			// Create a 512-bit Message Authentication Code of the ciphertext, using the derived key and the ciphertext with Skein's native MAC
 			// then append the MAC to the end of the ciphertext.
 			Skein_t skein;
 			skein.message_auth_code( out, output_map.ptr, derived_key, output_map.size - MAC_Bytes, sizeof(derived_key), MAC_Bytes );
+#endif
+			skein.message_auth_code( out, output_map.ptr, derived_key, output_map.size - MAC_Bytes, Block_Bytes, MAC_Bytes );
 		}
+#if 0
 		// Securely zero over the derived key
 		zero_sensitive( derived_key, sizeof(derived_key) );
 #ifdef __SSC_MemoryLocking__
 		unlock_os_memory( derived_key, sizeof(derived_key) );
+#endif
+#endif
+		zero_sensitive( locked_buffer, sizeof(locked_buffer) );
+#ifdef __SSC_MemoryLocking__
+		unlock_os_memory( locked_buffer, sizeof(locked_buffer) );
 #endif
 		// Synchronize everything written to the output file
 		sync_map( output_map );
@@ -151,8 +240,10 @@ namespace ssc::crypto_impl::cbc_v2 {
 		input_map.size = get_file_size( input_map.os_file );
 		// For now, assume the size of the output file will be the same size as the input file.
 		output_map.size = input_map.size;
+
 		// Check to see if the input file is too small to have possibly been 3CRYPT_CBC_V2 encrypted.
-		static constexpr auto const Minimum_Possible_File_Size = CBC_V2_Header::Total_Size + Block_Bytes + MAC_Bytes;
+		CTIME_CONST(decltype(input_map.size)) Minimum_Possible_File_Size = CBC_V2_Header::Total_Size + Block_Bytes + MAC_Bytes;
+
 		if (input_map.size < Minimum_Possible_File_Size) {
 			close_os_file( input_map.os_file );
 			close_os_file( output_map.os_file );
@@ -209,6 +300,7 @@ namespace ssc::crypto_impl::cbc_v2 {
 			remove( output_filename );
 			errx( "Error: Input file size (%zu) does not equal file size in the file header of the input file (%zu)\n", input_map.size, header.total_size );
 		}
+#if 0
 		// Get the password
 		char password [Password_Buffer_Bytes] = { 0 };
 		int  password_length;
@@ -223,28 +315,84 @@ namespace ssc::crypto_impl::cbc_v2 {
 #ifdef __SSC_MemoryLocking__
 		lock_os_memory( derived_key, sizeof(derived_key) );
 #endif
+#endif
+		CTIME_CONST(int) Locked_Buffer_Size = []() -> int {
+			int size = 0;
+			size += Password_Buffer_Bytes;
+			size += Block_Bytes; // Derived key
+			size += Threefish_t::Buffer_Bytes;
+			size += UBI_t::Buffer_Bytes;
+			size += CBC_t::Buffer_Bytes;
+			size += (size % sizeof(u64_t));
+			return size;
+		}();
+
+		CTIME_CONST(int) Password_Offset = 0;
+		CTIME_CONST(int) Derived_Key_Offset = Password_Offset + Password_Buffer_Bytes;
+		CTIME_CONST(int) Threefish_Offset   = Derived_Key_Offset + Block_Bytes;
+		CTIME_CONST(int) UBI_Offset         = Threefish_Offset + Threefish_t::Buffer_Bytes;
+		CTIME_CONST(int) CBC_Offset         = UBI_Offset;
+
+		u8_t	locked_buffer [Locked_Buffer_Size];
+#ifdef __SSC_MemoryLocking__
+		lock_os_memory( locked_buffer, sizeof(locked_buffer) );
+#endif
+		static_assert	(sizeof(char) == sizeof(u8_t));
+		int		password_length;
+		char	* const password        = reinterpret_cast<char *>(locked_buffer + Password_Offset   );
+		u8_t	* const derived_key     =                         (locked_buffer + Derived_Key_Offset);
+		u64_t	* const threefish_data = reinterpret_cast<u64_t *>(locked_buffer + Threefish_Offset);
+		u8_t	* const ubi_data        =                         (locked_buffer + UBI_Offset);
+		u8_t	* const cbc_data        =                         (locked_buffer + CBC_Offset);
+
+#if 0
 		sspkdf( derived_key, password, password_length, header.sspkdf_salt, header.num_iter, header.num_concat );
+#endif
+		Threefish_t threefish{ threefish_data };
+		UBI_t	    ubi      { &threefish, ubi_data };
+		Skein_t	    skein    { &ubi };
+		password_length = obtain_password( password, Password_Prompt, Password_Buffer_Bytes );
+
+#if 0
+		sspkdf( derived_key,
+			skein,
+			{password, password_length,
+			 header.sspkdf_salt, header.num_iter,
+			 header.num_concat} );
+#endif
+		sspkdf( derived_key, skein, password, password_length, header.sspkdf_salt, header.num_iter, header.num_concat );
+		zero_sensitive( password, Password_Buffer_Bytes );
+#if 0
 		// Securely zero over the password now that we have the derived key.
 		zero_sensitive( password, sizeof(password) );
 #ifdef __SSC_MemoryLocking__
 		unlock_os_memory( password, sizeof(password) );
 #endif
+#endif
 		{
 			// Generate a MAC using the ciphertext and the derived key, and compare it to the MAC at the end of the input file.
 			u8_t generated_mac [MAC_Bytes];
 			{
+#if 0
 				Skein_t skein;
+#endif
 				skein.message_auth_code( generated_mac,
 							 input_map.ptr,
 							 derived_key,
 							 input_map.size - MAC_Bytes,
-							 sizeof(derived_key),
+							 Block_Bytes,
 							 sizeof(generated_mac) );
 			}
 			if (memcmp( generated_mac, (input_map.ptr + input_map.size - MAC_Bytes), MAC_Bytes) != 0) {
+#if 0
 				zero_sensitive( derived_key, sizeof(derived_key) );
 #ifdef __SSC_MemoryLocking__
 				unlock_os_memory( derived_key, sizeof(derived_key) );
+#endif
+#endif
+				zero_sensitive( locked_buffer, sizeof(locked_buffer) );
+#ifdef __SSC_MemoryLocking__
+				unlock_os_memory( locked_buffer, sizeof(locked_buffer) );
 #endif
 				unmap_file( input_map );
 				unmap_file( output_map );
@@ -257,6 +405,7 @@ namespace ssc::crypto_impl::cbc_v2 {
 		}
 		size_t plaintext_size;
 		{
+#if 0
 			// Decrypt the input file's ciphertext into the output file, recording the number of bytes of plaintext in `plaintext_size`.
 			CBC_t cbc{ derived_key, header.tweak };
 			// Securely zero over the derived key now that we're done with it.
@@ -264,12 +413,25 @@ namespace ssc::crypto_impl::cbc_v2 {
 #ifdef __SSC_MemoryLocking__
 			unlock_os_memory( derived_key, sizeof(derived_key) );
 #endif
+#endif
+			threefish.rekey( derived_key, header.tweak );
+			CBC_t cbc{ &threefish, cbc_data };
+#if 0
 			static constexpr auto const File_Metadata_Size = CBC_V2_Header::Total_Size + MAC_Bytes;
+#endif
+			CTIME_CONST(int) File_Metadata_Size = CBC_V2_Header::Total_Size + MAC_Bytes;
+#if 0
 			plaintext_size = cbc.decrypt( in,
 						      output_map.ptr,
 						      input_map.size - File_Metadata_Size,
 						      header.cbc_iv );
+#endif
+			plaintext_size = cbc.decrypt( output_map.ptr, in, input_map.size - File_Metadata_Size, header.cbc_iv );
 		}
+		zero_sensitive( locked_buffer, sizeof(locked_buffer) );
+#ifdef __SSC_MemoryLocking__
+		unlock_os_memory( locked_buffer, sizeof(locked_buffer) );
+#endif
 		// Synchronize the output file.
 		sync_map( output_map );
 		// Unmap the memory-mapped input and output files.
@@ -342,3 +504,4 @@ namespace ssc::crypto_impl::cbc_v2 {
 		putchar( '\n' );
 	}/* ! dump_header */
 }/*namespace ssc::crypto_impl::cbc_v2*/
+#undef CTIME_CONST

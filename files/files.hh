@@ -41,7 +41,18 @@ namespace ssc {
 #	error "Unsupported platform"
 #endif
 
-	inline size_t
+	inline size_t	 get_file_size (OS_File_t const);
+	inline size_t	 get_file_size (char const *);
+	inline size_t	 get_file_size (std::FILE *);
+	inline bool	 file_exists   (char const *);
+	inline void	 check_file_name_sanity (std::string const &, size_t const);
+	inline void	 enforce_file_existence (char const *__restrict, bool const, char const *__restrict = nullptr);
+	inline OS_File_t open_existing_os_file  (char const *, bool const);
+	inline OS_File_t create_os_file         (char const *);
+	inline void	 close_os_file		(OS_File_t const);
+	inline void	 set_os_file_size	(OS_File_t const, size_t const);
+
+	size_t
 	get_file_size (OS_File_t const os_file) {
 		using namespace std;
 #if    defined (__UnixLike__)
@@ -59,7 +70,7 @@ namespace ssc {
 #endif
 	}
 
-	inline size_t
+	size_t
 	get_file_size (char const *filename) {
 		using namespace std;
 #if    defined (__UnixLike__)
@@ -70,7 +81,7 @@ namespace ssc {
 #elif  defined (__Win64__)
 		OS_File_t os_file = open_existing_os_file( filename, true );
 		size_t const size = get_file_size( os_file );
-		close( os_file );
+		close_os_file( os_file );
 		return size;
 #else
 		size_t num_bytes = 0;
@@ -85,7 +96,7 @@ namespace ssc {
 #endif
 	}
 
-	inline size_t
+	size_t
 	get_file_size (std::FILE *file) {
 		using namespace std;
 
@@ -100,7 +111,7 @@ namespace ssc {
 		return num_bytes;
 	}
 	
-	inline bool
+	bool
 	file_exists (char const *filename) {
 		using namespace std;
 
@@ -113,16 +124,16 @@ namespace ssc {
 		return exists;
 	}
 
-	inline void
+	void
 	check_file_name_sanity (std::string const &str, size_t const min_size) {
 		if (str.size() < min_size)
 			errx( "Error: Filename %s must have at least %zu character(s)\n", str.c_str(), min_size );
 	}
 
-	inline void
+	void
 	enforce_file_existence (char const *__restrict filename,
 			        bool const             force_to_exist,
-				char const *__restrict opt_error_msg = nullptr)
+				char const *__restrict opt_error_msg)
 	{
 		using namespace std;
 
@@ -139,7 +150,7 @@ namespace ssc {
 		errx( "Error: The file %s doesn't seem to exist.\n", filename );
 	}
 
-	inline OS_File_t
+	OS_File_t
 	open_existing_os_file (char const *filename, bool const readonly) {
 		using namespace std;
 		enforce_file_existence( filename, true );
@@ -160,7 +171,7 @@ namespace ssc {
 #endif
 	}
 
-	inline OS_File_t
+	OS_File_t
 	create_os_file (char const *filename) {
 		using namespace std;
 		enforce_file_existence( filename, false );
@@ -179,7 +190,7 @@ namespace ssc {
 #endif
 	}
 
-	inline void
+	void
 	close_os_file (OS_File_t const os_file) {
 		using namespace std;
 #if    defined (__UnixLike__)
@@ -193,7 +204,7 @@ namespace ssc {
 #endif
 	}
 
-	inline void
+	void
 	set_os_file_size (OS_File_t const os_file, size_t const new_size) {
 		using namespace std;
 #if    defined (__UnixLike__)
@@ -201,7 +212,7 @@ namespace ssc {
 			errx( "Error: Failed to set size of file descriptor %d to %zu\n", os_file, new_size );
 #elif  defined (__Win64__)
 		LARGE_INTEGER lg_int;
-		lg_int.QuadPart = static_cast<decltype(large_int.QuadPart)>(new_size);
+		lg_int.QuadPart = static_cast<decltype(lg_int.QuadPart)>(new_size);
 		if (SetFilePointerEx( os_file, lg_int, nullptr, FILE_BEGIN ) == 0)
 			errx( "Error: Failed to SetFilePointerEx()\n" );
 		if (SetEndOfFile( os_file ) == 0)

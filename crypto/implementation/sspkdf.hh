@@ -18,10 +18,10 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <memory>
 #include <ssc/general/integers.hh>
 #include <ssc/general/symbols.hh>
+#include "common.hh"
 
-namespace ssc
-{
-	static_assert (sizeof(int) >= sizeof(u32_t));
+namespace ssc::crypto_impl {
+#if 0
 	void DLL_PUBLIC
 	sspkdf	(u8_t *__restrict const		derived_key,
 		 char const *__restrict const   password,
@@ -29,4 +29,17 @@ namespace ssc
 		 u8_t const *__restrict const	salt,
 		 u32_t const                    number_iterations,
 		 u32_t const                    number_concatenations);
+	void DLL_PUBLIC
+	sspkdf (u8_t *output,
+		Skein_t &,
+		SSPKDF_Parameters const &);
+#endif
+	void DLL_PUBLIC
+	sspkdf (u8_t *output,
+		Skein_t &skein,
+		char const *password,
+		int const  password_length,
+		u8_t const *salt,
+		u32_t const num_iter,
+		u32_t const num_concat);
 }
