@@ -302,7 +302,7 @@ namespace ssc {
 	template <typename Tweakable_Block_Cipher_t, int State_Bits>
 	void
 	Unique_Block_Iteration<Tweakable_Block_Cipher_t,State_Bits>::clear_key_state (void) {
-		std::memset( key_state, 0, sizeof(key_state) );
+		std::memset( key_state, 0, State_Bytes );
 	}
 }/* ! namespace ssc */
 #undef CTIME_CONST
