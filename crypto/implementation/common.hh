@@ -61,21 +61,6 @@ namespace ssc::crypto_impl {
 		bool		supplement_os_entropy;
 	};
 
-#if 0
-	int DLL_PUBLIC
-	obtain_password (char       *password,
-			 char const *entry_prompt,
-			 int const   buffer_size);
-
-	int DLL_PUBLIC
-	obtain_password (char       *password,
-			 char const *entry_prompt,
-			 char const *reentry_prompt,
-			 int const   buffer_size);
-
-	void DLL_PUBLIC
-	supplement_entropy (CSPRNG_t &csprng);
-#endif
 	int DLL_PUBLIC
 	obtain_password (char       *password_buffer,
 			 char const *entry_prompt,
