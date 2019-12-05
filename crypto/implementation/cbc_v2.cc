@@ -31,6 +31,24 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #	error "Already defined"
 #endif
 
+#ifdef LOCK_MEMORY
+#	error "Already defined"
+#endif
+#ifdef __SSC_MemoryLocking__
+#	define LOCK_MEMORY(address,size) lock_os_memory( address, size )
+#else
+#	define LOCK_MEMORY(address,size)
+#endif
+
+#ifdef UNLOCK_MEMORY
+#	error "Already defined"
+#endif
+#ifdef __SSC_MemoryLocking__
+#	define UNLOCK_MEMORY(address,size) unlock_os_memory( address, size )
+#else
+#	define UNLOCK_MEMORY(address,size)
+#endif
+
 namespace ssc::crypto_impl::cbc_v2 {
 
 	static u64_t
@@ -82,9 +100,9 @@ namespace ssc::crypto_impl::cbc_v2 {
 			return size;
 		}();
 		u8_t	locked_buffer [Locked_Buffer_Size];
-#ifdef __SSC_MemoryLocking__
-		lock_os_memory( locked_buffer, sizeof(locked_buffer) );
-#endif
+
+		LOCK_MEMORY( locked_buffer, sizeof(locked_buffer) );
+
 		CTIME_CONST(int) Password_Offset       = 0;
 		CTIME_CONST(int) Password_Check_Offset = Password_Offset       + Password_Buffer_Bytes;
 		CTIME_CONST(int) Derived_Key_Offset    = Password_Check_Offset + Password_Buffer_Bytes;
@@ -214,9 +232,9 @@ namespace ssc::crypto_impl::cbc_v2 {
 #endif
 #endif
 		zero_sensitive( locked_buffer, sizeof(locked_buffer) );
-#ifdef __SSC_MemoryLocking__
-		unlock_os_memory( locked_buffer, sizeof(locked_buffer) );
-#endif
+
+		UNLOCK_MEMORY( locked_buffer, sizeof(locked_buffer) );
+
 		// Synchronize everything written to the output file
 		sync_map( output_map );
 		// Unmap the input and output files
@@ -334,9 +352,9 @@ namespace ssc::crypto_impl::cbc_v2 {
 		CTIME_CONST(int) CBC_Offset         = UBI_Offset;
 
 		u8_t	locked_buffer [Locked_Buffer_Size];
-#ifdef __SSC_MemoryLocking__
-		lock_os_memory( locked_buffer, sizeof(locked_buffer) );
-#endif
+
+		LOCK_MEMORY( locked_buffer, sizeof(locked_buffer) );
+
 		static_assert	(sizeof(char) == sizeof(u8_t));
 		int		password_length;
 		char	* const password        = reinterpret_cast<char *>(locked_buffer + Password_Offset   );
@@ -391,9 +409,9 @@ namespace ssc::crypto_impl::cbc_v2 {
 #endif
 #endif
 				zero_sensitive( locked_buffer, sizeof(locked_buffer) );
-#ifdef __SSC_MemoryLocking__
-				unlock_os_memory( locked_buffer, sizeof(locked_buffer) );
-#endif
+
+				UNLOCK_MEMORY( locked_buffer, sizeof(locked_buffer) );
+
 				unmap_file( input_map );
 				unmap_file( output_map );
 				close_os_file( input_map.os_file );
@@ -429,9 +447,9 @@ namespace ssc::crypto_impl::cbc_v2 {
 			plaintext_size = cbc.decrypt( output_map.ptr, in, input_map.size - File_Metadata_Size, header.cbc_iv );
 		}
 		zero_sensitive( locked_buffer, sizeof(locked_buffer) );
-#ifdef __SSC_MemoryLocking__
-		unlock_os_memory( locked_buffer, sizeof(locked_buffer) );
-#endif
+
+		UNLOCK_MEMORY( locked_buffer, sizeof(locked_buffer) );
+
 		// Synchronize the output file.
 		sync_map( output_map );
 		// Unmap the memory-mapped input and output files.
@@ -504,4 +522,6 @@ namespace ssc::crypto_impl::cbc_v2 {
 		putchar( '\n' );
 	}/* ! dump_header */
 }/*namespace ssc::crypto_impl::cbc_v2*/
+#undef UNLOCK_MEMORY
+#undef LOCK_MEMORY
 #undef CTIME_CONST
