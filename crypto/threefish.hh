@@ -82,52 +82,6 @@ namespace ssc {
 		{
 			expand_key_( k, tw );
 		}
-#if 0
-		Threefish (u64_t *buffer)
-			: state{ buffer }, key_schedule{ buffer + Number_Words },
-			  
-		{
-		}
-		Threefish (u64_t *__restrict buffer, void const *__restrict k, void const *__restrict tw = nullptr)
-			: state{ buffer }, key_schedule{ buffer + Number_Words }
-		{
-			expand_key( k, tw );
-		}
-#endif
-#if 0
-		Threefish (void)
-		{
-#if 0
-#ifdef __SSC_MemoryLocking__
-			lock_os_memory( state       , sizeof(state)        );
-			lock_os_memory( key_schedule, sizeof(key_schedule) );
-#endif
-#endif
-		}
-
-		Threefish (u8_t const *__restrict k, u8_t const *__restrict tw = nullptr)
-		{
-#if 0
-#ifdef __SSC_MemoryLocking__
-			lock_os_memory( state       , sizeof(state)        );
-			lock_os_memory( key_schedule, sizeof(key_schedule) );
-#endif
-			expand_key_( k, tw );
-#endif
-		}
-
-		~Threefish (void)
-		{
-#if 0
-			zero_sensitive( state       , sizeof(state)        );
-			zero_sensitive( key_schedule, sizeof(key_schedule) );
-#ifdef __SSC_MemoryLocking__
-			unlock_os_memory( state       , sizeof(state)        );
-			unlock_os_memory( key_schedule, sizeof(key_schedule) );
-#endif
-#endif
-		}
-#endif
 		/* Public Functions */
 		void
 		cipher (u8_t *out, u8_t const *in);
@@ -142,11 +96,6 @@ namespace ssc {
 		u64_t	* const key_schedule;
 		u64_t	* const key;
 		u64_t	* const tweak;
-#if 0
-		/* Private Data */
-		u64_t	state		[Number_Words];
-		u64_t	key_schedule	[Number_Subkeys * Number_Words];
-#endif
 		/* Private Functions */
 		static void
 		mix_		(u64_t *__restrict x0, u64_t *__restrict x1, int const round, int const index);
@@ -250,37 +199,10 @@ namespace ssc {
 	void
 	Threefish<Key_Bits>::expand_key_ (u8_t const *__restrict k, u8_t const *__restrict tw) {
 		using std::memcpy, std::memset;
-#if 0
-		// key / tweak setup
-		u64_t	key	[Number_Words + 1];
-		u64_t	tweak	[Tweak_Words  + 1];
-		// Copy the function parameter k into the key buffer.
-#ifdef __SSC_MemoryLocking__
-		if constexpr(Expansion_MemoryLocking) {
-			lock_os_memory( key  , sizeof(key)   );
-			lock_os_memory( tweak, sizeof(tweak) );
-		}
-#endif
-#endif
-
-#if 0
-		memcpy( key, k, sizeof(state) );
-#endif
 		memcpy( key, k, State_Bytes );
 		key[ Number_Words ] = Constant_240;
 		for (int i = 0; i < Number_Words; ++i)
 			key[ Number_Words ] ^= key[ i ];
-#if 0
-		if (tw != nullptr) {
-			// If a valid tweak was supplied, copy it into the first two words of the tweak buffer.
-			memcpy( tweak, tw, (sizeof(u64_t) * Tweak_Words) );
-			// Determine the tweak parity word.
-			tweak[ 2 ] = tweak[ 0 ] ^ tweak[ 1 ];
-		} else {
-			// If a valid tweak wasn't supplied, set the whole tweak buffer to zero.
-			memset( tweak, 0, sizeof(tweak) );
-		}
-#endif
 		if (tw != nullptr) {
 			memcpy( tweak, tw, Tweak_Bytes );
 			tweak[ 2 ] = tweak[ 0 ] ^ tweak[ 1 ];
@@ -296,16 +218,6 @@ namespace ssc {
 			key_schedule[ subkey_index + (Number_Words - 2) ] =  key[ (subkey + (Number_Words - 2)) % (Number_Words + 1) ] + tweak[ (subkey + 1) % 3 ];
 			key_schedule[ subkey_index + (Number_Words - 1) ] =  key[ (subkey + (Number_Words - 1)) % (Number_Words + 1) ] + static_cast<u64_t>(subkey);
 		}
-#if 0
-		zero_sensitive( key  , sizeof(key)   );
-		zero_sensitive( tweak, sizeof(tweak) );
-#ifdef __SSC_MemoryLocking__
-		if constexpr(Expansion_MemoryLocking) {
-			unlock_os_memory( key  , sizeof(key)   );
-			unlock_os_memory( tweak, sizeof(tweak) );
-		}
-#endif
-#endif
 	} /* expand_key_ */
 
 	template <int Key_Bits>
@@ -331,18 +243,6 @@ namespace ssc {
 	Threefish<Key_Bits>::cipher (u8_t *out, u8_t const *in) {
 		using std::memcpy;
 
-#if 0
-		memcpy( state, in, sizeof(state) );
-		for (int round = 0; round < Number_Rounds; ++round) {
-			if (round % 4 == 0)
-				add_subkey_( round ); // Adding the round subkey.
-			for (int j = 0; j <= ((Number_Words / 2) - 1); ++j)
-				mix_( (state + (j*2)), (state + (j*2) + 1), round, j );
-			permute_state_(); // Permuting the state (shuffling words around).
-		}
-		add_subkey_( Number_Rounds ); // Adding the final subkey.
-		memcpy( out, state, sizeof(state) );
-#endif
 		memcpy( state, in, State_Bytes );
 		for (int round = 0; round < Number_Rounds; ++round) {
 			if (round % 4 == 0)
@@ -360,19 +260,6 @@ namespace ssc {
 	Threefish<Key_Bits>::inverse_cipher (u8_t *out, u8_t const *in) {
 		using std::memcpy;
 		
-#if 0
-		// We start the inverse_cipher at the "last" round index, and go backwards to 0.
-		memcpy( state, in, sizeof(state) );
-		subtract_subkey_( Number_Rounds ); // Subtracting the last subkey of the keyschedule.
-		for (int round = Number_Rounds - 1; round >= 0; --round) {
-			inverse_permute_state_(); // Inversing the permutation function (shuffling words around).
-			for (int j = 0; j <= ((Number_Words / 2) - 1); ++j)
-				inverse_mix_( (state + (j*2)), (state + (j*2) + 1), round, j );
-			if (round % 4 == 0)
-				subtract_subkey_( round ); // Subtracting the round subkey.
-		}
-		memcpy( out, state, sizeof(state) );
-#endif
 		memcpy( state, in, State_Bytes );
 		subtract_subkey_( Number_Rounds );
 		for (int round = Number_Rounds - 1; round >= 0; --round) {

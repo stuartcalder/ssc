@@ -70,16 +70,7 @@ namespace ssc {
 		clear_key_state	(void);
 	private:
 	/* Private Compile-Time constants */
-#if 0
-		CTIME_CONST(auto &)	xor_block_ = xor_block<State_Bits>;
-#endif
 	/* Private Data */
-#if 0
-		Tweakable_Block_Cipher_t block_cipher;
-		u8_t tweak_state [Tweak_Bytes];
-		u8_t key_state   [State_Bytes];
-		u8_t msg_state   [State_Bytes];
-#endif
 		Tweakable_Block_Cipher_t * const twk_blk_cipher;
 		u8_t			 * const tweak_state;
 		u8_t			 * const key_state;
@@ -104,36 +95,6 @@ namespace ssc {
 		read_msg_block_		(u8_t const * const message_offset,
 					 u64_t const        bytes_left);
 	}; /* class Unique_Block_Iteration */
-
-#if 0
-	template <typename Tweakable_Block_Cipher_t, int State_Bits>
-	Unique_Block_Iteration<Tweakable_Block_Cipher_t,State_Bits>::Unique_Block_Iteration (void)
-	{
-#if 0
-#ifdef __SSC_MemoryLocking__
-		if constexpr(Sensitive) {
-			lock_os_memory( key_state, sizeof(key_state) );
-			lock_os_memory( msg_state, sizeof(msg_state) );
-		}
-#endif
-#endif
-	}
-
-	template <typename Tweakable_Block_Cipher_t, int State_Bits>
-	Unique_Block_Iteration<Tweakable_Block_Cipher_t,State_Bits>::~Unique_Block_Iteration (void)
-	{
-#if 0
-		if constexpr(Sensitive) {
-			zero_sensitive( key_state, sizeof(key_state) );
-			zero_sensitive( msg_state, sizeof(msg_state) );
-#ifdef __SSC_MemoryLocking__
-			unlock_os_memory( key_state, sizeof(key_state) );
-			unlock_os_memory( msg_state, sizeof(msg_state) );
-#endif
-		}
-#endif
-	}
-#endif
 
 	template <typename Tweakable_Block_Cipher_t, int State_Bits>
 	void
@@ -182,97 +143,35 @@ namespace ssc {
 			twk_blk_cipher->cipher( key_state, msg_state );
 			xor_block<State_Bits>( key_state, msg_state );
 		}
-#if 0
-		using namespace std;
-		auto message_offset = message;
-		/* Setup Tweak */
-		clear_tweak_all_();
-		set_tweak_type_( type_mask );
-		set_tweak_first_();
-		/* Setup initial key and message state */
-		/* Get message */
-		u64_t message_bytes_left = message_size;
-		u64_t bytes_just_read    = read_msg_block_( message_offset, message_bytes_left );
-		message_offset     += bytes_just_read;
-		message_bytes_left -= bytes_just_read;
-		if (message_bytes_left == 0)
-			set_tweak_last_();
-		/* Set the position, and get a pointer to it for use later */
-		//FIXME Should we be doing this here?
-		u64_t * const position = reinterpret_cast<u64_t *>(tweak_state);
-		(*position) = bytes_just_read;
-		// First block Setup
-		block_cipher.rekey( key_state, tweak_state );
-		// First block
-		block_cipher.cipher( key_state, msg_state );
-		xor_block_( key_state, msg_state );
-		clear_tweak_first_();
-
-		// Intermediate blocks (assuming first block wasn't also the last block)
-		while (message_bytes_left > State_Bytes) {
-			bytes_just_read = read_msg_block_( message_offset, message_bytes_left );
-			message_offset     += bytes_just_read;
-			message_bytes_left -= bytes_just_read;
-			(*position)        += bytes_just_read;
-			block_cipher.rekey( key_state, tweak_state );
-			block_cipher.cipher( key_state, msg_state );
-			xor_block_( key_state, msg_state );
-		}
-
-		// Last block (assuming first block wasn't also the last block)
-		if (message_bytes_left > 0) {
-			set_tweak_last_();
-			(*position) += read_msg_block_( message_offset, message_bytes_left );
-			block_cipher.rekey( key_state, tweak_state );
-			block_cipher.cipher( key_state, msg_state );
-			xor_block_( key_state, msg_state );
-		}
-
-#endif
 	} /* chain */
 
 	template <typename Tweakable_Block_Cipher_t, int State_Bits>
 	void
 	Unique_Block_Iteration<Tweakable_Block_Cipher_t,State_Bits>::set_tweak_first_ (void) {
-#if 0
-		tweak_state[ sizeof(tweak_state) - 1 ] |= 0b0100'0000;
-#endif
 		tweak_state[ Tweak_Bytes - 1 ] |= 0b0100'0000;
 	}
 
 	template <typename Tweakable_Block_Cipher_t, int State_Bits>
 	void
 	Unique_Block_Iteration<Tweakable_Block_Cipher_t,State_Bits>::set_tweak_last_ (void) {
-#if 0
-		tweak_state[ sizeof(tweak_state) - 1 ] |= 0b1000'0000;
-#endif
 		tweak_state[ Tweak_Bytes - 1 ] |= 0b1000'0000;
 	}
 
 	template <typename Tweakable_Block_Cipher_t, int State_Bits>
 	void
 	Unique_Block_Iteration<Tweakable_Block_Cipher_t,State_Bits>::clear_tweak_first_ (void) {
-#if 0
-		tweak_state[ sizeof(tweak_state) - 1 ] &= 0b1011'1111;
-#endif
 		tweak_state[ Tweak_Bytes - 1 ] &= 0b1011'1111;
 	}
 
 	template <typename Tweakable_Block_Cipher_t, int State_Bits>
 	void
 	Unique_Block_Iteration<Tweakable_Block_Cipher_t,State_Bits>::clear_tweak_last_ (void) {
-#if 0
-		tweak_state[ sizeof(tweak_state) - 1 ] &= 0b0111'1111;
-#endif
 		tweak_state[ Tweak_Bytes - 1 ] &= 0b0111'1111;
 	}
 
 	template <typename Tweakable_Block_Cipher_t, int State_Bits>
 	void
 	Unique_Block_Iteration<Tweakable_Block_Cipher_t,State_Bits>::set_tweak_type_ (Type_Mask_E const type_mask) {
-#if 0
-		tweak_state[ sizeof(tweak_state) - 1 ] |= static_cast<u8_t >(type_mask);
-#endif
 		tweak_state[ Tweak_Bytes - 1 ] |= static_cast<u8_t>(type_mask);
 	}
 
