@@ -84,13 +84,14 @@ namespace ssc::crypto_impl::cbc_v2 {
 
 		// We're going to need raw Threefish, Threefish in UBI mode for Skein, and Threefish in CBC mode for encryption.
 		CTIME_CONST(int) CSPRNG_Buffer_Bytes = 128;
+		CTIME_CONST(int) CSPRNG_CBC_Shared_Size = (CSPRNG_Buffer_Bytes > CBC_t::Buffer_Bytes ? CSPRNG_Buffer_Bytes : CBC_t::Buffer_Bytes);
 		CTIME_CONST(int) Locked_Buffer_Size = []() -> int {
 			int size = 0;
 			size += (Password_Buffer_Bytes * 2); // Two password buffers
 			size += Block_Bytes;		     // Derived key
 			size += Threefish_t::Buffer_Bytes;   // Threefish data
 			size +=       UBI_t::Buffer_Bytes;   // UBI data
-			size += (CSPRNG_Buffer_Bytes > CBC_t::Buffer_Bytes ? CSPRNG_Buffer_Bytes : CBC_t::Buffer_Bytes);
+			size += CSPRNG_CBC_Shared_Size;
 			size += Supplement_Entropy_Buffer_Bytes;
 			size += (size % sizeof(u64_t));
 			return size;
@@ -105,7 +106,7 @@ namespace ssc::crypto_impl::cbc_v2 {
 		CTIME_CONST(int) Threefish_Data_Offset = Derived_Key_Offset    + Block_Bytes;
 		CTIME_CONST(int) UBI_Data_Offset       = Threefish_Data_Offset + Threefish_t::Buffer_Bytes;
 		CTIME_CONST(int) CSPRNG_Data_Offset    = UBI_Data_Offset       + UBI_t::Buffer_Bytes;
-		CTIME_CONST(int) Entropy_Data_Offset   = CSPRNG_Data_Offset    + (CSPRNG_Buffer_Bytes > CBC_t::Buffer_Bytes ? CSPRNG_Buffer_Bytes : CBC_t::Buffer_Bytes);
+		CTIME_CONST(int) Entropy_Data_Offset   = CSPRNG_Data_Offset + CSPRNG_CBC_Shared_Size;
 		// After we use the CSPRNG, we can store the CBC data in the same memory region.
 		CTIME_CONST(int) CBC_Data_Offset       = CSPRNG_Data_Offset;
 		Threefish_t threefish{ reinterpret_cast<u64_t *>(locked_buffer + Threefish_Data_Offset) };
