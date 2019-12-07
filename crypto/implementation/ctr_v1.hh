@@ -30,27 +30,31 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/general/integers.hh>
 #include <ssc/crypto/ctr.hh>
 
-namespace ssc::crypto_impl::ctr_v1 {
-	static constexpr auto const &CTR_V1_ID = "SSC_CTR_V1";
+#ifndef CTIME_CONST
+#	define CTIME_CONST(type) static constexpr const type
+#else
+#	error "Already defined"
+#endif
 
+namespace ssc::crypto_impl::ctr_v1 {
+	CTIME_CONST(auto &)	CTR_V1_ID = "SSC_CTR_V1";
 	static_assert (Block_Bits % 2 == 0);
-	static constexpr auto const Nonce_Bits  = Block_Bits / 2;
-	static constexpr auto const Nonce_Bytes = Nonce_Bits / CHAR_BIT;
-	using CTR_t = CounterMode<Threefish_t, Block_Bits>;
+	CTIME_CONST(int)	Nonce_Bits = Block_Bits / 2;
+	CTIME_CONST(int)	Nonce_Bytes = Nonce_Bits / CHAR_BIT;
+	using CTR_t = CTR_Mode<Threefish_t, Block_Bits>;
 
 	struct DLL_PUBLIC CTR_V1_Header {
-		char	id		[sizeof(CTR_V1_ID)];
-		u64_t	total_size;
-		u8_t	tweak		[Tweak_Bytes];
-		u8_t	sspkdf_salt	[Salt_Bytes];
-		u8_t	ctr_nonce	[Nonce_Bytes];
-		u32_t	num_iter;
-		u32_t	num_concat;
-		static constexpr auto const Total_Size = sizeof(id) + sizeof(total_size) + sizeof(tweak) +
-			                                 sizeof(sspkdf_salt) + sizeof(ctr_nonce) + sizeof(num_iter) + sizeof(num_concat);
+		char		 id		[sizeof(CTR_V1_ID)];
+		u64_t		 total_size;
+		u8_t		 tweak		[Tweak_Bytes];
+		u8_t		 sspkdf_salt	[Salt_Bytes];
+		u8_t		 ctr_nonce	[Nonce_Bytes];
+		u32_t		 num_iter;
+		u32_t		 num_concat;
+		CTIME_CONST(int) Total_Size = sizeof(id) + sizeof(total_size) + sizeof(tweak) + sizeof(sspkdf_salt) + sizeof(ctr_nonce) + sizeof(num_iter) + sizeof(num_concat);
 	};
 
-	static constexpr auto const Metadata_Bytes = CTR_V1_Header::Total_Size + MAC_Bytes;
+	CTIME_CONST(int)	Metadata_Bytes = CTR_V1_Header::Total_Size + MAC_Bytes;
 
 	void DLL_PUBLIC
 	encrypt (Input const & input_abstr);
@@ -63,3 +67,4 @@ namespace ssc::crypto_impl::ctr_v1 {
 	dump_header (char const *filename);
 
 }/*namespace ssc::crypto_impl::ctr_v1*/
+#undef CTIME_CONST

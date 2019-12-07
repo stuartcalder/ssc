@@ -21,19 +21,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "common.hh"
 
 namespace ssc::crypto_impl {
-#if 0
-	void DLL_PUBLIC
-	sspkdf	(u8_t *__restrict const		derived_key,
-		 char const *__restrict const   password,
-		 int const                      password_length,
-		 u8_t const *__restrict const	salt,
-		 u32_t const                    number_iterations,
-		 u32_t const                    number_concatenations);
-	void DLL_PUBLIC
-	sspkdf (u8_t *output,
-		Skein_t &,
-		SSPKDF_Parameters const &);
-#endif
 	void DLL_PUBLIC
 	sspkdf (u8_t *output,
 		Skein_t &skein,

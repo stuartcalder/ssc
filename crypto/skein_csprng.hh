@@ -47,12 +47,13 @@ namespace ssc {
 		using Skein_t =  Skein<State_Bits>;
 		CTIME_CONST(bool)	Do_Runtime_Checks = TEST;
 		CTIME_CONST(int)	State_Bytes = State_Bits / CHAR_BIT;
+		CTIME_CONST(int)	Minimum_Buffer_Size = State_Bytes * 2;
 
 		Skein_CSPRNG (Skein_t *__restrict sk, u8_t *__restrict buf, u64_t size)
 			: skein{ sk }, buffer{ buf }, buffer_size{ size }
 		{
 			if constexpr(Do_Runtime_Checks)
-				if (buffer_size < (State_Bytes * 2))
+				if (buffer_size < Minimum_Buffer_Size)
 					errx( "buffer_size must be at least State_Bytes * 2 in Skein_CSPRNG\n" );
 		}
 		
