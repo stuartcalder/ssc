@@ -1,5 +1,5 @@
 # ssc
-C++17 Cryptography & Abstract File I/O Library for 64-bit OpenBSD, GNU/Linux, and Microsoft Windows systems, on little-endian architectures only.
+C++17 Cryptography & Abstract File I/O Library for 64-bit OpenBSD, FreeBSD, GNU/Linux, and Microsoft Windows systems, on little-endian architectures only.
 ## Purpose
 SSC aims to provide robust, easy-to-use abstract interfaces to a limited number of strong cryptographic primitives as C++ templates, including:
 - The [Threefish Block Cipher](https://www.schneier.com/academic/skein/threefish.html), which we use as the essential crypto primtive in SSC.
@@ -13,33 +13,33 @@ SSC aims to provide robust, easy-to-use abstract interfaces to a limited number 
 
 ## Dependencies
 -	[meson](https://mesonbuild.com) Build system
-### Linux Dependencies
+### GNU/Linux Dependencies
 -	__ncurses__
 -	__tinfo__
 ### MS Windows Dependencies
 -	Minimum __Windows Vista/Server 2008__
 -	Visual Studio 2019
 ## Building ssc with meson
-### Building on an OpenBSD system
+### Building on OpenBSD and FreeBSD systems
 1. git clone [ssc](https://github.com/stuartcalder/ssc) into __/usr/local/include__
 2. cd into __/usr/local/include__ and do the following:
 ```
-	mkdir builddir
-	meson --backend=ninja builddir
-	cd builddir
-	ninja
-	doas ninja install
+	$ mkdir builddir
+	$ meson --backend=ninja builddir
+	$ cd builddir
+	$ ninja
+	# ninja install
 ```
 
 ### Building on a GNU/Linux system
 1. git clone [ssc](https://github.com/stuartcalder/ssc) into __/usr/include__
 2. cd into __/usr/include__ and do the following:
 ```
-	mkdir builddir
-	meson --backend ninja --prefix=/usr builddir
-	cd builddir
-	ninja
-	sudo ninja install
+	$ mkdir builddir
+	$ meson --backend ninja --prefix=/usr builddir
+	$ cd builddir
+	$ ninja
+	# ninja install
 ```
 
 ### Building on a Microsoft Windows(c) system
