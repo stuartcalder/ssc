@@ -46,7 +46,11 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 /* Operating System Macros */
 
-#if    defined (__OpenBSD__) || defined (__gnu_linux__)
+/* Support OpenBSD and FreeBSD as UNIX-likes */
+#if    defined (__OpenBSD__) || \
+       defined (__FreeBSD__) || \
+/* Support GNU/Linux as a UNIX-like */ \
+       defined (__gnu_linux__)
 #	ifndef __UnixLike__
 #		define __UnixLike__
 #	else
@@ -59,7 +63,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #		error "Already defined"
 #	endif
 #else
-#	error "OpenBSD, GNU/Linux, and Win64 are the only supported operating systems."
+#	error "OpenBSD, FreeBSD, GNU/Linux, and Win64 are the only supported operating systems."
 #endif
 
 #ifdef __Windows__

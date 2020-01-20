@@ -31,7 +31,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #	include <ntstatus.h>
 #	include <bcrypt.h>
 #else
-#	error "Operations.hh only implemented for OpenBSD, GNU/Linux, and 64-bit Microsoft Windows"
+#	error "Operations.hh only implemented for OpenBSD, FreeBSD, GNU/Linux, and 64-bit Microsoft Windows"
 #endif
 
 namespace ssc {

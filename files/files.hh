@@ -28,7 +28,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #elif  defined (__Win64__)
 #	include <windows.h>
 #else
-#	error "Unsupported OS"
+#	error 'Unsupported OS'
 #endif
 
 namespace ssc {

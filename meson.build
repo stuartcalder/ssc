@@ -28,7 +28,7 @@ lib_deps   = []
 cpp_flags = []
 inc_dir    = []
 
-if os   == 'openbsd'
+if os   == 'openbsd' or os == 'freebsd'
 	cpp_flags += '-fvisibility=hidden'
 	cpp_flags += '-fno-exceptions'
 	lib_deps  += cc.find_library('ncurses')
