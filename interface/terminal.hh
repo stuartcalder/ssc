@@ -36,7 +36,7 @@ namespace ssc {
 			int DLL_LOCAL std_height;
 			int DLL_LOCAL std_width;
 #elif !defined (__Win64__)
-#	error "ssc::Terminal only defined for OpenBSD, GNU/Linux, and 64-bit Windows"
+#	error 'Unsupported OS'
 #endif
     };/*class ssc::Terminal*/
 }/*namespace ssc*/

@@ -19,12 +19,14 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/crypto/operations.hh>
 #include <ssc/general/integers.hh>
 #include <ssc/general/symbols.hh>
-#include <ssc/memory/os_memory_locking.hh>
+#if 0 // Seems to be unneeded now.
+#	include <ssc/memory/os_memory_locking.hh>
+#endif
 
 #ifndef CTIME_CONST
 #	define CTIME_CONST(type) static constexpr const type
 #else
-#	error "Already defined"
+#	error 'Already defined'
 #endif
 
 namespace ssc {

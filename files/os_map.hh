@@ -23,7 +23,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #	include <windows.h>
 #	include <memoryapi.h>
 #else
-#	error "Unsupported OS"
+#	error 'Unsupported OS'
 #endif
 
 namespace ssc {
@@ -64,7 +64,7 @@ namespace ssc {
 		if (os_map.ptr == nullptr)
 			errx( "Error: Failed during MapViewOfFile()\n" );
 #else
-#	error "Unsupported OS"
+#	error 'Unsupported OS'
 #endif
 	}
 
@@ -79,7 +79,7 @@ namespace ssc {
 			errx( "Error: Failed to UnmapViewOfFile()\n" );
 		close_os_file( os_map.win64_filemapping );
 #else
-#	error "Unsupported OS"
+#	error 'Unsupported OS'
 #endif
 	}
 
@@ -92,7 +92,7 @@ namespace ssc {
 		if (FlushViewOfFile( static_cast<LPCVOID>(os_map.ptr), os_map.size ) == 0)
 			errx( "Error: Failed to FlushViewOfFile()\n" );
 #else
-#	error "Unsupported OS"
+#	error 'Unsupported OS'
 #endif
 	}
 

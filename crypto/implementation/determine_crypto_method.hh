@@ -18,7 +18,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/files/os_map.hh>
 
 #if    (!defined (__SSC_CBC_V2__) && !defined (__SSC_CTR_V1__))
-#	error "Crypto implementations must be #include'd before this file."
+#	error 'Crypto implementations must be #included before this file.'
 #endif
 
 namespace ssc::crypto_impl {

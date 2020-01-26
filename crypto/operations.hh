@@ -31,7 +31,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #	include <ntstatus.h>
 #	include <bcrypt.h>
 #else
-#	error "Operations.hh only implemented for OpenBSD, FreeBSD, GNU/Linux, and 64-bit Microsoft Windows"
+#	error 'Operations.hh only implemented for OpenBSD, FreeBSD, GNU/Linux, and 64-bit Microsoft Windows'
 #endif
 
 namespace ssc {
@@ -124,7 +124,7 @@ namespace ssc {
 		if (BCryptCloseAlgorithmProvider( cng_provider_handle, 0 ) != STATUS_SUCCESS)
 			errx( "Error: BCryptCloseAlgorithmProvider() failed\n" );
 #else
-#	error "ssc::obtain_os_entropy defined for OpenBSD, GNU/Linux, and MS Windows"
+#	error 'obtain_os_entropy defined for OpenBSD, FreeBSD, GNU/Linux, and MS Windows'
 #endif
 	} /* obtain_os_entropy (u8_t *,size_t) */
 
@@ -136,7 +136,7 @@ namespace ssc {
 #elif  defined (__Win64__)
 		SecureZeroMemory( buffer, num_bytes );
 #else
-#	error "ssc::zero_sensitive defined for OpenBSD, GNU/Linux, and MS Windows"
+#	error 'zero_sensitive defined for OpenBSD, FreeBSD, GNU/Linux, and MS Windows'
 #endif
 	} /* ! zero_sensitive (u8_t *,size_t) */
 	

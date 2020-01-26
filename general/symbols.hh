@@ -54,16 +54,16 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #	ifndef __UnixLike__
 #		define __UnixLike__
 #	else
-#		error "Already defined"
+#		error 'Already defined'
 #	endif
 #elif  defined (_WIN32) || defined (_WIN64)
 #	ifndef __Windows__
 #		define __Windows__
 #	else
-#		error "Already defined"
+#		error 'Already defined'
 #	endif
 #else
-#	error "OpenBSD, FreeBSD, GNU/Linux, and Win64 are the only supported operating systems."
+#	error 'OpenBSD, FreeBSD, GNU/Linux, and Win64 are the only supported operating systems.'
 #endif
 
 #ifdef __Windows__
@@ -71,13 +71,13 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #		ifndef __Win32__
 #			define __Win32__
 #		else
-#			error "Already defined"
+#			error 'Already defined'
 #		endif
 #	else
 #		ifndef __Win64__
 #			define __Win64__
 #		else
-#			error "Already defined"
+#			error 'Already defined'
 #		endif
 #	endif
 #endif

@@ -16,7 +16,7 @@
 #ifndef CTIME_CONST
 #	define CTIME_CONST(type) static constexpr const type
 #else
-#	error "Already defined"
+#	error 'Already defined'
 #endif
 
 #ifndef OS_PROMPT
@@ -25,10 +25,10 @@
 #	elif  defined (__Windows__)
 #		define OS_PROMPT	"\n\r> "
 #	else
-#		error "Unsupported OS"
+#		error 'Unsupported OS'
 #	endif
 #else
-#	error "Already defined"
+#	error 'Already defined'
 #endif
 
 namespace ssc::crypto_impl {

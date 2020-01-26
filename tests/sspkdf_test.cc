@@ -4,7 +4,7 @@
 #ifndef CTIME_CONST
 #	define CTIME_CONST(type) static constexpr const type
 #else
-#	error "Already defined"
+#	error 'Already defined'
 #endif
 
 int main() {

@@ -21,7 +21,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #ifndef CTIME_CONST
 #	define CTIME_CONST(type) static constexpr const type
 #else
-#	error "Already defined"
+#	error 'Already defined'
 #endif
 
 namespace ssc {

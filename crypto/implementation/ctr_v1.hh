@@ -16,7 +16,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #ifndef __SSC_CTR_V1__
 #	define __SSC_CTR_V1__
 #else
-#	error "Already defined"
+#	error 'Already defined'
 #endif
 
 #include "common.hh"
@@ -33,7 +33,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #ifndef CTIME_CONST
 #	define CTIME_CONST(type) static constexpr const type
 #else
-#	error "Already defined"
+#	error 'Already defined'
 #endif
 
 namespace ssc::crypto_impl::ctr_v1 {

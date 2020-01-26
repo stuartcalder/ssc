@@ -20,7 +20,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #		define ENABLE_MEMORYLOCKING
 #	endif
 #else
-#	error "Already defined"
+#	error 'Already defined'
 #endif
 
 // If __SSC_DISABLE_MEMORYLOCKING is defined, do not support memory locking.
@@ -29,7 +29,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #	ifndef __SSC_MemoryLocking__
 #		define __SSC_MemoryLocking__
 #	else
-#		error "Already defined"
+#		error 'Already defined'
 #	endif
 
 #	include <cstdlib>
@@ -43,7 +43,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #		include <windows.h>
 #		include <memoryapi.h>
 #	else
-#		error "Only implemented on Unix-like systems and 64-bit Windows."
+#		error 'Unsupported OS'
 #	endif
 
 namespace ssc {
@@ -57,7 +57,7 @@ namespace ssc {
 		if (VirtualLock( const_cast<void *>(addr), length ) == 0)
 			errx( "Error: Failed to VirtualLock()\n" );
 #	else
-#		error "lock_memory only implemented on win64 and unix-like operating systems."
+#		error 'Unsupported OS'
 #	endif
 	}/* lock_os_memory */
 
@@ -70,14 +70,8 @@ namespace ssc {
 #	elif  defined (__Win64__)
 		if (VirtualUnlock( const_cast<void *>(addr), length ) == 0)
 			errx( "Error: Failed to VirtualUnlock()\n" );
-#	if 0
-		if (VirtualUnlock( const_cast<void *>(addr), length ) == 0) {
-			if (GetLastError() != ERROR_NOT_LOCKED)
-				errx( "Error: Failed to VirtualUnlock()\n" );
-		}
-#	endif
 #	else
-#		error "unlock_memory only implemented on win64 and unix-like operating systems."
+#		error 'Unsupported OS'
 #	endif
 	}/* unlock_os_memory */
 }/*namespace ssc*/

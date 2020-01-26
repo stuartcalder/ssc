@@ -5,7 +5,7 @@
 #ifndef CTIME_CONST
 #	define CTIME_CONST(type) static constexpr const type
 #else
-#	error "Already defined"
+#	error 'Already defined'
 #endif
 
 int main() {
@@ -33,3 +33,4 @@ int main() {
 	print_integral_buffer<u8_t>( test_ciphertext, sizeof(test_ciphertext) );
 	putchar( '\n' );
 }
+#undef CTIME_CONST

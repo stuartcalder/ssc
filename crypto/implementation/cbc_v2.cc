@@ -28,24 +28,18 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #ifndef CTIME_CONST
 #	define CTIME_CONST(type) static constexpr const type
 #else
-#	error "Already defined"
+#	error 'Already defined'
 #endif
 
-#ifdef LOCK_MEMORY
-#	error "Already defined"
-#endif
-#ifdef __SSC_MemoryLocking__
-#	define LOCK_MEMORY(address,size) lock_os_memory( address, size )
-#else
-#	define LOCK_MEMORY(address,size)
+#if    defined (LOCK_MEMORY) || defined (UNLOCK_MEMORY)
+#	error 'Already defined'
 #endif
 
-#ifdef UNLOCK_MEMORY
-#	error "Already defined"
-#endif
 #ifdef __SSC_MemoryLocking__
+#	define   LOCK_MEMORY(address,size)   lock_os_memory( address, size )
 #	define UNLOCK_MEMORY(address,size) unlock_os_memory( address, size )
 #else
+#	define   LOCK_MEMORY(address,size)
 #	define UNLOCK_MEMORY(address,size)
 #endif
 

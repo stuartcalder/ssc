@@ -27,7 +27,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #	include <windows.h>
 #	include <conio.h>
 #else
-#	error "ssc/interface/terminal.cc only defined for OpenBSD, GNU/Linux, and 64-bit MS Windows"
+#	error 'Unsupported OS'
 #endif
 
 namespace ssc {
@@ -39,7 +39,7 @@ namespace ssc {
 #elif  defined (__Win64__)
 		system( "cls" );
 #else
-#	error "ssc::Terminal() only defined for OpenBSD, GNU/Linux and 64-bit MS Windows"
+#	error 'Unsupported OS'
 #endif
 	}/*ssc::Terminal::Terminal{}*/
 	Terminal::~Terminal (void) {
@@ -48,7 +48,7 @@ namespace ssc {
 #elif  defined (__Win64__)
 		system( "cls" );
 #else
-#	error "ssc::~Terminal() only defined for OpenBSD, GNU/Linux, and 64-bit MS Windows"
+#	error 'Unsupported OS'
 #endif
 	}/*ssc::Terminal::~Terminal{}*/
 	int
@@ -226,7 +226,7 @@ namespace ssc {
         system( "pause" );
         system( "cls" );
 #else
-#	error "ssc::Terminal::notify(...) defined for OpenBSD, GNU/Linux, and 64-bit MS Windows"
+#	error 'Unsupported OS'
 #endif
     }/* ! ssc::Terminal::notify */
 }

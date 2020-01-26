@@ -21,7 +21,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #if    defined (__gnu_linux__)
 #	include <endian.h>
 #else
-#	error "Unimplemented on anything but Gnu/Linux"
+#	error 'Unimplemented on anything but GNU/Linux'
 #endif
 
 #if 0 // Disable AES code for now

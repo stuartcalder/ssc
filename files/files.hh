@@ -38,7 +38,7 @@ namespace ssc {
 #elif  defined (__Win64__)
 	using OS_File_t = HANDLE;
 #else
-#	error "Unsupported platform"
+#	error 'Unsupported OS'
 #endif
 
 	inline size_t	 get_file_size (OS_File_t const);
@@ -66,7 +66,7 @@ namespace ssc {
 			errx( "Error: GetFileSizeEx() failed\n" );
 		return static_cast<size_t>(lg_int.QuadPart);
 #else
-#	error "Unsupported platform"
+#	error 'Unsupported platform'
 #endif
 	}
 
@@ -167,7 +167,7 @@ namespace ssc {
 			errx( "Error: Unable to open existing file %s with CreateFileA()\n", filename );
 		return file_h;
 #else
-#	error "Unsupported platform"
+#	error 'Unsupported platform'
 #endif
 	}
 
@@ -186,7 +186,7 @@ namespace ssc {
 			errx( "Error: Unable to create file %s with CreateFileA()\n", filename );
 		return file_h;
 #else
-#	error "Unsupported platform"
+#	error 'Unsupported platform'
 #endif
 	}
 
@@ -200,7 +200,7 @@ namespace ssc {
 		if (CloseHandle( os_file ) == 0)
 			errx( "Error: Wasn't able to close file handle\n" );
 #else
-#	error "Unsupported platform"
+#	error 'Unsupported platform'
 #endif
 	}
 
@@ -218,7 +218,7 @@ namespace ssc {
 		if (SetEndOfFile( os_file ) == 0)
 			errx( "Error: Failed to SetEndOfFile()\n" );
 #else
-#	error "Unsupported platform"
+#	error 'Unsupported platform'
 #endif
 	}
 

@@ -27,6 +27,12 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/crypto/operations.hh>
 #include <ssc/memory/os_memory_locking.hh>
 
+#ifndef CTIME_CONST
+#	define CTIME_CONST(type) static constexpr const type
+#else
+#	error 'Already defined'
+#endif
+
 namespace ssc {
 
 	template <typename CSPRNG_t, size_t Pool_Bits, size_t Max_Bits_Per_Call>
@@ -42,11 +48,11 @@ namespace ssc {
 			enum class Thread_Status_E {
 				None, Running, Finished
 			};
-			static constexpr size_t const Pool_Bytes = Pool_Bits / CHAR_BIT;
-			static constexpr size_t const Max_Bytes_Per_Call = Max_Bits_Per_Call / CHAR_BIT;
-			static constexpr size_t const Num_Calls_Ahead = 5;
-			static constexpr int    const Num_Consec_Prng_Calls = 100;
-			static constexpr size_t const Bytes_Left_Before_Reset = Max_Bytes_Per_Call * Num_Calls_Ahead;
+			CTIME_CONST(size_t)	Pool_Bytes = Pool_Bits / CHAR_BIT;
+			CTIME_CONST(size_t)	Max_Bytes_Per_Call = Max_Bits_Per_Call / CHAR_BIT;
+			CTIME_CONST(size_t)	Num_Calls_Ahead = 5;
+			CTIME_CONST(int)	Num_Consec_Prng_Calls = 100;
+			CTIME_CONST(size_t)	Bytes_Left_Before_Reset = Max_Bytes_Per_Call * Num_Calls_Ahead;
 			static_assert (Pool_Bytes > Bytes_Left_Before_Reset);
 			/* Constructors / Destructor */
 			Entropy_Pool() = delete;
@@ -199,3 +205,4 @@ namespace ssc {
 		return to_return;
 	}/*get()*/
 }/*namespace ssc*/
+#undef CTIME_CONST

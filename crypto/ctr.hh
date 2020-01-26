@@ -28,19 +28,19 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #ifndef TEMPLATE_ARGS
 #	define TEMPLATE_ARGS template <typename Block_Cipher_t, int Block_Bits>
 #else
-#	error "Already defined"
+#	error 'Already defined'
 #endif
 
 #ifndef CLASS
 #	define CLASS CTR_Mode<Block_Cipher_t,Block_Bits>
 #else
-#	error "Already defined"
+#	error 'Already defined'
 #endif
 
 #ifndef CTIME_CONST
 #	define CTIME_CONST(type) static constexpr const type
 #else
-#	error "Already defined"
+#	error 'Already defined'
 #endif
 
 namespace ssc {

@@ -17,7 +17,7 @@
 #			define DEFAULT_ARG = false
 #		endif
 #	else
-#		error "Already defined"
+#		error 'Already defined'
 #	endif
 
 namespace ssc {
