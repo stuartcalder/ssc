@@ -6,10 +6,10 @@ cc = meson.get_compiler('cpp')
 
 os = host_machine.system()
 
-if os != 'windows'
-	DEFINE_FLAG_PREFIX = '-D'
-else
+if os == 'windows' and cc.get_id() == 'msvc'
 	DEFINE_FLAG_PREFIX = '/D'
+else
+	DEFINE_FLAG_PREFIX = '-D'
 endif
 
 ssc_src = [
