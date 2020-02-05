@@ -55,6 +55,6 @@ SSC aims to provide robust, easy-to-use abstract interfaces to a limited number 
 	cd builddir
 	ninja
 ```
-5. Assuming success, ninja should have outputted a file __libssc.a__
+5. Assuming success, ninja should have output a file __libssc.a__
 6. Rename __libssc.a__ to __ssc.lib__
 7. Manually copy __ssc.lib__ to __C:/lib__
