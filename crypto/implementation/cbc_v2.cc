@@ -77,8 +77,7 @@ namespace ssc::crypto_impl::cbc_v2 {
 		map_file( output_map, false );
 
 		// We're going to need raw Threefish, Threefish in UBI mode for Skein, and Threefish in CBC mode for encryption.
-		CTIME_CONST(int) CSPRNG_Buffer_Bytes = 128;
-		CTIME_CONST(int) CSPRNG_CBC_Shared_Size = (CSPRNG_Buffer_Bytes > CBC_t::Buffer_Bytes ? CSPRNG_Buffer_Bytes : CBC_t::Buffer_Bytes);
+		CTIME_CONST(int) CSPRNG_CBC_Shared_Size = (CSPRNG_t::Buffer_Bytes > CBC_t::Buffer_Bytes ? CSPRNG_t::Buffer_Bytes : CBC_t::Buffer_Bytes);
 		CTIME_CONST(int) Locked_Buffer_Size = []() -> int {
 			int size = 0;
 			size += (Password_Buffer_Bytes * 2); // Two password buffers
@@ -111,7 +110,7 @@ namespace ssc::crypto_impl::cbc_v2 {
 		char	*password    = reinterpret_cast<char *>(locked_buffer + Password_Offset);
 		{
 			u8_t		*csprng_data = locked_buffer + CSPRNG_Data_Offset;
-			CSPRNG_t	csprng   { &skein, csprng_data, CSPRNG_Buffer_Bytes };
+			CSPRNG_t	csprng	 { &skein, csprng_data };
 			{
 				static_assert (sizeof(char) == sizeof(u8_t));
 				char	*password_check = reinterpret_cast<char *>(locked_buffer + Password_Check_Offset);
@@ -130,7 +129,7 @@ namespace ssc::crypto_impl::cbc_v2 {
 			csprng.get( header.tweak      , sizeof(header.tweak)       );
 			csprng.get( header.sspkdf_salt, sizeof(header.sspkdf_salt) );
 			csprng.get( header.cbc_iv     , sizeof(header.cbc_iv)      );
-			zero_sensitive( csprng_data, CSPRNG_Buffer_Bytes );
+			zero_sensitive( csprng_data, CSPRNG_t::Buffer_Bytes );
 		}
 		header.num_iter   = encr_input.number_sspkdf_iterations;
 		header.num_concat = encr_input.number_sspkdf_concatenations;
