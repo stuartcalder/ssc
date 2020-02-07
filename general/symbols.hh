@@ -46,38 +46,46 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 /* Operating System Macros */
 
-/* Support OpenBSD and FreeBSD as UNIX-likes */
+/* Define OpenBSD, FreeBSD, and GNU/Linux as UNIX-like operating systems. */
 #if    defined (__OpenBSD__) || \
        defined (__FreeBSD__) || \
-/* Support GNU/Linux as a UNIX-like */ \
        defined (__gnu_linux__)
 #	ifndef __UnixLike__
 #		define __UnixLike__
 #	else
-#		error 'Already defined'
+#		error '__UnixLike__ Already Defined'
 #	endif
+/* Define MS Windows, naming scheme consistent with the above. */
 #elif  defined (_WIN32) || defined (_WIN64)
 #	ifndef __Windows__
 #		define __Windows__
 #	else
-#		error 'Already defined'
+#		error '__Windows__ Already Defined'
 #	endif
 #else
-#	error 'OpenBSD, FreeBSD, GNU/Linux, and Win64 are the only supported operating systems.'
+#	error 'Unsupported OS'
 #endif
 
+/* Define 32-bit and 64-bit MS Windows, naming scheme consistent with the above. */
 #ifdef __Windows__
 #	ifndef _WIN64
 #		ifndef __Win32__
 #			define __Win32__
 #		else
-#			error 'Already defined'
+#			error '__Win32__ Already Defined'
 #		endif
 #	else
 #		ifndef __Win64__
 #			define __Win64__
 #		else
-#			error 'Already defined'
+#			error '__Win64__ Already Defined'
 #		endif
 #	endif
+#endif
+
+/* Compile-Time-Constant short-hand macros. */
+#ifndef _CTIME_CONST
+#	define _CTIME_CONST(type) static constexpr const type
+#else
+#	error '_CTIME_CONST Already Defined'
 #endif

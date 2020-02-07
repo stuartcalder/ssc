@@ -25,14 +25,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "sspkdf.hh"
 #include "cbc_v2.hh"
 
-#ifndef CTIME_CONST
-#	define CTIME_CONST(type) static constexpr const type
-#else
-#	error 'Already defined'
-#endif
-
 #if    defined (LOCK_MEMORY) || defined (UNLOCK_MEMORY)
-#	error 'Already defined'
+#	error 'LOCK_MEMORY or UNLOCK_MEMORY Already Defined'
 #endif
 
 #ifdef __SSC_MemoryLocking__
@@ -47,7 +41,7 @@ namespace ssc::crypto_impl::cbc_v2 {
 
 	static u64_t
 	calculate_encrypted_size	(u64_t const pre_encryption_size) {
-		CTIME_CONST(int) File_Metadata_Size = CBC_V2_Header::Total_Size + MAC_Bytes;
+		_CTIME_CONST(int) File_Metadata_Size = CBC_V2_Header::Total_Size + MAC_Bytes;
 
 		auto s = pre_encryption_size;
 		if ( s < Block_Bytes )
@@ -77,8 +71,8 @@ namespace ssc::crypto_impl::cbc_v2 {
 		map_file( output_map, false );
 
 		// We're going to need raw Threefish, Threefish in UBI mode for Skein, and Threefish in CBC mode for encryption.
-		CTIME_CONST(int) CSPRNG_CBC_Shared_Size = (CSPRNG_t::Buffer_Bytes > CBC_t::Buffer_Bytes ? CSPRNG_t::Buffer_Bytes : CBC_t::Buffer_Bytes);
-		CTIME_CONST(int) Locked_Buffer_Size = []() -> int {
+		_CTIME_CONST(int) CSPRNG_CBC_Shared_Size = (CSPRNG_t::Buffer_Bytes > CBC_t::Buffer_Bytes ? CSPRNG_t::Buffer_Bytes : CBC_t::Buffer_Bytes);
+		_CTIME_CONST(int) Locked_Buffer_Size = []() -> int {
 			int size = 0;
 			size += (Password_Buffer_Bytes * 2); // Two password buffers
 			size += Block_Bytes;		     // Derived key
@@ -93,15 +87,15 @@ namespace ssc::crypto_impl::cbc_v2 {
 
 		LOCK_MEMORY( locked_buffer, sizeof(locked_buffer) );
 
-		CTIME_CONST(int) Password_Offset       = 0;
-		CTIME_CONST(int) Password_Check_Offset = Password_Offset       + Password_Buffer_Bytes;
-		CTIME_CONST(int) Derived_Key_Offset    = Password_Check_Offset + Password_Buffer_Bytes;
-		CTIME_CONST(int) Threefish_Data_Offset = Derived_Key_Offset    + Block_Bytes;
-		CTIME_CONST(int) UBI_Data_Offset       = Threefish_Data_Offset + Threefish_t::Buffer_Bytes;
-		CTIME_CONST(int) CSPRNG_Data_Offset    = UBI_Data_Offset       + UBI_t::Buffer_Bytes;
-		CTIME_CONST(int) Entropy_Data_Offset   = CSPRNG_Data_Offset + CSPRNG_CBC_Shared_Size;
+		_CTIME_CONST(int) Password_Offset       = 0;
+		_CTIME_CONST(int) Password_Check_Offset = Password_Offset       + Password_Buffer_Bytes;
+		_CTIME_CONST(int) Derived_Key_Offset    = Password_Check_Offset + Password_Buffer_Bytes;
+		_CTIME_CONST(int) Threefish_Data_Offset = Derived_Key_Offset    + Block_Bytes;
+		_CTIME_CONST(int) UBI_Data_Offset       = Threefish_Data_Offset + Threefish_t::Buffer_Bytes;
+		_CTIME_CONST(int) CSPRNG_Data_Offset    = UBI_Data_Offset       + UBI_t::Buffer_Bytes;
+		_CTIME_CONST(int) Entropy_Data_Offset   = CSPRNG_Data_Offset + CSPRNG_CBC_Shared_Size;
 		// After we use the CSPRNG, we can store the CBC data in the same memory region.
-		CTIME_CONST(int) CBC_Data_Offset       = CSPRNG_Data_Offset;
+		_CTIME_CONST(int) CBC_Data_Offset       = CSPRNG_Data_Offset;
 		Threefish_t threefish{ reinterpret_cast<u64_t *>(locked_buffer + Threefish_Data_Offset) };
 		UBI_t       ubi      { &threefish, (locked_buffer + UBI_Data_Offset) };
 		Skein_t	    skein    { &ubi };
@@ -199,7 +193,7 @@ namespace ssc::crypto_impl::cbc_v2 {
 		output_map.size = input_map.size;
 
 		// Check to see if the input file is too small to have possibly been 3CRYPT_CBC_V2 encrypted.
-		CTIME_CONST(decltype(input_map.size)) Minimum_Possible_File_Size = CBC_V2_Header::Total_Size + Block_Bytes + MAC_Bytes;
+		_CTIME_CONST(decltype(input_map.size)) Minimum_Possible_File_Size = CBC_V2_Header::Total_Size + Block_Bytes + MAC_Bytes;
 
 		if (input_map.size < Minimum_Possible_File_Size) {
 			close_os_file( input_map.os_file );
@@ -257,7 +251,7 @@ namespace ssc::crypto_impl::cbc_v2 {
 			remove( output_filename );
 			errx( "Error: Input file size (%zu) does not equal file size in the file header of the input file (%zu)\n", input_map.size, header.total_size );
 		}
-		CTIME_CONST(int) Locked_Buffer_Size = []() -> int {
+		_CTIME_CONST(int) Locked_Buffer_Size = []() -> int {
 			int size = 0;
 			size += Password_Buffer_Bytes;
 			size += Block_Bytes; // Derived key
@@ -268,11 +262,11 @@ namespace ssc::crypto_impl::cbc_v2 {
 			return size;
 		}();
 
-		CTIME_CONST(int) Password_Offset = 0;
-		CTIME_CONST(int) Derived_Key_Offset = Password_Offset + Password_Buffer_Bytes;
-		CTIME_CONST(int) Threefish_Offset   = Derived_Key_Offset + Block_Bytes;
-		CTIME_CONST(int) UBI_Offset         = Threefish_Offset + Threefish_t::Buffer_Bytes;
-		CTIME_CONST(int) CBC_Offset         = UBI_Offset;
+		_CTIME_CONST(int) Password_Offset = 0;
+		_CTIME_CONST(int) Derived_Key_Offset = Password_Offset + Password_Buffer_Bytes;
+		_CTIME_CONST(int) Threefish_Offset   = Derived_Key_Offset + Block_Bytes;
+		_CTIME_CONST(int) UBI_Offset         = Threefish_Offset + Threefish_t::Buffer_Bytes;
+		_CTIME_CONST(int) CBC_Offset         = UBI_Offset;
 
 		u8_t	locked_buffer [Locked_Buffer_Size];
 
@@ -322,7 +316,7 @@ namespace ssc::crypto_impl::cbc_v2 {
 		{
 			threefish.rekey( derived_key, header.tweak );
 			CBC_t cbc{ &threefish, cbc_data };
-			CTIME_CONST(int) File_Metadata_Size = CBC_V2_Header::Total_Size + MAC_Bytes;
+			_CTIME_CONST(int) File_Metadata_Size = CBC_V2_Header::Total_Size + MAC_Bytes;
 			plaintext_size = cbc.decrypt( output_map.ptr, in, input_map.size - File_Metadata_Size, header.cbc_iv );
 		}
 		zero_sensitive( locked_buffer, sizeof(locked_buffer) );
@@ -403,4 +397,3 @@ namespace ssc::crypto_impl::cbc_v2 {
 }/*namespace ssc::crypto_impl::cbc_v2*/
 #undef UNLOCK_MEMORY
 #undef LOCK_MEMORY
-#undef CTIME_CONST

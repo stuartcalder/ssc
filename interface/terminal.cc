@@ -30,6 +30,20 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #	error 'Unsupported OS'
 #endif
 
+#if     defined (LOCK_MEMORY)
+#	error 'LOCK_MEMORY Already Defined'
+#elif   defined (UNLOCK_MEMORY)
+#	error 'UNLOCK_MEMORY Already Defined'
+#endif
+
+#ifdef __SSC_MemoryLocking__
+#	define   LOCK_MEMORY(address,size)   lock_os_memory( address, size )
+#	define UNLOCK_MEMORY(address,size) unlock_os_memory( address, size )
+#else
+#	define   LOCK_MEMORY(address,size)
+#	define UNLOCK_MEMORY(address,size)
+#endif
+
 namespace ssc {
 	Terminal::Terminal (void) {
 #if    defined (__UnixLike__)
@@ -65,9 +79,9 @@ namespace ssc {
 		// Buffer and index setup
 		auto const buffer_size = max_pw_size + 1;
 		auto buffer = std::make_unique<char[]>( buffer_size );
-#	ifdef __SSC_MemoryLocking__
-		lock_os_memory( buffer.get(), buffer_size );
-#	endif
+
+		LOCK_MEMORY( buffer.get(), buffer_size );
+
 		int index = 0;                  // Start from the beginning
 		char mpl [4] = { 0 };           // max password length c-string
 		snprintf( mpl, sizeof(mpl), "%d", max_pw_size );
@@ -131,17 +145,17 @@ namespace ssc {
 		int const password_size = strlen( buffer.get() );
 		strncpy( pw_buffer, buffer.get(), password_size + 1 );
 		zero_sensitive( buffer.get(), buffer_size );
-#	ifdef __SSC_MemoryLocking__
-		unlock_os_memory( buffer.get(), buffer_size );
-#	endif
+
+		UNLOCK_MEMORY( buffer.get(), buffer_size );
+
 		delwin( w );
 		return password_size;
 #elif  defined (__Win64__)
 		auto const buffer_size = max_pw_size + 1;
 		auto buffer = std::make_unique<char[]>( buffer_size );
-#	ifdef __SSC_MemoryLocking__
-		lock_os_memory( buffer.get(), buffer_size );
-#	endif
+
+		LOCK_MEMORY( buffer.get(), buffer_size );
+
 		int index = 0;
 		char mpl [4] = { 0 };
 		snprintf( mpl, sizeof(mpl), "%d", max_pw_size );
@@ -199,13 +213,13 @@ namespace ssc {
 		int const password_size = strlen( buffer.get() );
 		strncpy( pw_buffer, buffer.get(), password_size + 1 );
 		zero_sensitive( buffer.get(), buffer_size );
-#	ifdef __SSC_MemoryLocking__
-		unlock_os_memory( buffer.get(), buffer_size );
-#	endif
+
+		UNLOCK_MEMORY( buffer.get(), buffer_size );
+
 		system( "cls" );
 		return password_size;
 #else
-#	error "ssc::Terminal::get_pw(...) defined for OpenBSD, GNU/Linux, and 64-bit MS Windows"
+#	error 'Unsupported OS'
 #endif
 	}/* ! ssc::Terminal::get_pw */
     void Terminal::notify(char const *notice)
@@ -230,3 +244,5 @@ namespace ssc {
 #endif
     }/* ! ssc::Terminal::notify */
 }
+#undef UNLOCK_MEMORY
+#undef LOCK_MEMORY

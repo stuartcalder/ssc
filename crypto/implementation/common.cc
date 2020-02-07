@@ -3,12 +3,7 @@
 #include <ssc/interface/terminal.hh>
 #include <ssc/crypto/operations.hh>
 #include <ssc/memory/os_memory_locking.hh>
-
-#ifndef CTIME_CONST
-#	define CTIME_CONST(type) static constexpr const type
-#else
-#	error 'Already defined'
-#endif
+#include <ssc/general/symbols.hh>
 
 namespace ssc::crypto_impl {
 	int
@@ -47,9 +42,9 @@ namespace ssc::crypto_impl {
 	void
 	supplement_entropy (CSPRNG_t &csprng, Skein_t &skein, u8_t *buffer) {
 		using namespace std;
-		CTIME_CONST(int) Hash_Size   = Block_Bytes;
-		CTIME_CONST(int) Input_Size  = Max_Entropy_Chars + 1;
-		CTIME_CONST(int) Buffer_Size = Hash_Size + Input_Size;
+		_CTIME_CONST(int) Hash_Size   = Block_Bytes;
+		_CTIME_CONST(int) Input_Size  = Max_Entropy_Chars + 1;
+		_CTIME_CONST(int) Buffer_Size = Hash_Size + Input_Size;
 
 		static_assert (sizeof(u8_t) == sizeof(char));
 		u8_t	*hash  = buffer;
@@ -63,4 +58,3 @@ namespace ssc::crypto_impl {
 		csprng.reseed( hash );
 	}
 }/*namespace ssc::crypto_impl*/
-#undef CTIME_CONST

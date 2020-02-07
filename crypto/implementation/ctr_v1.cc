@@ -28,14 +28,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/interface/terminal.hh>
 #include <ssc/memory/os_memory_locking.hh>
 
-#ifndef CTIME_CONST
-#	define CTIME_CONST(type) static constexpr const type
-#else
-#	error 'Already defined'
-#endif
-
 #if    defined (LOCK_MEMORY) || defined (UNLOCK_MEMORY)
-#	error 'Already defined'
+#	error 'LOCK_MEMORY or UNLOCK_MEMORY Already Defined'
 #else
 #	ifdef __SSC_MemoryLocking__
 #		define   LOCK_MEMORY(address,size)   lock_os_memory( address, size )
@@ -67,10 +61,10 @@ namespace ssc::crypto_impl::ctr_v1 {
 		// Memory-Map the files
 		map_file( input_map , true  );
 		map_file( output_map, false );
-		CTIME_CONST(int) CSPRNG_Buffer_Bytes = CSPRNG_t::Minimum_Buffer_Size;
-		CTIME_CONST(int) CSPRNG_CTR_Shared_Bytes = (CSPRNG_Buffer_Bytes > CTR_t::Buffer_Bytes ? CSPRNG_Buffer_Bytes : CTR_t::Buffer_Bytes );
-		CTIME_CONST(int) Master_Secret_Bytes = (Block_Bytes * 2);
-		CTIME_CONST(int) Crypto_Buffer_Size = []() -> int {
+		_CTIME_CONST(int) CSPRNG_Buffer_Bytes = CSPRNG_t::Minimum_Buffer_Size;
+		_CTIME_CONST(int) CSPRNG_CTR_Shared_Bytes = (CSPRNG_Buffer_Bytes > CTR_t::Buffer_Bytes ? CSPRNG_Buffer_Bytes : CTR_t::Buffer_Bytes );
+		_CTIME_CONST(int) Master_Secret_Bytes = (Block_Bytes * 2);
+		_CTIME_CONST(int) Crypto_Buffer_Size = []() -> int {
 			int size = 0;
 			size += (Password_Buffer_Bytes * 2);
 			size += Master_Secret_Bytes;
@@ -85,15 +79,15 @@ namespace ssc::crypto_impl::ctr_v1 {
 
 		LOCK_MEMORY( crypto_buffer, sizeof(crypto_buffer) );
 
-		CTIME_CONST(int) Password_Offset = 0;
-		CTIME_CONST(int) Password_Check_Offset = Password_Offset + Password_Buffer_Bytes;
-		CTIME_CONST(int) Master_Secret_Offset = Password_Check_Offset + Password_Buffer_Bytes;
-		CTIME_CONST(int) Threefish_Data_Offset = Master_Secret_Offset + Master_Secret_Bytes;
-		CTIME_CONST(int) UBI_Data_Offset = Threefish_Data_Offset + Threefish_t::Buffer_Bytes;
-		CTIME_CONST(int) CSPRNG_Data_Offset = UBI_Data_Offset + UBI_t::Buffer_Bytes;
-		CTIME_CONST(int) Entropy_Data_Offset = CSPRNG_Data_Offset + CSPRNG_Buffer_Bytes;
+		_CTIME_CONST(int) Password_Offset = 0;
+		_CTIME_CONST(int) Password_Check_Offset = Password_Offset + Password_Buffer_Bytes;
+		_CTIME_CONST(int) Master_Secret_Offset = Password_Check_Offset + Password_Buffer_Bytes;
+		_CTIME_CONST(int) Threefish_Data_Offset = Master_Secret_Offset + Master_Secret_Bytes;
+		_CTIME_CONST(int) UBI_Data_Offset = Threefish_Data_Offset + Threefish_t::Buffer_Bytes;
+		_CTIME_CONST(int) CSPRNG_Data_Offset = UBI_Data_Offset + UBI_t::Buffer_Bytes;
+		_CTIME_CONST(int) Entropy_Data_Offset = CSPRNG_Data_Offset + CSPRNG_Buffer_Bytes;
 
-		CTIME_CONST(int) CTR_Data_Offset = CSPRNG_Data_Offset;
+		_CTIME_CONST(int) CTR_Data_Offset = CSPRNG_Data_Offset;
 
 		char	* const password = reinterpret_cast<char *>(crypto_buffer + Password_Offset);
 		char	* const password_check = reinterpret_cast<char *>(crypto_buffer + Password_Check_Offset);
@@ -152,7 +146,7 @@ namespace ssc::crypto_impl::ctr_v1 {
 		}
 
 		static_assert (Master_Secret_Bytes == (Block_Bytes * 2));
-		CTIME_CONST(int) Key_Bytes = Block_Bytes;
+		_CTIME_CONST(int) Key_Bytes = Block_Bytes;
 		u8_t *confidentiality_key = master_secret;
 		u8_t *authentication_key  = master_secret + Key_Bytes;
 		// Write 512-bits of sspkdf keying material to the master_secret ptr.
@@ -202,7 +196,7 @@ namespace ssc::crypto_impl::ctr_v1 {
 		// For now, assume the size of the output file will be the same size as the input file minus metadata.
 		output_map.size = input_map.size - Metadata_Bytes;
 
-		CTIME_CONST(int) Minimum_Possible_File_Size = Metadata_Bytes + 1;
+		_CTIME_CONST(int) Minimum_Possible_File_Size = Metadata_Bytes + 1;
 
 		if (input_map.size < Minimum_Possible_File_Size) {
 			close_os_file( input_map.os_file );
@@ -259,10 +253,10 @@ namespace ssc::crypto_impl::ctr_v1 {
 			remove( output_filename );
 			errx( "Error: Input file size (%zu) does not equal file size in the file header of the input file (%zu)\n", input_map.size, header.total_size );
 		}
-		CTIME_CONST(int)	Key_Bytes = Block_Bytes;
-		CTIME_CONST(int)	Master_Secret_Bytes = (Block_Bytes * 2);
-		CTIME_CONST(int)	UBI_CTR_Shared_Bytes = (UBI_t::Buffer_Bytes > CTR_t::Buffer_Bytes ? UBI_t::Buffer_Bytes : CTR_t::Buffer_Bytes);
-		CTIME_CONST(int)	Crypto_Buffer_Size = []() -> int {
+		_CTIME_CONST(int)	Key_Bytes = Block_Bytes;
+		_CTIME_CONST(int)	Master_Secret_Bytes = (Block_Bytes * 2);
+		_CTIME_CONST(int)	UBI_CTR_Shared_Bytes = (UBI_t::Buffer_Bytes > CTR_t::Buffer_Bytes ? UBI_t::Buffer_Bytes : CTR_t::Buffer_Bytes);
+		_CTIME_CONST(int)	Crypto_Buffer_Size = []() -> int {
 			int size = 0;
 			size += Password_Buffer_Bytes;
 			size += Key_Bytes;
@@ -273,13 +267,13 @@ namespace ssc::crypto_impl::ctr_v1 {
 			return size;
 		}();
 
-		CTIME_CONST(int)	Password_Offset = 0;
-		CTIME_CONST(int)	Master_Secret_Offset = Password_Offset + Password_Buffer_Bytes;
-		CTIME_CONST(int)	Confidentiality_Key_Offset = Master_Secret_Offset;
-		CTIME_CONST(int)	Authenication_Key_Offset   = Confidentiality_Key_Offset + Key_Bytes;
-		CTIME_CONST(int)	Threefish_Data_Offset = Authenication_Key_Offset + Key_Bytes;
-		CTIME_CONST(int)	UBI_Data_Offset = Threefish_Data_Offset + Threefish_t::Buffer_Bytes;
-		CTIME_CONST(int)	CTR_Data_Offset = UBI_Data_Offset;
+		_CTIME_CONST(int)	Password_Offset = 0;
+		_CTIME_CONST(int)	Master_Secret_Offset = Password_Offset + Password_Buffer_Bytes;
+		_CTIME_CONST(int)	Confidentiality_Key_Offset = Master_Secret_Offset;
+		_CTIME_CONST(int)	Authenication_Key_Offset   = Confidentiality_Key_Offset + Key_Bytes;
+		_CTIME_CONST(int)	Threefish_Data_Offset = Authenication_Key_Offset + Key_Bytes;
+		_CTIME_CONST(int)	UBI_Data_Offset = Threefish_Data_Offset + Threefish_t::Buffer_Bytes;
+		_CTIME_CONST(int)	CTR_Data_Offset = UBI_Data_Offset;
 
 		u8_t	crypto_buffer [Crypto_Buffer_Size];
 
@@ -416,4 +410,3 @@ namespace ssc::crypto_impl::ctr_v1 {
 }/*namespace ssc::crypto_impl::ctr_v1*/
 #undef UNLOCK_MEMORY
 #undef LOCK_MEMORY
-#undef CTIME_CONST

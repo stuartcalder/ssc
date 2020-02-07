@@ -28,19 +28,13 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #ifndef TEMPLATE_ARGS
 #	define TEMPLATE_ARGS template <typename Block_Cipher_t, int Block_Bits>
 #else
-#	error 'Already defined'
+#	error 'TEMPLATE_ARGS Already defined'
 #endif
 
 #ifndef CLASS
 #	define CLASS CTR_Mode<Block_Cipher_t,Block_Bits>
 #else
-#	error 'Already defined'
-#endif
-
-#ifndef CTIME_CONST
-#	define CTIME_CONST(type) static constexpr const type
-#else
-#	error 'Already defined'
+#	error 'CLASS Already defined'
 #endif
 
 namespace ssc {
@@ -52,10 +46,10 @@ namespace ssc {
 			static_assert (Block_Bits % CHAR_BIT == 0);
 			static_assert (Block_Bits >= 128);
 			static_assert (Block_Cipher_t::Block_Bits == Block_Bits);
-			CTIME_CONST(int)	Block_Bytes = Block_Bits / CHAR_BIT;
+			_CTIME_CONST(int)	Block_Bytes = Block_Bits / CHAR_BIT;
 			static_assert (Block_Bytes % 2 == 0);
-			CTIME_CONST(int)	Nonce_Bytes = Block_Bytes / 2;
-			CTIME_CONST(int)	Buffer_Bytes = Nonce_Bytes + (Block_Bytes * 2);
+			_CTIME_CONST(int)	Nonce_Bytes = Block_Bytes / 2;
+			_CTIME_CONST(int)	Buffer_Bytes = Nonce_Bytes + (Block_Bytes * 2);
 
 			/* Public Interface */
 			CTR_Mode (void) = delete;
@@ -126,6 +120,5 @@ namespace ssc {
 		}
 	}
 }/*namespace ssc*/
-#undef CTIME_CONST
 #undef CLASS
 #undef TEMPLATE_ARGS

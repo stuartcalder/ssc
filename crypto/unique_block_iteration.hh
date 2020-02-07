@@ -21,12 +21,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/general/integers.hh>
 #include <ssc/general/symbols.hh>
 
-#ifndef CTIME_CONST
-#	define CTIME_CONST(type) static constexpr const type
-#else
-#	error 'Already defined'
-#endif
-
 namespace ssc {
 	template <typename Tweakable_Block_Cipher_t, int State_Bits>
 	class Unique_Block_Iteration {
@@ -34,12 +28,12 @@ namespace ssc {
 	/* Compile-Time checks, Constants, and Aliases */
 		static_assert		(CHAR_BIT == 8);
 		static_assert		(State_Bits  % CHAR_BIT == 0);
-		CTIME_CONST(int)	State_Bytes = State_Bits / CHAR_BIT;
-		CTIME_CONST(int)	Msg_Bytes   = State_Bytes;
+		_CTIME_CONST(int)	State_Bytes = State_Bits / CHAR_BIT;
+		_CTIME_CONST(int)	Msg_Bytes   = State_Bytes;
 		static_assert		(State_Bytes % CHAR_BIT == 0);
-		CTIME_CONST(int)	Tweak_Bits  = 128;
-		CTIME_CONST(int)	Tweak_Bytes = Tweak_Bits / CHAR_BIT;
-		CTIME_CONST(int)	Buffer_Bytes = (Tweak_Bytes + State_Bytes + Msg_Bytes);
+		_CTIME_CONST(int)	Tweak_Bits  = 128;
+		_CTIME_CONST(int)	Tweak_Bytes = Tweak_Bits / CHAR_BIT;
+		_CTIME_CONST(int)	Buffer_Bytes = (Tweak_Bytes + State_Bytes + Msg_Bytes);
 		enum class Type_Mask_E : u8_t {
 			T_key = 0,
 			T_cfg = 4,
@@ -208,4 +202,3 @@ namespace ssc {
 		std::memset( key_state, 0, State_Bytes );
 	}
 }/* ! namespace ssc */
-#undef CTIME_CONST

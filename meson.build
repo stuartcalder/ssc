@@ -57,15 +57,9 @@ if get_option('disable_memorylocking')
 	cpp_flags += flag
 endif
 
-if get_option('enable_testing')
-	flag = DEFINE_FLAG_PREFIX + '__SSC_ENABLE_TESTING'
+if get_option('enable_runtime_checks')
+	flag = DEFINE_FLAG_PREFIX + '__SSC_ENABLE_RUNTIME_CHECKS'
 	cpp_flags += flag
-endif
-
-if get_option('enable_experimental_features')
-	flag = DEFINE_FLAG_PREFIX + '__SSC_ENABLE_EXPERIMENTAL'
-	cpp_flags += flag
-	ssc_src += 'crypto/implementation/ctr_v1.cc'
 endif
 
 if os == 'windows'

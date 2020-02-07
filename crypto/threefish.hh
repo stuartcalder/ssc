@@ -19,15 +19,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/crypto/operations.hh>
 #include <ssc/general/integers.hh>
 #include <ssc/general/symbols.hh>
-#if 0 // Seems to be unneeded now.
-#	include <ssc/memory/os_memory_locking.hh>
-#endif
-
-#ifndef CTIME_CONST
-#	define CTIME_CONST(type) static constexpr const type
-#else
-#	error 'Already defined'
-#endif
 
 namespace ssc {
 	template <int Key_Bits>
@@ -37,33 +28,33 @@ namespace ssc {
 		static_assert ((Key_Bits == 256 || Key_Bits == 512 || Key_Bits == 1024), "Invalid keysize");
 		static_assert ((CHAR_BIT == 8), "This implementation needs 8-bit chars");
 		/* Public Constants */
-		CTIME_CONST(u64_t)	Constant_240  = 0x1b'd1'1b'da'a9'fc'1a'22;
-		CTIME_CONST(int)	Block_Bits    = Key_Bits;
-		CTIME_CONST(int)	Block_Bytes   = Block_Bits / CHAR_BIT;
-		CTIME_CONST(int)	Number_Words  = Key_Bits / 64;
-		CTIME_CONST(int)	Tweak_Words   = 2;
-		CTIME_CONST(int)	Tweak_Bytes   = Tweak_Words * sizeof(u64_t);
-		CTIME_CONST(int)	Number_Rounds = [](int bits) {
+		_CTIME_CONST(u64_t)	Constant_240  = 0x1b'd1'1b'da'a9'fc'1a'22;
+		_CTIME_CONST(int)	Block_Bits    = Key_Bits;
+		_CTIME_CONST(int)	Block_Bytes   = Block_Bits / CHAR_BIT;
+		_CTIME_CONST(int)	Number_Words  = Key_Bits / 64;
+		_CTIME_CONST(int)	Tweak_Words   = 2;
+		_CTIME_CONST(int)	Tweak_Bytes   = Tweak_Words * sizeof(u64_t);
+		_CTIME_CONST(int)	Number_Rounds = [](int bits) {
 								if (bits == 1024)
 									return 80;
 								return 72;
 							}( Key_Bits );
-		CTIME_CONST(int)	Number_Subkeys = (Number_Rounds / 4) + 1;
+		_CTIME_CONST(int)	Number_Subkeys = (Number_Rounds / 4) + 1;
 
-		CTIME_CONST(int)	State_Words        = Number_Words;
-		CTIME_CONST(int)	State_Bytes	   = State_Words * sizeof(u64_t);
+		_CTIME_CONST(int)	State_Words        = Number_Words;
+		_CTIME_CONST(int)	State_Bytes	   = State_Words * sizeof(u64_t);
 
-		CTIME_CONST(int)	Buffer_Key_Schedule_Words = Number_Subkeys * Number_Words;
-		CTIME_CONST(int)	Buffer_Key_Schedule_Bytes = Buffer_Key_Schedule_Words * sizeof(u64_t);
+		_CTIME_CONST(int)	Buffer_Key_Schedule_Words = Number_Subkeys * Number_Words;
+		_CTIME_CONST(int)	Buffer_Key_Schedule_Bytes = Buffer_Key_Schedule_Words * sizeof(u64_t);
 
-		CTIME_CONST(int)	Buffer_Tweak_Words      = Tweak_Words + 1;
-		CTIME_CONST(int)	Buffer_Tweak_Bytes	= Buffer_Tweak_Words * sizeof(u64_t);
+		_CTIME_CONST(int)	Buffer_Tweak_Words      = Tweak_Words + 1;
+		_CTIME_CONST(int)	Buffer_Tweak_Bytes	= Buffer_Tweak_Words * sizeof(u64_t);
 
-		CTIME_CONST(int)	Buffer_Key_Words	= Number_Words + 1;
-		CTIME_CONST(int)	Buffer_Key_Bytes	= Buffer_Key_Words * sizeof(u64_t);
+		_CTIME_CONST(int)	Buffer_Key_Words	= Number_Words + 1;
+		_CTIME_CONST(int)	Buffer_Key_Bytes	= Buffer_Key_Words * sizeof(u64_t);
 
-		CTIME_CONST(int)	Buffer_Words	   = (State_Words + Buffer_Key_Schedule_Words + Buffer_Tweak_Words + Buffer_Key_Words);
-		CTIME_CONST(int)	Buffer_Bytes       = (State_Bytes + Buffer_Key_Schedule_Bytes + Buffer_Tweak_Bytes + Buffer_Key_Bytes);
+		_CTIME_CONST(int)	Buffer_Words	   = (State_Words + Buffer_Key_Schedule_Words + Buffer_Tweak_Words + Buffer_Key_Words);
+		_CTIME_CONST(int)	Buffer_Bytes       = (State_Bytes + Buffer_Key_Schedule_Bytes + Buffer_Tweak_Bytes + Buffer_Key_Bytes);
 		static_assert		(Buffer_Bytes == (Buffer_Words * sizeof(u64_t)));
 		/* Constructors / Destructors */
 		Threefish (void) = delete;
@@ -422,4 +413,3 @@ namespace ssc {
 		}
 	}/* inverse_permute_state */
 } /* ! namespace ssc */
-#undef CTIME_CONST

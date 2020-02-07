@@ -39,7 +39,7 @@ namespace ssc {
 	template <typename uint_t>
 	uint_t
 	rotate_left (uint_t value, unsigned int count) {
-		static constexpr uint_t const mask = (CHAR_BIT * sizeof(uint_t)) - 1;
+		_CTIME_CONST(uint_t) mask = (CHAR_BIT * sizeof(uint_t)) - 1;
 		count &= mask;
 		return ( value << count ) | ( value >> (-count & mask));
 	}
@@ -47,7 +47,7 @@ namespace ssc {
 	template <typename uint_t>
 	uint_t
 	rotate_right (uint_t value, unsigned int count) {
-		static constexpr uint_t const mask = (CHAR_BIT * sizeof(uint_t)) - 1;
+		_CTIME_CONST(uint_t) mask = (CHAR_BIT * sizeof(uint_t)) - 1;
 		count &= mask;
 		return ( value >> count ) | ( value << (-count & mask));
 	}
@@ -57,7 +57,7 @@ namespace ssc {
 	xor_block (void *__restrict block, void const *__restrict add) {
 		static_assert (CHAR_BIT == 8);
 		static_assert ((Block_Bits % CHAR_BIT == 0), "Bits must be a multiple of bytes");
-		static constexpr size_t const Block_Bytes = Block_Bits / 8;
+		_CTIME_CONST(size_t) Block_Bytes = Block_Bits / CHAR_BIT;
 		if constexpr(Block_Bits == 128) {
 			auto first_dword  = static_cast<u64_t *>(block);
 			auto second_dword = static_cast<u64_t const *>(add);
@@ -103,7 +103,7 @@ namespace ssc {
 	obtain_os_entropy (u8_t *buffer, size_t num_bytes) {
                 using namespace std;
 #if    defined (__UnixLike__)
-                static constexpr size_t const Max_Bytes = 256;
+		_CTIME_CONST(size_t) Max_Bytes = 256;
                 while (num_bytes >= Max_Bytes) {
                         if (getentropy( buffer, Max_Bytes ) != 0)
 				errx( "Error: Failed to getentropy()\n" );

@@ -20,7 +20,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #		define ENABLE_MEMORYLOCKING
 #	endif
 #else
-#	error 'Already defined'
+#	error 'ENABLE_MEMORYLOCKING Already Defined'
 #endif
 
 // If __SSC_DISABLE_MEMORYLOCKING is defined, do not support memory locking.
@@ -29,7 +29,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #	ifndef __SSC_MemoryLocking__
 #		define __SSC_MemoryLocking__
 #	else
-#		error 'Already defined'
+#		error '__SSC_MemoryLocking__ Already defined'
 #	endif
 
 #	include <cstdlib>

@@ -18,12 +18,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/general/integers.hh>
 #include <ssc/general/symbols.hh>
 
-#ifndef CTIME_CONST
-#	define CTIME_CONST(type) static constexpr const type
-#else
-#	error 'Already defined'
-#endif
-
 namespace ssc {
 	template <size_t State_Bits, bool Sensitive = true>
 	class Skein {
@@ -36,7 +30,7 @@ namespace ssc {
 		using UBI_t	  = Unique_Block_Iteration<Threefish_t, State_Bits>;
 		using Type_Mask_E = typename UBI_t::Type_Mask_E;
 
-		CTIME_CONST(size_t)	State_Bytes = State_Bits / CHAR_BIT;
+		_CTIME_CONST(size_t)	State_Bytes = State_Bits / CHAR_BIT;
 
 		/* PUBLIC INTERFACE */
 		Skein (void) = delete;
@@ -234,4 +228,3 @@ namespace ssc {
 		output_transform_( bytes_out, State_Bytes );
 	} /* hash_native */
 } /* ! namespace ssc */
-#undef CTIME_CONST

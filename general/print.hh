@@ -24,25 +24,25 @@ namespace ssc {
 	template <typename Uint_t>
 	void
 	print_integral_buffer (Uint_t * const i_buf, const size_t num_elements) {
-		static constexpr auto const & format_str = [](size_t const size) {
-			if ( size == sizeof(unsigned char) )
-			    return "%2hhx";
-			else if ( size == sizeof(unsigned short) )
-			    return "%2hx";
-			else if ( size == sizeof(unsigned int) )
-			    return "%x";
-			else if ( size == sizeof(unsigned long) )
-			    return "%8lx";
-			else if ( size == sizeof(unsigned long long) )
-			    return "%8llx";
-			else if ( size == sizeof(size_t) )
-			    return "%zx";
+		_CTIME_CONST(auto &) format_str = [](size_t const size) {
+			if (size == sizeof(unsigned char))
+				return "%2hhx";
+			else if (size == sizeof(unsigned short))
+				return "%2hx";
+			else if (size == sizeof(unsigned int))
+				return "%x";
+			else if (size == sizeof(unsigned long))
+				return "%8lx";
+			else if (size == sizeof(unsigned long long))
+				return "%8llx";
+			else if (size == sizeof(size_t))
+				return "%zx";
 			else
-			    return "";
-		    }( sizeof(Uint_t) );
+				return "";
+		}( sizeof(Uint_t) );
         using std::printf, std::fputs, std::putchar;
 
-        if ( num_elements == 0 )
+        if (num_elements == 0)
             return;
         auto alias = reinterpret_cast<Uint_t const *>(i_buf);
         

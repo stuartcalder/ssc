@@ -23,11 +23,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/general/symbols.hh>
 #include <ssc/general/error_conditions.hh>
 
-#ifndef CTIME_CONST
-#	define CTIME_CONST(type) static constexpr const type
-#else
-#	error 'Already defined'
-#endif
 namespace ssc {
         template <int State_Bits>
         class Skein_CSPRNG {
@@ -35,9 +30,9 @@ namespace ssc {
 		static_assert	 (CHAR_BIT == 8);
 		static_assert	 (State_Bits == 256 || State_Bits == 512 || State_Bits == 1024);
 		using Skein_t =  Skein<State_Bits>;
-		CTIME_CONST(int)	State_Bytes = State_Bits / CHAR_BIT;
-		CTIME_CONST(int)	Minimum_Buffer_Size = State_Bytes * 2;
-		CTIME_CONST(int)	Buffer_Bytes = State_Bytes * 3;
+		_CTIME_CONST(int)	State_Bytes = State_Bits / CHAR_BIT;
+		_CTIME_CONST(int)	Minimum_Buffer_Size = State_Bytes * 2;
+		_CTIME_CONST(int)	Buffer_Bytes = State_Bytes * 3;
 
 		Skein_CSPRNG (Skein_t *sk, u8_t *buf)
 			: skein{ sk }, state{ buf }
@@ -113,5 +108,3 @@ namespace ssc {
 		memcpy( output_buffer, (scratch_buffer + State_Bytes), requested_bytes );
         } /* get (u8_t *,u64_t) */
 }/* ! namespace ssc */
-#undef CTIME_CONST
-#undef TEST

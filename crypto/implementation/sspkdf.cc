@@ -20,12 +20,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include "sspkdf.hh"
 
-#ifndef CTIME_CONST
-#	define CTIME_CONST(type) static constexpr const type
-#else
-#	error 'Already defined'
-#endif
-
 namespace ssc::crypto_impl {
 	static_assert (CHAR_BIT == 8);
 	void
@@ -39,10 +33,10 @@ namespace ssc::crypto_impl {
 	{
 		using std::memcpy, std::make_unique;
 
-		CTIME_CONST(int)	State_Bits  = 512;
-		CTIME_CONST(int)	State_Bytes = State_Bits / CHAR_BIT;
-		CTIME_CONST(int)	Salt_Bits   = 128;
-		CTIME_CONST(int)	Salt_Bytes  = Salt_Bits / CHAR_BIT;
+		_CTIME_CONST(int)	State_Bits  = 512;
+		_CTIME_CONST(int)	State_Bytes = State_Bits / CHAR_BIT;
+		_CTIME_CONST(int)	Salt_Bits   = 128;
+		_CTIME_CONST(int)	Salt_Bytes  = Salt_Bits / CHAR_BIT;
 
 		using Index_t = u32_t;
 		u64_t const concat_size = (static_cast<u64_t>(password_length) + Salt_Bytes + sizeof(Index_t)) * static_cast<u64_t>(num_concat);
@@ -82,4 +76,3 @@ namespace ssc::crypto_impl {
 		}
 	}
 } /* ! namespace ssc::crypto_impl */
-#undef CTIME_CONST
