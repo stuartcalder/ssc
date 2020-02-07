@@ -77,13 +77,6 @@ namespace ssc {
 	Skein_CSPRNG<State_Bits>::reseed (void const * const seed) {
 		using std::memcpy;
 
-#if 0
-		u8_t	*state   = buffer;
-		u8_t	*scratch = buffer + State_Bytes;
-
-		memcpy( scratch                , state, State_Bytes );
-		memcpy( (scratch + State_Bytes), seed , State_Bytes );
-#endif
 		u8_t	*state_copy = state      + State_Bytes;
 		u8_t	*seed_copy  = state_copy + State_Bytes;
 
@@ -91,9 +84,6 @@ namespace ssc {
 		memcpy( seed_copy , seed , State_Bytes );
 		
 		static_assert	(Skein_t::State_Bytes == State_Bytes);
-#if 0
-		skein->hash_native( state, scratch, (State_Bytes * 2) );
-#endif
 		skein->hash_native( state, state_copy, (State_Bytes * 2) );
         } /* reseed (u8_t *,u64_t) */
 
@@ -102,15 +92,6 @@ namespace ssc {
         Skein_CSPRNG<State_Bits>::os_reseed (void) {
 		using std::memcpy;
 
-#if 0
-		u8_t	*state   = buffer;
-		u8_t	*scratch = buffer + State_Bytes;
-
-		memcpy( scratch, state, State_Bytes );
-		obtain_os_entropy( (scratch + State_Bytes), State_Bytes );
-		static_assert	(Skein_t::State_Bytes == State_Bytes);
-		skein->hash_native( state, scratch, (State_Bytes * 2) );
-#endif
 		u8_t	*state_copy = state      + State_Bytes;
 		u8_t	*seed       = state_copy + State_Bytes;
 
@@ -125,14 +106,6 @@ namespace ssc {
         Skein_CSPRNG<State_Bits>::get (void * const output_buffer, u64_t const requested_bytes) {
 		using std::memcpy;
 		
-#if 0
-		u8_t	*state   = buffer;
-		u8_t	*scratch = buffer + State_Bytes;
-
-		skein->hash( scratch, state, State_Bytes, (requested_bytes + State_Bytes) );
-		memcpy( state        , scratch                , State_Bytes     );
-		memcpy( output_buffer, (scratch + State_Bytes), requested_bytes );
-#endif
 		u8_t	*scratch_buffer = state + State_Bytes;
 
 		skein->hash( scratch_buffer, state, State_Bytes, (requested_bytes + State_Bytes) );
