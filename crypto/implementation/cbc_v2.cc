@@ -39,8 +39,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 namespace ssc::crypto_impl::cbc_v2 {
 
-	static u64_t
-	calculate_encrypted_size	(u64_t const pre_encryption_size) {
+	static u64_t calculate_encrypted_size (u64_t const pre_encryption_size)
+	{
 		_CTIME_CONST(int) File_Metadata_Size = CBC_V2_Header::Total_Size + MAC_Bytes;
 
 		auto s = pre_encryption_size;
@@ -51,8 +51,8 @@ namespace ssc::crypto_impl::cbc_v2 {
 		return s + File_Metadata_Size;
 	}
 
-	void
-	encrypt	(Input const & encr_input) {
+	void encrypt (Input const &encr_input)
+	{
 		using namespace std;
 		OS_Map input_map, output_map;
 
@@ -109,7 +109,10 @@ namespace ssc::crypto_impl::cbc_v2 {
 				static_assert (sizeof(char) == sizeof(u8_t));
 				char	*password_check = reinterpret_cast<char *>(locked_buffer + Password_Check_Offset);
 
+#if 0
 				password_length = obtain_password( password, password_check, Password_Prompt, Password_Reentry_Prompt, Password_Buffer_Bytes );
+#endif
+				password_length = obtain_password<Password_Buffer_Bytes>( password, password_check, Password_Prompt, Password_Reentry_Prompt );
 				zero_sensitive( password_check, Password_Buffer_Bytes );
 			}
 			if (encr_input.supplement_os_entropy) {
@@ -283,7 +286,10 @@ namespace ssc::crypto_impl::cbc_v2 {
 		Threefish_t threefish{ threefish_data };
 		UBI_t	    ubi      { &threefish, ubi_data };
 		Skein_t	    skein    { &ubi };
+#if 0
 		password_length = obtain_password( password, Password_Prompt, Password_Buffer_Bytes );
+#endif
+		password_length = obtain_password<Password_Buffer_Bytes>( password, Password_Prompt );
 
 		sspkdf( derived_key, skein, password, password_length, header.sspkdf_salt, header.num_iter, header.num_concat );
 		zero_sensitive( password, Password_Buffer_Bytes );

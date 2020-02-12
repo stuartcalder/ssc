@@ -65,6 +65,7 @@ namespace ssc {
 #	error 'Unsupported OS'
 #endif
 	}/*ssc::Terminal::~Terminal{}*/
+#if 0
 	int
 	Terminal::get_pw(char    * pw_buffer,
 			 int const max_pw_size,
@@ -244,5 +245,6 @@ namespace ssc {
 #endif
     }/* ! ssc::Terminal::notify */
 }
+#endif
 #undef UNLOCK_MEMORY
 #undef LOCK_MEMORY

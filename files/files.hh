@@ -41,6 +41,7 @@ namespace ssc {
 #	error 'Unsupported OS'
 #endif
 
+	/* Prototype all the inline functions defined in this header. */
 	inline size_t	 get_file_size (OS_File_t const);
 	inline size_t	 get_file_size (char const *);
 	inline size_t	 get_file_size (std::FILE *);

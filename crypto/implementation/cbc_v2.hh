@@ -16,7 +16,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #ifndef __SSC_CBC_V2__
 #	define __SSC_CBC_V2__
 #else
-#	error 'Already defined'
+#	error '__SSC_CBC_V2__ Already defined'
 #endif
 
 #include "common.hh"

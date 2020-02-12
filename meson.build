@@ -20,9 +20,6 @@ ssc_src = [
 	# `Crypto` Files
 	'crypto/implementation/sspkdf.cc',
 	'crypto/implementation/cbc_v2.cc',
-	'crypto/implementation/common.cc',
-	# `Interface` Files
-	'interface/terminal.cc'
 	]
 lib_deps   = []
 cpp_flags = []

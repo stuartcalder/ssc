@@ -5,24 +5,24 @@
 #include <ssc/memory/os_memory_locking.hh>
 #include <ssc/general/symbols.hh>
 
-namespace ssc::crypto_impl {
-	int
-	obtain_password (char       *password_buffer,
-			 char const *entry_prompt,
-			 int const  buffer_size)
+namespace ssc::crypto_impl
+{
+#if 0
+	int obtain_password (char       *password_buffer,
+			     char const *entry_prompt,
+			     int const  buffer_size)
 	{
 		std::memset( password_buffer, 0, buffer_size );
 
 		Terminal term;
 		return term.get_pw( password_buffer, buffer_size - 1, 1, entry_prompt );
-	}
+	} /* obtain_password(password,prompt,buffer_size) */
 
-	int
-	obtain_password (char       *password_buffer,
-			 char       *check_buffer,
-			 char const *entry_prompt,
-			 char const *reentry_prompt,
-			 int const  buffer_size)
+	int obtain_password (char       *password_buffer,
+			     char       *check_buffer,
+			     char const *entry_prompt,
+			     char const *reentry_prompt,
+			     int const  buffer_size)
 	{
 		using namespace std;
 		int pw_size;
@@ -37,10 +37,12 @@ namespace ssc::crypto_impl {
 			term.notify( "Passwords do not match." );
 		}
 		return pw_size;
-	}
+	} /* obtain_password(password_buffer,check_buffer,entry_prompt,reentry_prompt,buffer_size) */
+#endif
 
-	void
-	supplement_entropy (CSPRNG_t &csprng, Skein_t &skein, u8_t *buffer) {
+#if 0
+	void supplement_entropy (CSPRNG_t &csprng, Skein_t &skein, u8_t *buffer)
+	{
 		using namespace std;
 		_CTIME_CONST(int) Hash_Size   = Block_Bytes;
 		_CTIME_CONST(int) Input_Size  = Max_Entropy_Chars + 1;
@@ -56,5 +58,6 @@ namespace ssc::crypto_impl {
 		skein.hash_native( hash, reinterpret_cast<u8_t *>(input), num_input_chars );
 		static_assert (Hash_Size == CSPRNG_t::State_Bytes);
 		csprng.reseed( hash );
-	}
+	} /* supplement_entropy(csprng,skein,buffer) */
+#endif
 }/*namespace ssc::crypto_impl*/
