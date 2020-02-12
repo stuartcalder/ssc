@@ -139,15 +139,14 @@ namespace ssc {
 
 		bool const exists = file_exists( filename );
 		if (exists) {
-			if (force_to_exist)
-				return;
-		} else {
+			// The file does exist.
 			if (!force_to_exist)
-				return;
+				errx( "The file %s seems to already exist.\n", filename );
+		} else {
+			// The file does not exist.
+			if (force_to_exist)
+				errx( "The file %s does not seem to exist.\n", filename );
 		}
-		if (opt_error_msg)
-			errx( opt_error_msg );
-		errx( "Error: The file %s doesn't seem to exist.\n", filename );
 	}
 
 	OS_File_t

@@ -77,6 +77,8 @@ namespace ssc::crypto_impl::ctr_v1 {
 		}();
 		u8_t	crypto_buffer	[Crypto_Buffer_Size];
 
+		static_assert (sizeof(crypto_buffer) == Crypto_Buffer_Size);
+
 		LOCK_MEMORY( crypto_buffer, sizeof(crypto_buffer) );
 
 		_CTIME_CONST(int) Password_Offset = 0;

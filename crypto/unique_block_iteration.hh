@@ -15,9 +15,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <cstdio>
 #include <cstdlib>
 #include <ssc/crypto/operations.hh>
-#if 0 // Seemingly unneeded now.
-#	include <ssc/memory/os_memory_locking.hh>
-#endif
 #include <ssc/general/integers.hh>
 #include <ssc/general/symbols.hh>
 

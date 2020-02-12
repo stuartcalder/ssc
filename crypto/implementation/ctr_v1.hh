@@ -19,6 +19,11 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #	error 'Already defined'
 #endif
 
+// We will enable this define when we are ready to test the upcoming reimplementation of CTR_V1, to using CATENA-SKEIN instead of SSPKDF.
+#if 0
+#	define NEW_IMPL
+#endif
+
 #include "common.hh"
 
 #include <cstring>
@@ -32,11 +37,20 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 namespace ssc::crypto_impl::ctr_v1 {
 	_CTIME_CONST(auto &)	CTR_V1_ID = "SSC_CTR_V1";
+	// We require the block cipher to have at least 128 bits.
+	static_assert (Block_Bits >= 128);
+	// We require the block bits to be divisible by 2, to cleanly mark half of them as nonce.
 	static_assert (Block_Bits % 2 == 0);
-	_CTIME_CONST(int)	Nonce_Bits = Block_Bits / 2;
-	_CTIME_CONST(int)	Nonce_Bytes = Nonce_Bits / CHAR_BIT;
+	// We require that a char be 8 bits.
+	static_assert (CHAR_BIT == 8);
+	_CTIME_CONST(int) Nonce_Bits = Block_Bits / 2;
+	_CTIME_CONST(int) Nonce_Bytes = Nonce_Bits / CHAR_BIT;
+	// We'll be using the Threefish block cipher in CTR mode here.
 	using CTR_t = CTR_Mode<Threefish_t, Block_Bits>;
 
+#ifdef NEW_IMPL
+	//TODO
+#else
 	struct DLL_PUBLIC CTR_V1_Header {
 		char		 id		[sizeof(CTR_V1_ID)];
 		u64_t		 total_size;
@@ -49,6 +63,7 @@ namespace ssc::crypto_impl::ctr_v1 {
 	};
 
 	_CTIME_CONST(int)	Metadata_Bytes = CTR_V1_Header::Total_Size + MAC_Bytes;
+#endif
 
 	void DLL_PUBLIC
 	encrypt (Input const & input_abstr);

@@ -19,6 +19,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/general/symbols.hh>
 #include <ssc/crypto/operations.hh>
 
+#if 0
 namespace ssc {
 	class DLL_PUBLIC Terminal {
 		public:
@@ -40,3 +41,79 @@ namespace ssc {
 #endif
     };/*class ssc::Terminal*/
 }/*namespace ssc*/
+#endif
+
+namespace ssc {
+	class DLL_PUBLIC Terminal {
+		public:
+			Terminal();
+			~Terminal();
+			template <int Buffer_Size>
+			int get_sensitive_string (char	     *buffer,
+					          char const *prompt);
+		private:
+	}; /*class ssc::Terminal*/
+
+	template <int Buffer_Size>
+	int Terminal::get_sensitive_string (char       *buffer,
+					    char const *prompt)
+	{
+		using namespace std;
+		// Password can be at most the size of the buffer minus one, to not include the null terminator.
+		_CTIME_CONST(int) Max_Password_Size = Buffer_Size - 1;
+#if    defined (__UnixLike__)
+		cbreak();
+		noecho();
+		keypad( stdscr, TRUE );
+		int index = 0;
+		WINDOW *w = newwin( 5, Max_Password_Size, 0, 0 );
+		// Enable special characters in the new window `w`.
+		keypad( w, TRUE );
+		bool outer, inner;
+		outer = true;
+		while (outer) {
+			memset( buffer, 0, Buffer_Size );
+			wclear( w );
+			wmove( w, 1, 0 );
+			waddstr( w, prompt );
+			inner = true;
+			while (inner) {
+				int ch = wgetch( w );
+				switch (ch) {
+					case (127):
+					case (KEY_DC):
+					case (KEY_LEFT):
+					case (KEY_BACKSPACE):
+						if (index > 0) {
+							int y, x;
+							getyx( w, y, x );
+							wdelch( w );
+							wmove( w, y, x - 1 );
+							wrefresh( w );
+							buffer[ --index ] = '\0';
+						}
+						break;
+					case ('\n'):
+					case (KEY_ENTER):
+						inner = false;
+						break;
+					default:
+						if (index <= Max_Password_Size - 1) {
+							waddch( w, '*' );
+							wrefresh( w );
+							buffer[ index++ ] = static_cast<char>(ch);
+						}
+				} /* switch (ch) */
+			} /* while (inner) */
+			outer = false;
+		} /* while (outer) */
+		int const password_size = strlen( buffer );
+		delwin( w );
+		return password_size;
+#elif  defined (__Win64__)
+#	error 'Not yet supported'
+#else
+#	error 'Unsupported OS'
+#endif
+	}
+} /*namespace ssc*/
