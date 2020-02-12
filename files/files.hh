@@ -142,11 +142,11 @@ namespace ssc {
 		if (exists) {
 			// The file does exist.
 			if (!force_to_exist)
-				errx( "The file %s seems to already exist.\n", filename );
+				errx( "Error: The file %s seems to already exist.\n", filename );
 		} else {
 			// The file does not exist.
 			if (force_to_exist)
-				errx( "The file %s does not seem to exist.\n", filename );
+				errx( "Error: The file %s does not seem to exist.\n", filename );
 		}
 	}
 

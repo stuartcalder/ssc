@@ -162,7 +162,47 @@ namespace ssc
 		delwin( w ); // Delete the window `w`.
 		return password_size; // Return the number of non-null characters of the C-string in the buffer.
 #elif  defined (__Win64__)
-#	error 'Not Yet Supported'
+		/* TODO: This code has not yet been tested.
+		 */
+		int index = 0;
+		bool repeat_ui, repeat_input;
+		repeat_ui = true;
+		while (repeat_ui) {
+			memset( buffer, 0, Buffer_Size );
+			system( "cls" );
+			if (_cputs( prompt ) != 0)
+				errx( "Error: Failed to _cputs()\n" );
+			repeat_input = true;
+			while (repeat_input) {
+				int ch = _getch();
+				switch (ch) {
+					// A password character wkey was pushed.
+					default:
+						if ((index < Buffer_Size) && (ch >= 32) && (ch <= 126)) {
+							if (_putch( '*' ) == EOF)
+								errx( "Error: Failed to _putch()\n" );
+							buffer[ index++ ] = static_cast<char>(ch);
+						}
+						break;
+					// Backspace was pushed.
+					case ('\b'):
+						if (index > 0) {
+							if (_cputs( "\b \b" ) != 0)
+								errx( "Error: Failed to _cputs()\n" );
+							buffer[ --index ] = '\0';
+						}
+						break;
+					// Enter was pushed.
+					case ('\r'):
+						repeat_input = false;
+						break;
+				} /* switch (ch) */
+			} /* while (repeat_input) */
+			repeat_ui = false;
+		} /* while (repeat_ui) */
+		int const password_size = strlen( buffer );
+		system( "cls" );
+		return password_size;
 #else
 #	error 'Unsupported OS'
 #endif
