@@ -109,6 +109,13 @@ namespace ssc::crypto_impl {
 		while (true) {
 			Terminal term;
 			size = term.get_sensitive_string<Buffer_Size>( password_buffer, entry_prompt );
+			if (size < min_pw_size) {
+				term.notify( "Password is not long enough." NEW_LINE );
+				continue;
+			} else if (size > max_pw_size) {
+				term.notify( "Password is too long." NEW_LINE );
+				continue;
+			}
 			static_cast<void>(term.get_sensitive_string<Buffer_Size>( check_buffer, reentry_prompt ));
 			if (memcmp( password_buffer, check_buffer, Buffer_Size ) == 0)
 				break;
