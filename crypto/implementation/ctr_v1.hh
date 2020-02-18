@@ -51,7 +51,7 @@ namespace ssc::crypto_impl::ctr_v1 {
 #ifdef NEW_IMPL
 	//TODO
 #else
-	struct DLL_PUBLIC CTR_V1_Header {
+	struct _PUBLIC CTR_V1_Header {
 		char		 id		[sizeof(CTR_V1_ID)];
 		u64_t		 total_size;
 		u8_t		 tweak		[Tweak_Bytes];
@@ -65,14 +65,14 @@ namespace ssc::crypto_impl::ctr_v1 {
 	_CTIME_CONST(int)	Metadata_Bytes = CTR_V1_Header::Total_Size + MAC_Bytes;
 #endif
 
-	void DLL_PUBLIC
+	void _PUBLIC
 	encrypt (Input const & input_abstr);
 
-	void DLL_PUBLIC
+	void _PUBLIC
 	decrypt (char const *__restrict input_filename,
 	 	 char const *__restrict output_filename);
 
-	void DLL_PUBLIC
+	void _PUBLIC
 	dump_header (char const *filename);
 
 }/*namespace ssc::crypto_impl::ctr_v1*/

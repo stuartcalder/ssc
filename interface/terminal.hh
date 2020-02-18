@@ -33,7 +33,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #if 0
 namespace ssc {
-	class DLL_PUBLIC Terminal {
+	class _PUBLIC Terminal {
 		public:
         /* CONSTRUCTORS */
 			Terminal();
@@ -46,8 +46,8 @@ namespace ssc {
 			void notify(char const * notice);
 		private:
 #if    defined (__UnixLike__)
-			int DLL_LOCAL std_height;
-			int DLL_LOCAL std_width;
+			int _LOCAL std_height;
+			int _LOCAL std_width;
 #elif !defined (__Win64__)
 #	error 'Unsupported OS'
 #endif
@@ -57,7 +57,7 @@ namespace ssc {
 
 namespace ssc
 {
-	class DLL_PUBLIC Terminal
+	class _PUBLIC Terminal
 	{
 		public:
 			Terminal()

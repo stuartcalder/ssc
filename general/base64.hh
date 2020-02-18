@@ -30,8 +30,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 */
 namespace ssc
 {
-    DLL_PUBLIC constexpr size_t calculate_b64_r648_size(size_t size_in);
-    DLL_PUBLIC void b64_r648_encode(const uint8_t * const in, char * const out, const size_t size_in);
-    DLL_PUBLIC void b64_r648_decode(const char * const in, uint8_t * const out, const size_t size_in);
+    _PUBLIC constexpr size_t calculate_b64_r648_size(size_t size_in);
+    _PUBLIC void b64_r648_encode(const uint8_t * const in, char * const out, const size_t size_in);
+    _PUBLIC void b64_r648_decode(const char * const in, uint8_t * const out, const size_t size_in);
 }
 #endif

@@ -27,7 +27,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #endif
 
 namespace ssc {
-	struct DLL_PUBLIC OS_Map {
+	struct _PUBLIC OS_Map {
 		u8_t	  *ptr;
 		u64_t     size;
 		OS_File_t os_file;

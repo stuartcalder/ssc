@@ -16,6 +16,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/general/macros.hh>
 
 namespace ssc {
-	bool DLL_PUBLIC
+	bool _PUBLIC
 	enforce_integer (std::string & str);
 }/*namespace ssc */

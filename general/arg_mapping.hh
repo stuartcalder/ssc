@@ -19,7 +19,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/general/macros.hh>
 namespace ssc
 {
-    class DLL_PUBLIC Arg_Mapping
+    class _PUBLIC Arg_Mapping
     {
     public:
         /* PUBLIC CONSTANTS & ALIASES */

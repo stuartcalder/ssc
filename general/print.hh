@@ -18,7 +18,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/general/integers.hh>
 
 namespace ssc {
-	void DLL_PUBLIC
+	void _PUBLIC
 	print_binary_buffer (const uint8_t * buffer, const size_t num_bytes);
     
 	template <typename Uint_t>

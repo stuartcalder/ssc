@@ -54,7 +54,7 @@ namespace ssc::crypto_impl {
 	using UBI_t       =     Unique_Block_Iteration<Threefish_t, Block_Bits>;
 	using Skein_t     =	Skein<Block_Bits>;
 	using CSPRNG_t    =	Skein_CSPRNG<Block_Bits>;
-	struct DLL_PUBLIC Input {
+	struct _PUBLIC Input {
 		std::string	input_filename;
 		std::string	output_filename;
 		u32_t		number_sspkdf_iterations;
@@ -63,12 +63,12 @@ namespace ssc::crypto_impl {
 	};
 
 #if 0
-	int DLL_PUBLIC
+	int _PUBLIC
 	obtain_password (char       *password_buffer,
 			 char const *entry_prompt,
 			 int const  buffer_size);
 
-	int DLL_PUBLIC
+	int _PUBLIC
 	obtain_password (char       *password_buffer,
 			 char       *check_buffer,
 			 char const *entry_prompt,
@@ -127,7 +127,7 @@ namespace ssc::crypto_impl {
 	_CTIME_CONST(int) Supplement_Entropy_Buffer_Bytes = Block_Bytes + Max_Entropy_Chars + 1;
 
 #if 0
-	void DLL_PUBLIC
+	void _PUBLIC
 	supplement_entropy (CSPRNG_t &csprng, Skein_t &skein, u8_t *buffer);
 #endif
 	inline void supplement_entropy (CSPRNG_t &csprng, Skein_t &skein, u8_t *buffer)

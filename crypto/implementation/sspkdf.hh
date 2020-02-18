@@ -21,7 +21,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "common.hh"
 
 namespace ssc::crypto_impl {
-	void DLL_PUBLIC
+	void _PUBLIC
 	sspkdf (u8_t *output,
 		Skein_t &skein,
 		char const *password,
