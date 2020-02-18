@@ -20,7 +20,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <climits>
 
 #include <utility>
-#include <ssc/general/symbols.hh>
+#include <ssc/general/macros.hh>
 #include <ssc/general/integers.hh>
 #include <ssc/general/error_conditions.hh>
 #include <ssc/crypto/operations.hh>

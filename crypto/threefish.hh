@@ -18,7 +18,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <cstring>
 #include <ssc/crypto/operations.hh>
 #include <ssc/general/integers.hh>
-#include <ssc/general/symbols.hh>
+#include <ssc/general/macros.hh>
 
 namespace ssc {
 	template <int Key_Bits>

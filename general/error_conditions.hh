@@ -14,7 +14,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #pragma once
 #include <cstdlib>
 #include <cstdio>
-#include <ssc/general/symbols.hh>
+#include <ssc/general/macros.hh>
 
 #ifdef __UnixLike__
 // For unix-like operating systems (that provide err.h), we can simply include err.h for error handling functions.

@@ -16,7 +16,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <utility>
 #include <string>
 #include <vector>
-#include <ssc/general/symbols.hh>
+#include <ssc/general/macros.hh>
 namespace ssc
 {
     class DLL_PUBLIC Arg_Mapping

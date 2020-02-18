@@ -31,7 +31,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <string>
 #include <climits>
 
-#include <ssc/general/symbols.hh>
+#include <ssc/general/macros.hh>
 #include <ssc/general/integers.hh>
 #include <ssc/crypto/ctr.hh>
 

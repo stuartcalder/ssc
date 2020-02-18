@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ssc/general/symbols.hh>
+#include <ssc/general/macros.hh>
 #include <ssc/general/integers.hh>
 #include <ssc/crypto/operations.hh>
 #include <ssc/crypto/threefish.hh>
@@ -135,7 +135,9 @@ namespace ssc::crypto_impl {
 		using namespace std;
 		_CTIME_CONST(int) Hash_Size = Block_Bytes;
 		_CTIME_CONST(int) Input_Size = Max_Entropy_Chars + 1;
+#if 0
 		_CTIME_CONST(int) Buffer_Size = Hash_Size + Input_Size;
+#endif
 
 		static_assert (sizeof(u8_t) == sizeof(char));
 		u8_t *hash  = buffer;

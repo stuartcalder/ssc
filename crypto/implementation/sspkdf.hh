@@ -17,7 +17,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <cstring>
 #include <memory>
 #include <ssc/general/integers.hh>
-#include <ssc/general/symbols.hh>
+#include <ssc/general/macros.hh>
 #include "common.hh"
 
 namespace ssc::crypto_impl {

@@ -14,7 +14,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #pragma once
 #include <cstdint>
 #include <cstdio>
-#include <ssc/general/symbols.hh>
+#include <ssc/general/macros.hh>
 #include <ssc/general/integers.hh>
 
 namespace ssc {

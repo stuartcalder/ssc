@@ -22,7 +22,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <atomic>
 #include <thread>
 
-#include <ssc/general/symbols.hh>
+#include <ssc/general/macros.hh>
 #include <ssc/general/integers.hh>
 #include <ssc/crypto/operations.hh>
 #include <ssc/memory/os_memory_locking.hh>

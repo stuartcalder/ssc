@@ -21,7 +21,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <climits>
 #include <cstring>
 #include <ssc/general/integers.hh>
-#include <ssc/general/symbols.hh>
+#include <ssc/general/macros.hh>
 #include <ssc/general/error_conditions.hh>
 
 #if    defined (__UnixLike__)

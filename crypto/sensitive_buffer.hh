@@ -5,7 +5,7 @@
 #	include <climits>
 
 #	include <ssc/general/integers.hh>
-#	include <ssc/general/symbols.hh>
+#	include <ssc/general/macros.hh>
 #	include <ssc/crypto/operations.hh>
 #	include <ssc/memory/os_memory_locking.hh>
 

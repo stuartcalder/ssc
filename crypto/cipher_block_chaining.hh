@@ -19,7 +19,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <utility>
 #include <ssc/crypto/operations.hh>
 #include <ssc/general/integers.hh>
-#include <ssc/general/symbols.hh>
+#include <ssc/general/macros.hh>
 #include <ssc/general/error_conditions.hh>
 #include <ssc/memory/os_memory_locking.hh>
 
@@ -92,6 +92,7 @@ namespace ssc {
 				return count;
 		}
 		errx( "Error: Invalid Cipher_Block_Chaining padding\n" );
+		return 1; // This should be unreachable, but will supress warnings about return values.
 	}
 
         template <typename Block_Cipher_t, int Block_Bits>

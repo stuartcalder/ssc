@@ -16,7 +16,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <utility>
 #include <memory>
 
-#include <ssc/general/symbols.hh>
+#include <ssc/general/macros.hh>
 #include <ssc/general/error_conditions.hh>
 #include <ssc/interface/terminal.hh>
 #include <ssc/memory/os_memory_locking.hh>

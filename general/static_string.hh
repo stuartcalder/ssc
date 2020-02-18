@@ -13,7 +13,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 */
 #pragma once
 #include <cstddef>
-#include <ssc/general/symbols.hh>
+#include <ssc/general/macros.hh>
 
 namespace ssc
 {

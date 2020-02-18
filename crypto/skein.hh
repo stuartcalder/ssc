@@ -16,7 +16,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/crypto/threefish.hh>
 #include <ssc/crypto/unique_block_iteration.hh>
 #include <ssc/general/integers.hh>
-#include <ssc/general/symbols.hh>
+#include <ssc/general/macros.hh>
 
 namespace ssc {
 	template <size_t State_Bits, bool Sensitive = true>

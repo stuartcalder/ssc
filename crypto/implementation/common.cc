@@ -3,7 +3,7 @@
 #include <ssc/interface/terminal.hh>
 #include <ssc/crypto/operations.hh>
 #include <ssc/memory/os_memory_locking.hh>
-#include <ssc/general/symbols.hh>
+#include <ssc/general/macros.hh>
 
 namespace ssc::crypto_impl
 {

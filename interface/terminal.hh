@@ -18,7 +18,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <cstdlib>
 #include <cstring>
 /* SSC Libraries */
-#include <ssc/general/symbols.hh>
+#include <ssc/general/macros.hh>
 #include <ssc/crypto/operations.hh>
 /* OS-Conditional Libraries */
 #if    defined (__UnixLike__)
@@ -88,8 +88,8 @@ namespace ssc
 			inline void notify (char const *notice);
 		private:
 #ifdef __UnixLike__
-			int DLL_LOCAL std_height;
-			int DLL_LOCAL std_width;
+			int std_height;
+			int std_width;
 #endif
 	}; /*class ssc::Terminal*/
 

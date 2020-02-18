@@ -12,7 +12,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 */
 #pragma once
 
-#include <ssc/general/symbols.hh>
+#include <ssc/general/macros.hh>
 
 #ifndef ENABLE_MEMORYLOCKING
 	// Memory-lock on all supported operating systems, for prudence.
