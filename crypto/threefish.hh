@@ -28,50 +28,63 @@ namespace ssc {
 		static_assert ((Key_Bits == 256 || Key_Bits == 512 || Key_Bits == 1024), "Invalid keysize");
 		static_assert ((CHAR_BIT == 8), "This implementation needs 8-bit chars");
 		/* Public Constants */
-		_CTIME_CONST(u64_t)	Constant_240  = 0x1b'd1'1b'da'a9'fc'1a'22;
-		_CTIME_CONST(int)	Block_Bits    = Key_Bits;
-		_CTIME_CONST(int)	Block_Bytes   = Block_Bits / CHAR_BIT;
-		_CTIME_CONST(int)	Number_Words  = Key_Bits / 64;
-		_CTIME_CONST(int)	Tweak_Words   = 2;
-		_CTIME_CONST(int)	Tweak_Bytes   = Tweak_Words * sizeof(u64_t);
-		_CTIME_CONST(int)	Number_Rounds = [](int bits) {
-								if (bits == 1024)
-									return 80;
-								return 72;
-							}( Key_Bits );
-		_CTIME_CONST(int)	Number_Subkeys = (Number_Rounds / 4) + 1;
+		// Constant_240, defined in the Threefish specification.
+		_CTIME_CONST(u64_t) Constant_240 = 0x1b'd1'1b'da'a9'fc'1a'22;
+		// The number of bits in one block: i.e. 256,512, or 1024.
+		_CTIME_CONST(int) Block_Bits = Key_Bits;
+		// The number of bytes in one block.
+		_CTIME_CONST(int) Block_Bytes = Block_Bits / CHAR_BIT;
+		// The number of unsigned 64-bit little endian words in one block.
+		_CTIME_CONST(int) Number_Words = Key_Bits / 64;
+		// The number of unsigned 64-bit little endian words in the tweak.
+		_CTIME_CONST(int) Tweak_Words = 2;
+		// The number of bytes in the tweak.
+		_CTIME_CONST(int) Tweak_Bytes = Tweak_Words * sizeof(u64_t);
+		// The number of rounds, which is 80 or 72.
+		_CTIME_CONST(int) Number_Rounds = []() {
+							if (Key_Bits == 1024)
+								return 80;
+							return 72;
+						  }();
+		// The number of subkeys in the key schedule.
+		_CTIME_CONST(int) Number_Subkeys = (Number_Rounds / 4) + 1;
 
-		_CTIME_CONST(int)	State_Words        = Number_Words;
-		_CTIME_CONST(int)	State_Bytes	   = State_Words * sizeof(u64_t);
+		// The number of 64-bit words in the key schedule buffer.
+		_CTIME_CONST(int) Buffer_Key_Schedule_Words = Number_Subkeys * Number_Words;
+		// The number of bytes in the key schedule buffer.
+		_CTIME_CONST(int) Buffer_Key_Schedule_Bytes = Buffer_Key_Schedule_Words * sizeof(u64_t);
 
-		_CTIME_CONST(int)	Buffer_Key_Schedule_Words = Number_Subkeys * Number_Words;
-		_CTIME_CONST(int)	Buffer_Key_Schedule_Bytes = Buffer_Key_Schedule_Words * sizeof(u64_t);
+		// The number of 64-bit words in the tweak buffer.
+		_CTIME_CONST(int) Buffer_Tweak_Words      = Tweak_Words + 1;
+		// The number of bytes in the tweak buffer.
+		_CTIME_CONST(int) Buffer_Tweak_Bytes	= Buffer_Tweak_Words * sizeof(u64_t);
 
-		_CTIME_CONST(int)	Buffer_Tweak_Words      = Tweak_Words + 1;
-		_CTIME_CONST(int)	Buffer_Tweak_Bytes	= Buffer_Tweak_Words * sizeof(u64_t);
+		// The number of 64-bit words in the key buffer.
+		_CTIME_CONST(int) Buffer_Key_Words	= Number_Words + 1;
+		// The number of bytes in the key buffer.
+		_CTIME_CONST(int) Buffer_Key_Bytes	= Buffer_Key_Words * sizeof(u64_t);
 
-		_CTIME_CONST(int)	Buffer_Key_Words	= Number_Words + 1;
-		_CTIME_CONST(int)	Buffer_Key_Bytes	= Buffer_Key_Words * sizeof(u64_t);
-
-		_CTIME_CONST(int)	Buffer_Words	   = (State_Words + Buffer_Key_Schedule_Words + Buffer_Tweak_Words + Buffer_Key_Words);
-		_CTIME_CONST(int)	Buffer_Bytes       = (State_Bytes + Buffer_Key_Schedule_Bytes + Buffer_Tweak_Bytes + Buffer_Key_Bytes);
-		static_assert		(Buffer_Bytes == (Buffer_Words * sizeof(u64_t)));
+		// The total number of 64-bit words pointed to by the buffer pointer passed in at runtime.
+		_CTIME_CONST(int) Buffer_Words	   = (Number_Words + Buffer_Key_Schedule_Words + Buffer_Tweak_Words + Buffer_Key_Words);
+		// The total number of bytes pointed to by the buffer pointer passed in at runtime.
+		_CTIME_CONST(int) Buffer_Bytes       = (Block_Bytes + Buffer_Key_Schedule_Bytes + Buffer_Tweak_Bytes + Buffer_Key_Bytes);
+		static_assert (Buffer_Bytes == (Buffer_Words * sizeof(u64_t)));
 		/* Constructors / Destructors */
 		Threefish (void) = delete;
 
 		Threefish (u64_t *buffer)
 			: state{ buffer },
-			  key_schedule{ buffer + State_Words },
-			  key{ buffer + (State_Words + Buffer_Key_Schedule_Words) },
-			  tweak{ buffer + (State_Words + Buffer_Key_Schedule_Words + Buffer_Key_Words) }
+			  key_schedule{ buffer + Number_Words },
+			  key{ buffer + (Number_Words + Buffer_Key_Schedule_Words) },
+			  tweak{ buffer + (Number_Words + Buffer_Key_Schedule_Words + Buffer_Key_Words) }
 		{
 		}
 
 		Threefish (u64_t *__restrict buffer, u8_t const *__restrict k, u8_t const *__restrict tw = nullptr)
 			: state{ buffer },
-			  key_schedule{ buffer + State_Words },
-			  key{ buffer + (State_Words + Buffer_Key_Schedule_Words) },
-			  tweak{ buffer + (State_Words + Buffer_Key_Schedule_Words + Buffer_Key_Words) }
+			  key_schedule{ buffer + Number_Words },
+			  key{ buffer + (Number_Words + Buffer_Key_Schedule_Words) },
+			  tweak{ buffer + (Number_Words + Buffer_Key_Schedule_Words + Buffer_Key_Words) }
 		{
 			expand_key_( k, tw );
 		}
@@ -192,7 +205,7 @@ namespace ssc {
 	void
 	Threefish<Key_Bits>::expand_key_ (u8_t const *__restrict k, u8_t const *__restrict tw) {
 		using std::memcpy, std::memset;
-		memcpy( key, k, State_Bytes );
+		memcpy( key, k, Block_Bytes );
 		key[ Number_Words ] = Constant_240;
 		for (int i = 0; i < Number_Words; ++i)
 			key[ Number_Words ] ^= key[ i ];
@@ -236,7 +249,7 @@ namespace ssc {
 	Threefish<Key_Bits>::cipher (u8_t *out, u8_t const *in) {
 		using std::memcpy;
 
-		memcpy( state, in, State_Bytes );
+		memcpy( state, in, Block_Bytes );
 		for (int round = 0; round < Number_Rounds; ++round) {
 			if (round % 4 == 0)
 				add_subkey_( round );
@@ -245,7 +258,7 @@ namespace ssc {
 			permute_state_();
 		}
 		add_subkey_( Number_Rounds );
-		memcpy( out, state, State_Bytes );
+		memcpy( out, state, Block_Bytes );
 	} /* cipher */
 
 	template <int Key_Bits>
@@ -253,7 +266,7 @@ namespace ssc {
 	Threefish<Key_Bits>::inverse_cipher (u8_t *out, u8_t const *in) {
 		using std::memcpy;
 		
-		memcpy( state, in, State_Bytes );
+		memcpy( state, in, Block_Bytes );
 		subtract_subkey_( Number_Rounds );
 		for (int round = Number_Rounds - 1; round >= 0; --round) {
 			inverse_permute_state_();
@@ -262,7 +275,7 @@ namespace ssc {
 			if (round % 4 == 0)
 				subtract_subkey_( round );
 		}
-		memcpy( out, state, State_Bytes );
+		memcpy( out, state, Block_Bytes );
 	} /* inverse_cipher */
 
 	template <int Key_Bits>

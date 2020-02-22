@@ -1,21 +1,16 @@
 #include <ssc/crypto/threefish.hh>
 #include <ssc/general/print.hh>
 #include <ssc/general/integers.hh>
-
-#ifndef CTIME_CONST
-#	define CTIME_CONST(type) static constexpr const type
-#else
-#	error 'Already defined'
-#endif
+#include <ssc/general/macros.hh>
 
 int main() {
 	using namespace std;
 	using namespace ssc;
 	static_assert		(CHAR_BIT == 8);
-	CTIME_CONST(int)	State_Bits = 512;
-	CTIME_CONST(int)	State_Bytes = State_Bits / CHAR_BIT;
-	CTIME_CONST(int)	Tweak_Bits = 128;
-	CTIME_CONST(int)	Tweak_Bytes = Tweak_Bits / CHAR_BIT;
+	_CTIME_CONST(int)	State_Bits = 512;
+	_CTIME_CONST(int)	State_Bytes = State_Bits / CHAR_BIT;
+	_CTIME_CONST(int)	Tweak_Bits = 128;
+	_CTIME_CONST(int)	Tweak_Bytes = Tweak_Bits / CHAR_BIT;
 
 	using Threefish_t = Threefish<State_Bits>;
 
@@ -33,4 +28,3 @@ int main() {
 	print_integral_buffer<u8_t>( test_ciphertext, sizeof(test_ciphertext) );
 	putchar( '\n' );
 }
-#undef CTIME_CONST
