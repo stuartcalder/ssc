@@ -37,6 +37,7 @@ namespace ssc {
 		Skein_CSPRNG (Skein_t *sk, u8_t *buf)
 			: skein{ sk }, state{ buf }
 		{
+			obtain_os_entropy( seed, State_Bytes );
 		}
 		
                 /* void reseed(seed,seed_bytes)

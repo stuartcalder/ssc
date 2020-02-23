@@ -83,7 +83,7 @@ namespace ssc::crypto_impl::cbc_v2 {
 			size += (size % sizeof(u64_t));
 			return size;
 		}();
-		u8_t	locked_buffer [Locked_Buffer_Size];
+		alignas(sizeof(u64_t)) u8_t locked_buffer [Locked_Buffer_Size];
 
 		LOCK_MEMORY( locked_buffer, sizeof(locked_buffer) );
 
@@ -271,7 +271,7 @@ namespace ssc::crypto_impl::cbc_v2 {
 		_CTIME_CONST(int) UBI_Offset         = Threefish_Offset + Threefish_t::Buffer_Bytes;
 		_CTIME_CONST(int) CBC_Offset         = UBI_Offset;
 
-		u8_t	locked_buffer [Locked_Buffer_Size];
+		alignas(sizeof(u64_t)) u8_t locked_buffer [Locked_Buffer_Size];
 
 		LOCK_MEMORY( locked_buffer, sizeof(locked_buffer) );
 
