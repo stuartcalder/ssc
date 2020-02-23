@@ -75,54 +75,6 @@ namespace ssc::crypto_impl {
 			 char const *reentry_prompt,
 			 int const  buffer_size);
 #endif
-	template <int Buffer_Size>
-	int obtain_password (char       *password_buffer,
-			     char const *entry_prompt,
-			     int const  min_pw_size = 1,
-			     int const  max_pw_size = Buffer_Size - 1)
-	{
-		int size;
-		while (true) {
-			Terminal term;
-			size = term.get_sensitive_string<Buffer_Size>( password_buffer, entry_prompt );
-			if (size < min_pw_size) {
-				term.notify( "Password is not long enough." NEW_LINE );
-			} else if (size > max_pw_size) {
-				term.notify( "Password is too long." NEW_LINE );
-			} else {
-				break;
-			}
-		}
-		return size;
-	} /* obtain_password(password_buffer,entry_prompt) */
-
-	template <int Buffer_Size>
-	int obtain_password (char *password_buffer,
-			     char *check_buffer,
-			     char const *entry_prompt,
-			     char const *reentry_prompt,
-			     int const  min_pw_size = 1,
-			     int const  max_pw_size = Buffer_Size - 1)
-	{
-		using namespace std;
-		int size;
-		while (true) {
-			Terminal term;
-			size = term.get_sensitive_string<Buffer_Size>( password_buffer, entry_prompt );
-			if (size < min_pw_size) {
-				term.notify( "Password is not long enough." NEW_LINE );
-				continue;
-			} else if (size > max_pw_size) {
-				term.notify( "Password is too long." NEW_LINE );
-				continue;
-			}
-			static_cast<void>(term.get_sensitive_string<Buffer_Size>( check_buffer, reentry_prompt ));
-			if (memcmp( password_buffer, check_buffer, Buffer_Size ) == 0)
-				break;
-			term.notify( "Passwords do not match." );
-		}
-		return size;
-	} /* obtain_password(password_buffer,check_buffer,entry_prompt,reentry_prompt) */
 
 	_CTIME_CONST(int) Supplement_Entropy_Buffer_Bytes = Block_Bytes + Max_Entropy_Chars + 1;
 

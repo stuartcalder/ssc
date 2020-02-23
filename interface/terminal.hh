@@ -31,30 +31,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #	error 'Unsupported OS'
 #endif
 
-#if 0
-namespace ssc {
-	class _PUBLIC Terminal {
-		public:
-        /* CONSTRUCTORS */
-			Terminal();
-			~Terminal();
-        // Returns password size
-			int get_pw(char    * buffer,
-				   int const max_pw_size,
-				   int const min_pw_size,
-				   char const * prompt);
-			void notify(char const * notice);
-		private:
-#if    defined (__UnixLike__)
-			int _LOCAL std_height;
-			int _LOCAL std_width;
-#elif !defined (__Win64__)
-#	error 'Unsupported OS'
-#endif
-    };/*class ssc::Terminal*/
-}/*namespace ssc*/
-#endif
-
 namespace ssc
 {
 	class _PUBLIC Terminal
@@ -229,9 +205,59 @@ namespace ssc
 #endif
 	} /* notify(notice) */
 
-
-
-
-
-
+#if    defined (__UnixLike__)
+#	define NEW_LINE "\n"
+#elif  defined (__Win64__)
+#	define NEW_LINE "\n\r"
+#else
+#	error 'Unsupported OS'
+#endif
+	template <int Buffer_Size>
+	int obtain_password (char *password_buffer,
+			     char const *entry_prompt,
+			     int const min_pw_size = 1,
+			     int const max_pw_size = Buffer_Size - 1)
+	{
+		int size;
+		while (true) {
+			Terminal term;
+			size = term.get_sensitive_string<Buffer_Size>( password_buffer, entry_prompt );
+			if (size < min_pw_size) {
+				term.notify( "Password is not long enough." NEW_LINE );
+			} else if (size > max_pw_size) {
+				term.notify( "Password is too long." NEW_LINE );
+			} else {
+				break;
+			}
+		}
+		return size;
+	}
+	template <int Buffer_Size>
+	int obtain_password (char *password_buffer,
+			     char *check_buffer,
+			     char const *entry_prompt,
+			     char const *reentry_prompt,
+			     int const min_pw_size = 1,
+			     int const max_pw_size = Buffer_Size - 1)
+	{
+		using namespace std;
+		int size;
+		while (true) {
+			Terminal term;
+			size = term.get_sensitive_string<Buffer_Size>( password_buffer, entry_prompt );
+			if (size < min_pw_size) {
+				term.notify( "Password is not long enough." NEW_LINE );
+				continue;
+			} else if (size > max_pw_size) {
+				term.notify( "Password is too long." NEW_LINE );
+				continue;
+			}
+			static_cast<void>(term.get_sensitive_string<Buffer_Size>( check_buffer, reentry_prompt ));
+			if (memcmp( password_buffer, check_buffer, Buffer_Size ) == 0)
+				break;
+			term.notify( "Passwords do not match." NEW_LINE );
+		}
+		return size;
+	}
 } /*namespace ssc*/
+#undef NEW_LINE
