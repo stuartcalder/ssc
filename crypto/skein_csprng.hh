@@ -34,6 +34,7 @@ namespace ssc {
 		_CTIME_CONST(int)	Minimum_Buffer_Size = State_Bytes * 2;
 		_CTIME_CONST(int)	Buffer_Bytes = State_Bytes * 3;
 
+		Skein_CSPRNG () = delete;
 		Skein_CSPRNG (Skein_t *sk, u8_t *buf)
 			: skein{ sk }, state{ buf }
 		{
