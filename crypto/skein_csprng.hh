@@ -23,16 +23,29 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/general/macros.hh>
 #include <ssc/general/error_conditions.hh>
 
+#ifdef TEMPLATE_PARAMETERS
+#	error 'TEMPLATE_PARAMETERS Already Defined'
+#else
+#	define TEMPLATE_PARAMETERS template <int State_Bits,int Max>
+#endif
+
+#ifdef CLASS
+#	error 'CLASS Already Defined'
+#else
+#	define CLASS Skein_CSPRNG<State_Bits,Max>
+#endif
+
 namespace ssc {
-        template <int State_Bits>
+	static_assert (CHAR_BIT == 8);
+        template <int State_Bits, int Max = (State_Bits / CHAR_BIT)>
         class Skein_CSPRNG {
         public:
-		static_assert	 (CHAR_BIT == 8);
-		static_assert	 (State_Bits == 256 || State_Bits == 512 || State_Bits == 1024);
-		using Skein_t =  Skein<State_Bits>;
-		_CTIME_CONST(int)	State_Bytes = State_Bits / CHAR_BIT;
-		_CTIME_CONST(int)	Minimum_Buffer_Size = State_Bytes * 2;
-		_CTIME_CONST(int)	Buffer_Bytes = State_Bytes * 3;
+		static_assert (State_Bits == 256 || State_Bits == 512 || State_Bits == 1024);
+		using Skein_t = Skein<State_Bits>;
+		_CTIME_CONST(int) Max_Bytes_Per_Call = Max;
+		_CTIME_CONST(int) State_Bytes = State_Bits / CHAR_BIT;
+		_CTIME_CONST(int) Buffer_Bytes = (State_Bytes * 2) + Max_Bytes_Per_Call;
+		static_assert (Buffer_Bytes >= (State_Bytes * 3));
 
 		Skein_CSPRNG () = delete;
 		Skein_CSPRNG (Skein_t *sk, u8_t *buf)
@@ -69,9 +82,9 @@ namespace ssc {
         }; /* ! class Skein_CSPRNG */
 
 
-        template <int State_Bits>
-        void
-	Skein_CSPRNG<State_Bits>::reseed (void const * const seed) {
+	TEMPLATE_PARAMETERS
+	void CLASS::reseed (void const * const seed)
+	{
 		using std::memcpy;
 
 		u8_t	*state_copy = state      + State_Bytes;
@@ -80,13 +93,13 @@ namespace ssc {
 		memcpy( state_copy, state, State_Bytes );
 		memcpy( seed_copy , seed , State_Bytes );
 		
-		static_assert	(Skein_t::State_Bytes == State_Bytes);
+		static_assert (Skein_t::State_Bytes == State_Bytes);
 		skein->hash_native( state, state_copy, (State_Bytes * 2) );
         } /* reseed (u8_t *,u64_t) */
 
-        template <int State_Bits>
-        void
-        Skein_CSPRNG<State_Bits>::os_reseed (void) {
+	TEMPLATE_PARAMETERS
+        void CLASS::os_reseed (void)
+	{
 		using std::memcpy;
 
 		u8_t	*state_copy = state      + State_Bytes;
@@ -98,9 +111,13 @@ namespace ssc {
 		skein->hash_native( state, state_copy, (State_Bytes * 2) );
         } /* os_reseed (u64_t) */
 
-        template <int State_Bits>
-        void
-        Skein_CSPRNG<State_Bits>::get (void * const output_buffer, u64_t const requested_bytes) {
+	TEMPLATE_PARAMETERS
+        void CLASS::get (void * const output_buffer, u64_t const requested_bytes)
+	{
+#ifndef __SSC_DISABLE_RUNTIME_CHECKS
+		if (requested_bytes > Max_Bytes_Per_Call)
+			errx( "Error: Skein_CSPRNG Max_Bytes_Per_Call is %d; %d bytes were requested.\n", Max_Bytes_Per_Call, requested_bytes );
+#endif /* __SSC_DISABLE_RUNTIME_CHECKS */
 		using std::memcpy;
 		
 		u8_t	*scratch_buffer = state + State_Bytes;
@@ -110,3 +127,5 @@ namespace ssc {
 		memcpy( output_buffer, (scratch_buffer + State_Bytes), requested_bytes );
         } /* get (u8_t *,u64_t) */
 }/* ! namespace ssc */
+#undef CLASS
+#undef TEMPLATE_PARAMETERS

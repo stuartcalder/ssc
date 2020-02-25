@@ -7,9 +7,9 @@ cc = meson.get_compiler('cpp')
 os = host_machine.system()
 
 if os == 'windows' and cc.get_id() == 'msvc'
-	DEFINE_FLAG_PREFIX = '/D'
+	_Define_Flag_Prefix = '/D'
 else
-	DEFINE_FLAG_PREFIX = '-D'
+	_Define_Flag_Prefix = '-D'
 endif
 
 ssc_src = [
@@ -37,26 +37,22 @@ elif os == 'linux'
 	include_install = '/usr/include'
 	lib_deps += cc.find_library('tinfo')
 elif os == 'windows'
-	flag = DEFINE_FLAG_PREFIX + '__BUILD_STATIC'
-	cpp_flags += flag
+	_flag = _Define_Flag_Prefix + '__BUILD_STATIC'
+	cpp_flags += _flag
 	include_install = 'C:/include'
 	lib_deps += cc.find_library('bcrypt')
-endif
-
-if get_option('include_directories').length() != 0
-	include_install = get_option('include_directories')[0]
 endif
 
 inc_dir += '..'
 
 if get_option('disable_memorylocking')
-	flag = DEFINE_FLAG_PREFIX + '__SSC_DISABLE_MEMORYLOCKING'
-	cpp_flags += flag
+	_flag = _Define_Flag_Prefix + '__SSC_DISABLE_MEMORYLOCKING'
+	cpp_flags += _flag
 endif
 
-if get_option('enable_runtime_checks')
-	flag = DEFINE_FLAG_PREFIX + '__SSC_ENABLE_RUNTIME_CHECKS'
-	cpp_flags += flag
+if get_option('disable_runtime_checks')
+	_flag = _Define_Flag_Prefix + '__SSC_DISABLE_RUNTIME_CHECKS'
+	cpp_flags += _flag
 endif
 
 install_subdir('../ssc', install_dir: include_install, exclude_directories: ['builddir','.git'],
