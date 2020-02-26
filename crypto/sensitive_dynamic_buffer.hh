@@ -1,3 +1,9 @@
+/*
+Copyright (c) 2019-2020 Stuart Steven Calder
+All rights reserved.
+See accompanying LICENSE file for licensing information.
+*/
+
 #pragma once
 
 #ifdef __SSC_ENABLE_EXPERIMENTAL
