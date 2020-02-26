@@ -141,6 +141,8 @@ namespace ssc {
 				           u64_t const		num_bytes_in,
 				           u64_t const		num_bytes_out)
 	{
+		if (num_bytes_out == 0)
+			return;
 		ubi->clear_key_state();
 		static_assert (CHAR_BIT == 8);
 		process_config_block_( num_bytes_out * CHAR_BIT );
@@ -157,6 +159,8 @@ namespace ssc {
 							 u64_t const        num_key_bytes_in,
 							 u64_t const        num_bytes_out)
 	{
+		if (num_bytes_out == 0)
+			return;
 		ubi->clear_key_state();
 		process_key_block_( key_in, num_key_bytes_in );
 		static_assert (CHAR_BIT == 8);
