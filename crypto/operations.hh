@@ -27,27 +27,28 @@ See accompanying LICENSE file for licensing information.
 #	error 'Unsupported OS'
 #endif
 
-namespace ssc {
+namespace ssc
+{
 	static_assert (CHAR_BIT == 8);
 	template <typename uint_t>
-	uint_t
-	rotate_left (uint_t value, unsigned int count) {
+	uint_t rotate_left (uint_t value, unsigned int count)
+	{
 		_CTIME_CONST(uint_t) mask = (CHAR_BIT * sizeof(uint_t)) - 1;
 		count &= mask;
 		return ( value << count ) | ( value >> (-count & mask));
-	}
+	} /* rotate_left (uint_t,unsigned int) */
 
 	template <typename uint_t>
-	uint_t
-	rotate_right (uint_t value, unsigned int count) {
+	uint_t rotate_right (uint_t value, unsigned int count)
+	{
 		_CTIME_CONST(uint_t) mask = (CHAR_BIT * sizeof(uint_t)) - 1;
 		count &= mask;
 		return ( value >> count ) | ( value << (-count & mask));
-	}
+	} /* rotate_right (uint_t,unsigned int) */
 
-	template <size_t Block_Bits>
-	void
-	xor_block (void *__restrict block, void const *__restrict add) {
+	template <int Block_Bits>
+	void xor_block (void *__restrict block, void const *__restrict add)
+	{
 		static_assert (CHAR_BIT == 8);
 		static_assert ((Block_Bits % CHAR_BIT == 0), "Bits must be a multiple of bytes");
 		_CTIME_CONST(size_t) Block_Bytes = Block_Bits / CHAR_BIT;
@@ -82,21 +83,21 @@ namespace ssc {
 		} else if constexpr((Block_Bits > 512) && (Block_Bits % 64 == 0)) {
 			auto first_dword  = static_cast<u64_t *>(block);
 			auto second_dword = static_cast<u64_t const *>(add);
-			for (size_t i = 0; i < (Block_Bits / 64); ++i)
+			for (int i = 0; i < (Block_Bits / 64); ++i)
 				first_dword[ i ] ^= second_dword[ i ];
 		} else {
 			u8_t *first_byte  = static_cast<u8_t *>(block);
 			u8_t const	*second_byte = static_cast<u8_t const *>(add);
-			for (size_t i = 0; i < Block_Bytes; ++i)
+			for (int i = 0; i < Block_Bytes; ++i)
 				first_byte[ i ] ^= second_byte[ i ];
 		}
-	}/* ! xor_block */
+	}/* xor_block (void*,void*) */
 	
-	inline void
-	obtain_os_entropy (u8_t *buffer, size_t num_bytes) {
+	inline void obtain_os_entropy (u8_t *buffer, size_t num_bytes)
+	{
                 using namespace std;
 #if    defined (__UnixLike__)
-		_CTIME_CONST(size_t) Max_Bytes = 256;
+		_CTIME_CONST(int) Max_Bytes = 256;
                 while (num_bytes >= Max_Bytes) {
                         if (getentropy( buffer, Max_Bytes ) != 0)
 				errx( "Error: Failed to getentropy()\n" );
@@ -121,8 +122,8 @@ namespace ssc {
 #endif
 	} /* obtain_os_entropy (u8_t *,size_t) */
 
-	inline void
-	zero_sensitive (void *buffer, size_t num_bytes) {
+	inline void zero_sensitive (void *buffer, size_t num_bytes)
+	{
 		using namespace std;
 #if    defined (__UnixLike__)
 		explicit_bzero( buffer, num_bytes );
@@ -131,6 +132,6 @@ namespace ssc {
 #else
 #	error 'Unsupported OS'
 #endif
-	} /* ! zero_sensitive (u8_t *,size_t) */
+	} /* zero_sensitive (u8_t *,size_t) */
 	
-}/* ! namespace ssc */
+}/* namespace ssc */
