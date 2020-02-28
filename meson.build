@@ -61,7 +61,8 @@ install_subdir('../ssc', install_dir: include_install, exclude_directories: ['bu
 if os == 'windows'
 	static_library('ssc', sources: ssc_src, dependencies: lib_deps,
 		       cpp_args: cpp_flags, include_directories: inc_dir,
-		       name_suffix: 'lib', name_prefix: '')
+		       name_suffix: 'lib', name_prefix: '',
+		       install: true, install_dir: 'C:/lib')
 else
 	shared_library('ssc', sources: ssc_src, dependencies: lib_deps,
 		       cpp_args: cpp_flags, include_directories: inc_dir,
