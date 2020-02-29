@@ -20,8 +20,22 @@ namespace ssc
 			T biggest = first;
 			if (second > biggest)
 				biggest = second;
-			if (sizeof...(args) == 0)
-				return biggest;
 			return Return_Largest( biggest, args... );
+		}
+	
+	template <typename T>
+		constexpr T Return_Smallest (T first, T second)
+		{
+			if (first < second)
+				return first;
+			return second;
+		}
+	template <typename T, typename... Args>
+		constexpr T Return_Smallest (T first, T second, Args... args)
+		{
+			T smallest = first;
+			if (second < smallest)
+				smallest = second;
+			return Return_Smallest( smallest, args... );
 		}
 }/*namespace ssc*/

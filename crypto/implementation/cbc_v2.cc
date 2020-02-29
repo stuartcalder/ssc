@@ -9,6 +9,7 @@ See accompanying LICENSE file for licensing information.
 #include <ssc/general/macros.hh>
 #include <ssc/general/print.hh>
 #include <ssc/general/error_conditions.hh>
+#include <ssc/general/abstract.hh>
 #include <ssc/files/files.hh>
 #include <ssc/files/os_map.hh>
 #include <ssc/interface/terminal.hh>
@@ -63,7 +64,7 @@ namespace ssc::crypto_impl::cbc_v2 {
 		map_file( output_map, false );
 
 		// We're going to need raw Threefish, Threefish in UBI mode for Skein, and Threefish in CBC mode for encryption.
-		_CTIME_CONST(int) CSPRNG_CBC_Shared_Size = (CSPRNG_t::Buffer_Bytes > CBC_t::Buffer_Bytes ? CSPRNG_t::Buffer_Bytes : CBC_t::Buffer_Bytes);
+		_CTIME_CONST(int) CSPRNG_CBC_Shared_Size = Return_Largest( CSPRNG_t::Buffer_Bytes, CBC_t::Buffer_Bytes );
 		_CTIME_CONST(int) Locked_Buffer_Size = []() -> int {
 			int size = 0;
 			size += (Password_Buffer_Bytes * 2); // Two password buffers
