@@ -180,7 +180,7 @@ namespace ssc {
 		               State_Bits == 1024,
 		               "Skein is only defined for 256, 512, 1024 bit-widths");
 		if constexpr(State_Bits == 256) {
-			static constexpr u64_t const init_chain [4] = {
+			_CTIME_CONST(u64_t) init_chain [4] = {
 				0xfc'9d'a8'60'd0'48'b4'49,
 				0x2f'ca'66'47'9f'a7'd8'33,
 				0xb3'3b'c3'89'66'56'84'0f,
@@ -188,7 +188,7 @@ namespace ssc {
 			};
 			std::memcpy( ubi->get_key_state(), init_chain, sizeof(init_chain) );
 		} else if constexpr(State_Bits == 512) {
-			static constexpr u64_t const init_chain [8] = {
+			_CTIME_CONST(u64_t) init_chain [8] = {
 				0x49'03'ad'ff'74'9c'51'ce,
 				0x0d'95'de'39'97'46'df'03,
 				0x8f'd1'93'41'27'c7'9b'ce,
@@ -200,7 +200,7 @@ namespace ssc {
 			};
 			std::memcpy( ubi->get_key_state(), init_chain, sizeof(init_chain) );
 		} else if constexpr(State_Bits == 1024) {
-			static constexpr u64_t const init_chain[16] = {
+			_CTIME_CONST(u64_t) init_chain [16] = {
 				0xd5'93'da'07'41'e7'23'55, // 0
 				0x15'b5'e5'11'ac'73'e0'0c, // 1
 				0x51'80'e5'ae'ba'f2'c4'f0, // 2
