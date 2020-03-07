@@ -84,3 +84,20 @@ See accompanying LICENSE file for licensing information.
 #else
 #	error '_CTIME_CONST Already Defined'
 #endif /* ifndef _CTIME_CONST */
+
+/* OpenBSD-specific mitigations */
+#ifdef	__OpenBSD__
+#	ifdef _OPENBSD_UNVEIL
+#		error '_OPENBSD_UNVEIL Already Defined'
+#	endif
+#	include <ssc/general/error_conditions.hh>
+#	include <unistd.h>
+#	define _OPENBSD_UNVEIL(path,permissions) \
+		if (unveil( path, permission ) != 0) \
+			errx( "Failed to unveil()\n" )
+#else
+#	define _OPENBSD_UNVEIL // Define as nothing on Non-OpenBSD systems.
+#endif
+
+
+

@@ -336,7 +336,7 @@ namespace ssc::crypto_impl::cbc_v2 {
 		OS_Map os_map;
 		os_map.os_file = open_existing_os_file( filename, true );
 		os_map.size    = get_file_size( os_map.os_file );
-		static constexpr auto const Minimum_Size = CBC_V2_Header::Total_Size + Block_Bytes + MAC_Bytes;
+		_CTIME_CONST(int) Minimum_Size = CBC_V2_Header::Total_Size + Block_Bytes + MAC_Bytes;
 		if (os_map.size < Minimum_Size) {
 			close_os_file( os_map.os_file );
 			errx( "File `%s` looks too small to be CBC_V2 encrypted\n", filename );
