@@ -21,8 +21,8 @@ SSC aims to provide robust, easy-to-use abstract interfaces to a limited number 
 -	Visual Studio 2019
 ## Building ssc with meson
 ### Building on OpenBSD and FreeBSD systems
-1. git clone [ssc](https://github.com/stuartcalder/ssc) into __/usr/local/include__
-2. cd into __/usr/local/include__ and do the following:
+1. git clone [ssc](https://github.com/stuartcalder/ssc) and cd into it.
+2. Execute the following:
 ```
 	$ mkdir builddir
 	$ meson --backend=ninja builddir
@@ -30,10 +30,11 @@ SSC aims to provide robust, easy-to-use abstract interfaces to a limited number 
 	$ ninja
 	# ninja install
 ```
+3. ssc should now be installed on your BSD system.
 
 ### Building on a GNU/Linux system
-1. git clone [ssc](https://github.com/stuartcalder/ssc) into __/usr/include__
-2. cd into __/usr/include__ and do the following:
+1. git clone [ssc](https://github.com/stuartcalder/ssc) and cd into it.
+2. Execute the following:
 ```
 	$ mkdir builddir
 	$ meson --backend ninja --prefix=/usr builddir
@@ -41,20 +42,16 @@ SSC aims to provide robust, easy-to-use abstract interfaces to a limited number 
 	$ ninja
 	# ninja install
 ```
+3. ssc should now be installed on your GNU/Linux system.
 
-### Building on a Microsoft Windows(c) system
-1. Create the following directories if they do not exist:
-	- __C:/include__
-	- __C:/lib__
-2. git clone [ssc](https://github.com/stuartcalder/ssc) into __C:/include__
-3. Open a command-prompt, specifically open __"x64 Native Tools Command Prompt for VS 2019"__
-4. cd into __C:/include__ and do the following:
+### Building on a Microsoft Windows system
+1. git clone [ssc](https://github.com/stuartcalder/ssc) and cd into it.
+2. Open a __"x64 Native Tools Command Prompt for VS 2019"__ cmd prompt, then cd into the cloned ssc project directory.
+3. Execute the following:
 ```
 	mkdir builddir
 	meson --backend ninja builddir
 	cd builddir
 	ninja
 ```
-5. Assuming success, ninja should have output a file __libssc.a__
-6. Rename __libssc.a__ to __ssc.lib__
-7. Manually copy __ssc.lib__ to __C:/lib__
+4. ssc should now be installed on your Microsoft Windows system.
