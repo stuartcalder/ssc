@@ -1,4 +1,4 @@
 # By default, we enable "memory locking" on operating systems that support it.
-option('disable_memorylocking',		type: 'boolean', value: false)
+option('disable_memorylocking',  type: 'boolean', value: false)
 # By default, we enable runtime checks, for safety.
-option('disable_runtime_checks',         type: 'boolean', value: false)
+option('disable_runtime_checks', type: 'boolean', value: false)
