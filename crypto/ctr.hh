@@ -29,9 +29,11 @@ See accompanying LICENSE file for licensing information.
 #	error 'CLASS Already defined'
 #endif
 
-namespace ssc {
+namespace ssc
+{
 	TEMPLATE_ARGS
-	class CTR_Mode {
+	class CTR_Mode
+	{
 		public:
 			static_assert (CHAR_BIT == 8);
 			/* Compile-Time Constants and checks*/
@@ -58,8 +60,8 @@ namespace ssc {
 			xorcrypt (void *output, void const *input, size_t const input_size, u64_t start = 0);
 		private:
 			Block_Cipher_t	*blk_cipher;
-			u8_t		*random_nonce;
-			u8_t		*scratch_buffer;
+			u8_t		*random_nonce;	// Nonce_Bytes bytes large
+			u8_t		*scratch_buffer;// (Block_Bytes*2) bytes large
 	};
 
 	TEMPLATE_ARGS
@@ -69,14 +71,14 @@ namespace ssc {
 	}
 
 	TEMPLATE_ARGS
-	void
-	CLASS::set_nonce (void const *nonce) {
+	void CLASS::set_nonce (void const *nonce)
+	{
 		std::memcpy( random_nonce, nonce, Nonce_Bytes );
 	}
 
 	TEMPLATE_ARGS
-	void
-	CLASS::xorcrypt (void *output, void const *input, size_t const input_size, u64_t start) {
+	void CLASS::xorcrypt (void *output, void const *input, size_t const input_size, u64_t start)
+	{
 		using std::memcpy, std::memset;
 		u8_t		*keystream_plaintext = scratch_buffer;
 		u8_t		*buffer              = scratch_buffer + Block_Bytes;

@@ -27,15 +27,18 @@ See accompanying LICENSE file for licensing information.
 #	define CLASS Skein_CSPRNG<State_Bits,Max>
 #endif
 
-namespace ssc {
+namespace ssc
+{
 	static_assert (CHAR_BIT == 8);
         template <int State_Bits, int Max = (State_Bits / CHAR_BIT)>
-        class Skein_CSPRNG {
+        class Skein_CSPRNG
+	{
         public:
 		static_assert (State_Bits == 256 || State_Bits == 512 || State_Bits == 1024);
 		using Skein_t = Skein<State_Bits>;
 		_CTIME_CONST(int) Max_Bytes_Per_Call = Max;
 		_CTIME_CONST(int) State_Bytes = State_Bits / CHAR_BIT;
+		static_assert (Skein_t::State_Bytes == State_Bytes);
 		_CTIME_CONST(int) Buffer_Bytes = (State_Bytes * 2) + Max_Bytes_Per_Call;
 		static_assert (Buffer_Bytes >= (State_Bytes * 3));
 
@@ -49,20 +52,16 @@ namespace ssc {
                 /* void reseed(seed,seed_bytes)
                  *      Copies in ${seed_bytes} bytes into the state, and
                  *      hashes them. */
-		void
-		reseed (void const * const seed);
+		void reseed (void const * const seed);
 
                 /* void os_reseed(seed_bytes)
                  *      Reseeds the state using ${seed_bytes} bytes of entropy
                  *      received from the operating system. */
-		void
-		os_reseed (void);
+		void os_reseed (void);
 
                 /* void get(output_buffer,requested_bytes)
                  *      Writes ${requested_bytes} pseudorandom bytes into the ${output_buffer}. */
-                void
-                get (void * const output_buffer,
-                     u64_t const  requested_bytes);
+                void get (void * const output_buffer, u64_t const  requested_bytes);
         private:
 		Skein_t *skein;
 		/* Layout

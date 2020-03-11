@@ -10,9 +10,22 @@ See accompanying LICENSE file for licensing information.
 #include <ssc/general/integers.hh>
 #include <ssc/general/macros.hh>
 
-namespace ssc {
-	template <size_t State_Bits, bool Sensitive = true>
-	class Skein {
+#ifndef TEMPLATE_ARGUMENTS
+#	define	TEMPLATE_ARGUMENTS template <size_t State_Bits>
+#else
+#	error 'TEMPLATE_ARGUMENTS Already Defined'
+#endif
+#ifndef	CLASS
+#	define	CLASS Skein<State_Bits>
+#else
+#	error 'CLASS Already Defined'
+#endif
+
+namespace ssc
+{
+	TEMPLATE_ARGUMENTS
+	class Skein
+	{
 	public:
 		/* PUBLIC CONSTANTS and COMPILE-TIME CHECKS */
 		static_assert	(CHAR_BIT == 8);
@@ -73,9 +86,9 @@ namespace ssc {
 				   u64_t const num_output_bytes);
 	}; /* ! Skein */
     
-	template <size_t State_Bits, bool Sensitive>
-	void
-	Skein<State_Bits,Sensitive>::process_config_block_ (u64_t const num_output_bits) {
+	TEMPLATE_ARGUMENTS
+	void CLASS::process_config_block_ (u64_t const num_output_bits)
+	{
 		/* Setup configuration string. */
 		u8_t config [32] = {
 			// First 4 bytes
@@ -97,26 +110,23 @@ namespace ssc {
 		ubi->chain( Type_Mask_E::T_cfg, config, sizeof(config) );
 	} /* process_config_block_ */
     
-	template <size_t State_Bits, bool Sensitive>
-	void
-	Skein<State_Bits,Sensitive>::process_key_block_ (u8_t const * const key_in,
-			                                 u64_t const        key_size)
+	TEMPLATE_ARGUMENTS
+	void CLASS::process_key_block_ (u8_t const * const key_in,
+			                u64_t const        key_size)
 	{
 		ubi->chain( Type_Mask_E::T_key, key_in, key_size );
 	}
     
-	template <size_t State_Bits, bool Sensitive>
-	void
-	Skein<State_Bits,Sensitive>::process_message_block_ (u8_t const * const message_in,
-			                                     u64_t const        message_size)
+	TEMPLATE_ARGUMENTS
+	void CLASS::process_message_block_ (u8_t const * const message_in,
+			                    u64_t const        message_size)
 	{
 		ubi->chain( Type_Mask_E::T_msg, message_in, message_size );
 	}
     
-	template <size_t State_Bits, bool Sensitive>
-	void
-	Skein<State_Bits,Sensitive>::output_transform_ (u8_t		*out,
-			                                u64_t const	num_output_bytes)
+	TEMPLATE_ARGUMENTS
+	void CLASS::output_transform_ (u8_t	   *out,
+			               u64_t const num_output_bytes)
 	{
 		u64_t bytes_left = num_output_bytes;
 		u64_t i = 0;
@@ -134,12 +144,11 @@ namespace ssc {
 		}
 	}/* ! output_transform(...) */
     
-	template <size_t State_Bits, bool Sensitive>
-	void
-	Skein<State_Bits,Sensitive>::hash (u8_t * const		bytes_out,
-				           u8_t const * const	bytes_in,
-				           u64_t const		num_bytes_in,
-				           u64_t const		num_bytes_out)
+	TEMPLATE_ARGUMENTS
+	void CLASS::hash (u8_t * const          bytes_out,
+			  u8_t const * const	bytes_in,
+			  u64_t const		num_bytes_in,
+			  u64_t const		num_bytes_out)
 	{
 		if (num_bytes_out == 0)
 			return;
@@ -150,14 +159,13 @@ namespace ssc {
 		output_transform_( bytes_out, num_bytes_out );
 	}
     
-	template <size_t State_Bits, bool Sensitive>
-	void
-	Skein<State_Bits,Sensitive>::message_auth_code	(u8_t * const       bytes_out,
-						 	 u8_t const * const bytes_in,
-							 u8_t const * const key_in,
-							 u64_t const        num_bytes_in,
-							 u64_t const        num_key_bytes_in,
-							 u64_t const        num_bytes_out)
+	TEMPLATE_ARGUMENTS
+	void CLASS::message_auth_code	(u8_t * const       bytes_out,
+					 u8_t const * const bytes_in,
+					 u8_t const * const key_in,
+					 u64_t const        num_bytes_in,
+					 u64_t const        num_key_bytes_in,
+					 u64_t const        num_bytes_out)
 	{
 		if (num_bytes_out == 0)
 			return;
@@ -169,11 +177,10 @@ namespace ssc {
 		output_transform_( bytes_out, num_bytes_out );
 	}
     
-	template <size_t State_Bits, bool Sensitive>
-	void
-	Skein<State_Bits,Sensitive>::hash_native	(u8_t * const       bytes_out,
-							 u8_t const * const bytes_in,
-							 u64_t const        num_bytes_in)
+	TEMPLATE_ARGUMENTS
+	void CLASS::hash_native	(u8_t * const       bytes_out,
+				 u8_t const * const bytes_in,
+				 u64_t const        num_bytes_in)
 	{
 		static_assert (State_Bits == 256 ||
 		               State_Bits == 512 ||
@@ -224,3 +231,5 @@ namespace ssc {
 		output_transform_( bytes_out, State_Bytes );
 	} /* hash_native */
 } /* ! namespace ssc */
+#undef CLASS
+#undef TEMPLATE_ARGUMENTS

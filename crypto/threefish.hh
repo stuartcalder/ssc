@@ -12,9 +12,22 @@ See accompanying LICENSE file for licensing information.
 #include <ssc/general/integers.hh>
 #include <ssc/general/macros.hh>
 
-namespace ssc {
-	template <int Key_Bits>
-	class Threefish {
+#ifndef TEMPLATE_PARAMETERS
+#	define TEMPLATE_PARAMETERS template <int Key_Bits>
+#else
+#	error 'TEMPLATE_PARAMETERS Already Defined'
+#endif
+#ifndef CLASS
+#	define CLASS Threefish<Key_Bits>
+#else
+#	error 'CLASS Already Defined'
+#endif
+
+namespace ssc
+{
+	TEMPLATE_PARAMETERS
+	class Threefish 
+	{
 	public:
 		/* Static Checks */
 		static_assert ((Key_Bits == 256 || Key_Bits == 512 || Key_Bits == 1024), "Invalid keysize");
@@ -120,27 +133,26 @@ namespace ssc {
 		inverse_permute_state_	(void);
 	}; /* class Threefish */
 
-	template <int Key_Bits>
-	void
-	Threefish<Key_Bits>::rekey (u8_t const *__restrict new_key,
-				    u8_t const *__restrict new_tweak)
+	TEMPLATE_PARAMETERS
+	void CLASS::rekey (u8_t const *__restrict new_key,
+		           u8_t const *__restrict new_tweak)
 	{
 		// Expand the key and tweak arguments into the keyschedule.
 		expand_key_( new_key, new_tweak );
 	}
 
-	template <int Key_Bits>
-	void
-	Threefish<Key_Bits>::mix_ (u64_t *__restrict x0, u64_t *__restrict x1, int const round, int const index) {
+	TEMPLATE_PARAMETERS
+	void CLASS::mix_ (u64_t *__restrict x0, u64_t *__restrict x1, int const round, int const index)
+	{
 		// x0 equal the sum of x0 and x1.
 		(*x0) = ((*x0) + (*x1));
 		// x1 equals x1 rotated right by a rotation constant defined by the round number and index XOR'd with x0.
 		(*x1) = ( rotate_left<u64_t>( (*x1), get_rotate_constant_( round, index ) ) ^ (*x0) );
 	}
 
-	template <int Key_Bits>
-	void
-	Threefish<Key_Bits>::inverse_mix_	(u64_t *__restrict x0, u64_t *__restrict x1, int const round, int const index) {
+	TEMPLATE_PARAMETERS
+	void CLASS::inverse_mix_ (u64_t *__restrict x0, u64_t *__restrict x1, int const round, int const index)
+	{
 		// x1 equls x0 XOR'd with x1.
 		(*x1) = ((*x0) ^ (*x1));
 		// x1 equals x1 rotated right by a rotation constant defined by the round number and index.
@@ -149,13 +161,13 @@ namespace ssc {
 		(*x0) = (*x0) - (*x1);
 	}
 
-	template <int Key_Bits>
-	unsigned int
-	Threefish<Key_Bits>::get_rotate_constant_ (int const round, int const index) {
+	TEMPLATE_PARAMETERS
+	unsigned int CLASS::get_rotate_constant_ (int const round, int const index)
+	{
 		static_assert (Key_Bits == 256 || Key_Bits == 512 || Key_Bits == 1024);
 		// All rotation constant look-up tables.
 		if constexpr(Key_Bits == 256) {
-			static constexpr unsigned int const rc [8][2] = {
+			_CTIME_CONST(unsigned int) rc [8][2] = {
 				{ 14, 16 }, //d = 0
 				{ 52, 57 }, //d = 1
 				{ 23, 40 }, //d = 2
@@ -167,7 +179,7 @@ namespace ssc {
 			};
 			return rc[ (round % 8) ][ index ] ;
 		} else if constexpr(Key_Bits == 512) {
-			static constexpr unsigned int const rc [8][4] = {
+			_CTIME_CONST(unsigned int) rc [8][4] = {
 				{ 46, 36, 19, 37 },
 				{ 33, 27, 14, 42 },
 				{ 17, 49, 36, 39 },
@@ -179,7 +191,7 @@ namespace ssc {
 			};
 			return rc[ (round % 8) ][ index ];
 		} else if constexpr(Key_Bits == 1024) {
-			static constexpr unsigned int const rc [8][8] = {
+			_CTIME_CONST(unsigned int) rc [8][8] = {
 				{ 24, 13,  8, 47,  8, 17, 22, 37 },
 				{ 38, 19, 10, 55, 49, 18, 23, 52 },
 				{ 33,  4, 51, 13, 34, 41, 59, 17 },
@@ -193,9 +205,9 @@ namespace ssc {
 		}
 	}/* ! get_rotate_constant_ */
 
-	template <int Key_Bits>
-	void
-	Threefish<Key_Bits>::expand_key_ (u8_t const *__restrict k, u8_t const *__restrict tw) {
+	TEMPLATE_PARAMETERS
+	void CLASS::expand_key_ (u8_t const *__restrict k, u8_t const *__restrict tw)
+	{
 		using std::memcpy, std::memset;
 		memcpy( key, k, Block_Bytes );
 		key[ Number_Words ] = Constant_240;
@@ -218,27 +230,27 @@ namespace ssc {
 		}
 	} /* expand_key_ */
 
-	template <int Key_Bits>
-	void
-	Threefish<Key_Bits>::add_subkey_	(int const round) {
+	TEMPLATE_PARAMETERS
+	void CLASS::add_subkey_	(int const round)
+	{
 		int const subkey = round / 4;
 		int const offset = subkey * Number_Words;
 		for (int i = 0; i < Number_Words; ++i)
 			state[ i ] += key_schedule[ offset + i ];
 	}
 
-	template <int Key_Bits>
-	void
-	Threefish<Key_Bits>::subtract_subkey_	(int const round) {
+	TEMPLATE_PARAMETERS
+	void CLASS::subtract_subkey_ (int const round)
+	{
 		int const subkey = round / 4;
 		int const offset = subkey * Number_Words;
 		for (int i = 0; i < Number_Words; ++i)
 			state[ i ] -= key_schedule[ offset + i ];
 	}
 
-	template <int Key_Bits>
-	void
-	Threefish<Key_Bits>::cipher (u8_t *out, u8_t const *in) {
+	TEMPLATE_PARAMETERS
+	void CLASS::cipher (u8_t *out, u8_t const *in)
+	{
 		using std::memcpy;
 
 		memcpy( state, in, Block_Bytes );
@@ -253,9 +265,9 @@ namespace ssc {
 		memcpy( out, state, Block_Bytes );
 	} /* cipher */
 
-	template <int Key_Bits>
-	void
-	Threefish<Key_Bits>::inverse_cipher (u8_t *out, u8_t const *in) {
+	TEMPLATE_PARAMETERS
+	void CLASS::inverse_cipher (u8_t *out, u8_t const *in)
+	{
 		using std::memcpy;
 		
 		memcpy( state, in, Block_Bytes );
@@ -270,9 +282,9 @@ namespace ssc {
 		memcpy( out, state, Block_Bytes );
 	} /* inverse_cipher */
 
-	template <int Key_Bits>
-	void
-	Threefish<Key_Bits>::permute_state_	(void) {
+	TEMPLATE_PARAMETERS
+	void CLASS::permute_state_ (void)
+	{
 		if constexpr(Key_Bits == 256) {
 			u64_t w = state[ 1 ];
 			state[ 1 ] = state[ 3 ];
@@ -345,9 +357,9 @@ namespace ssc {
 		}
 	} /* permute_state_ */
 
-	template <int Key_Bits>
-	void
-	Threefish<Key_Bits>::inverse_permute_state_	(void) {
+	TEMPLATE_PARAMETERS
+	void CLASS::inverse_permute_state_ (void)
+	{
 		static_assert (Key_Bits == 256 || Key_Bits == 512 || Key_Bits == 1024);
 		if constexpr(Key_Bits == 256) {
 			permute_state_();  // here, permute_state() and inverse_permute_state() are the same operation
@@ -418,3 +430,5 @@ namespace ssc {
 		}
 	}/* inverse_permute_state */
 } /* ! namespace ssc */
+#undef CLASS
+#undef TEMPLATE_PARAMETERS
