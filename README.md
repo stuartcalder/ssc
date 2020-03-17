@@ -53,5 +53,6 @@ SSC aims to provide robust, easy-to-use abstract interfaces to a limited number 
 	meson --backend ninja builddir
 	cd builddir
 	ninja
+	ninja install
 ```
 4. ssc should now be installed on your Microsoft Windows system.

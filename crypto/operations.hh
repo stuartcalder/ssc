@@ -92,7 +92,61 @@ namespace ssc
 				first_byte[ i ] ^= second_byte[ i ];
 		}
 	}/* xor_block (void*,void*) */
+
 	
+	template <typename Integer_t>
+	int bit_hamming_weight (Integer_t x)
+	{
+		// Ensure that Integer_t is a valid, defined type for determining a bit hamming weight.
+		_CTIME_CONST(bool) Is_Valid_Type = [](){
+			if (std::is_same<Integer_t,u8_t>::value)
+				return true;
+			else if (std::is_same<Integer_t,u32_t>::value)
+				return true;
+			else if (std::is_same<Integer_t,u64_t>::value)
+				return true;
+			else
+				return false;
+		}();
+		static_assert (Is_Valid_Type, "Only u8_t, u32_t, and u64_t allowed as template parameters.");
+		// Number_Bytes represents the number of bytes in one Integer_t.
+		_CTIME_CONST(int)  Number_Bytes = sizeof(Integer_t);
+		static_assert (Number_Bytes >= 1);
+		static_assert (CHAR_BIT == 8);
+		// Number_Bits represents the number of bits to check for 1's to determine the bit hamming weight.
+		_CTIME_CONST(int)  Number_Bits = Number_Bytes * CHAR_BIT;
+
+		int hamming_weight = 0;
+
+		static_assert (Number_Bytes == 1 || Number_Bytes == 4 || Number_Bytes == 8);
+		if constexpr(Number_Bytes == 1) {
+			static_assert (sizeof(u8_t) == 1);
+			u8_t byte_mask = 0b1000'0000;
+			for (int i = 0; i < Number_Bits; ++i) {
+				if (x & byte_mask)
+					++hamming_weight;
+				byte_mask >>= 1;
+			}
+		} else if constexpr(Number_Bytes == 4) {
+			static_assert (sizeof(u32_t) == 4);
+			u32_t mask = 0b10000000'00000000'00000000'00000000;
+			for (int i = 0; i < Number_Bits; ++i) {
+				if (x & mask)
+					++hamming_weight;
+				mask >>= 1;
+			}
+		} else if constexpr(Number_Bytes == 8) {
+			static_assert (sizeof(u64_t) == 8);
+			u64_t mask = 0b10000000'00000000'00000000'00000000'00000000'00000000'00000000'00000000;
+			for (int i = 0; i < Number_Bits; ++i) {
+				if (x & mask)
+					++hamming_weight;
+				mask >>= 1;
+			}
+		}
+		return hamming_weight;
+	}/* int bit_hamming_weight(x) */
+
 	inline void obtain_os_entropy (u8_t *buffer, size_t num_bytes)
 	{
                 using namespace std;
