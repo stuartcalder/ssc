@@ -13,6 +13,7 @@ See accompanying LICENSE file for licensing information.
 #include <cstdio>
 #include <climits>
 #include <cstring>
+#include <type_traits>
 #include <ssc/general/integers.hh>
 #include <ssc/general/macros.hh>
 #include <ssc/general/error_conditions.hh>
