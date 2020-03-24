@@ -12,10 +12,10 @@ See accompanying LICENSE file for licensing information.
 #include <ssc/general/integers.hh>
 #include <ssc/general/macros.hh>
 
-#ifndef TEMPLATE_PARAMETERS
-#	define TEMPLATE_PARAMETERS template <int Key_Bits>
+#ifndef TEMPLATE_ARGS
+#	define TEMPLATE_ARGS template <int Key_Bits>
 #else
-#	error 'TEMPLATE_PARAMETERS Already Defined'
+#	error 'TEMPLATE_ARGS Already Defined'
 #endif
 #ifndef CLASS
 #	define CLASS Threefish<Key_Bits>
@@ -25,7 +25,7 @@ See accompanying LICENSE file for licensing information.
 
 namespace ssc
 {
-	TEMPLATE_PARAMETERS
+	TEMPLATE_ARGS
 	class Threefish 
 	{
 	public:
@@ -47,7 +47,7 @@ namespace ssc
 		_CTIME_CONST(int) Tweak_Bytes = Tweak_Words * sizeof(u64_t);
 		// The number of rounds, which is 80 or 72.
 		_CTIME_CONST(int) Number_Rounds = []() {
-							if (Key_Bits == 1024)
+							if constexpr(Key_Bits == 1024)
 								return 80;
 							return 72;
 						  }();
@@ -60,19 +60,19 @@ namespace ssc
 		_CTIME_CONST(int) Buffer_Key_Schedule_Bytes = Buffer_Key_Schedule_Words * sizeof(u64_t);
 
 		// The number of 64-bit words in the tweak buffer.
-		_CTIME_CONST(int) Buffer_Tweak_Words      = Tweak_Words + 1;
+		_CTIME_CONST(int) Buffer_Tweak_Words = Tweak_Words + 1;
 		// The number of bytes in the tweak buffer.
-		_CTIME_CONST(int) Buffer_Tweak_Bytes	= Buffer_Tweak_Words * sizeof(u64_t);
+		_CTIME_CONST(int) Buffer_Tweak_Bytes = Buffer_Tweak_Words * sizeof(u64_t);
 
 		// The number of 64-bit words in the key buffer.
-		_CTIME_CONST(int) Buffer_Key_Words	= Number_Words + 1;
+		_CTIME_CONST(int) Buffer_Key_Words = Number_Words + 1;
 		// The number of bytes in the key buffer.
-		_CTIME_CONST(int) Buffer_Key_Bytes	= Buffer_Key_Words * sizeof(u64_t);
+		_CTIME_CONST(int) Buffer_Key_Bytes = Buffer_Key_Words * sizeof(u64_t);
 
 		// The total number of 64-bit words pointed to by the buffer pointer passed in at runtime.
-		_CTIME_CONST(int) Buffer_Words	   = (Number_Words + Buffer_Key_Schedule_Words + Buffer_Tweak_Words + Buffer_Key_Words);
+		_CTIME_CONST(int) Buffer_Words = (Number_Words + Buffer_Key_Schedule_Words + Buffer_Tweak_Words + Buffer_Key_Words);
 		// The total number of bytes pointed to by the buffer pointer passed in at runtime.
-		_CTIME_CONST(int) Buffer_Bytes       = (Block_Bytes + Buffer_Key_Schedule_Bytes + Buffer_Tweak_Bytes + Buffer_Key_Bytes);
+		_CTIME_CONST(int) Buffer_Bytes = (Block_Bytes + Buffer_Key_Schedule_Bytes + Buffer_Tweak_Bytes + Buffer_Key_Bytes);
 		static_assert (Buffer_Bytes == (Buffer_Words * sizeof(u64_t)));
 		/* Constructors / Destructors */
 		Threefish (void) = delete;
@@ -83,7 +83,7 @@ namespace ssc
 			  key{ buffer + (Number_Words + Buffer_Key_Schedule_Words) },
 			  tweak{ buffer + (Number_Words + Buffer_Key_Schedule_Words + Buffer_Key_Words) }
 		{
-		}
+		} /* ~ Threefish(u64_t*) */
 
 		Threefish (u64_t *__restrict buffer, u8_t const *__restrict k, u8_t const *__restrict tw = nullptr)
 			: state{ buffer },
@@ -92,65 +92,54 @@ namespace ssc
 			  tweak{ buffer + (Number_Words + Buffer_Key_Schedule_Words + Buffer_Key_Words) }
 		{
 			expand_key_( k, tw );
-		}
+		} /* ~ Threefish(u64_t*,u8_t*,u8_t*) */
 		/* Public Functions */
-		void
-		cipher (u8_t *out, u8_t const *in);
+		void cipher (u8_t *out, u8_t const *in);
 
-		void
-		inverse_cipher (u8_t *out, u8_t const *in);
+		void inverse_cipher (u8_t *out, u8_t const *in);
 
-		void
-		rekey (u8_t const *__restrict new_key, u8_t const *__restrict new_tweak = nullptr);
+		void rekey (u8_t const *__restrict new_key, u8_t const *__restrict new_tweak = nullptr);
 	private:
-		u64_t	* const state;
-		u64_t	* const key_schedule;
-		u64_t	* const key;
-		u64_t	* const tweak;
+		u64_t * const state;
+		u64_t * const key_schedule;
+		u64_t * const key;
+		u64_t * const tweak;
 		/* Private Functions */
-		static void
-		mix_		(u64_t *__restrict x0, u64_t *__restrict x1, int const round, int const index);
+		static void mix_ (u64_t *__restrict x0, u64_t *__restrict x1, int const round, int const index);
 
-		static void
-		inverse_mix_	(u64_t *__restrict x0, u64_t *__restrict x1, int const round, int const index);
+		static void inverse_mix_ (u64_t *__restrict x0, u64_t *__restrict x1, int const round, int const index);
 
-		void
-		expand_key_	(u8_t const *__restrict key, u8_t const *__restrict tweak);
+		void expand_key_ (u8_t const *__restrict key, u8_t const *__restrict tweak);
 
-		void
-		add_subkey_	(int const round);
+		void add_subkey_ (int const round);
 
-		void
-		subtract_subkey_	(int const round);
+		void subtract_subkey_ (int const round);
 
-		static unsigned int
-		get_rotate_constant_	(int const round, int const index);
+		static unsigned int get_rotate_constant_ (int const round, int const index);
 
-		void
-		permute_state_	(void);
+		void permute_state_ (void);
 
-		void
-		inverse_permute_state_	(void);
-	}; /* class Threefish */
+		void inverse_permute_state_ (void);
+	}; /* ~ class Threefish */
 
-	TEMPLATE_PARAMETERS
+	TEMPLATE_ARGS
 	void CLASS::rekey (u8_t const *__restrict new_key,
 		           u8_t const *__restrict new_tweak)
 	{
 		// Expand the key and tweak arguments into the keyschedule.
 		expand_key_( new_key, new_tweak );
-	}
+	} /* ~ rekey(u8_t*,u8_t*) */
 
-	TEMPLATE_PARAMETERS
+	TEMPLATE_ARGS
 	void CLASS::mix_ (u64_t *__restrict x0, u64_t *__restrict x1, int const round, int const index)
 	{
 		// x0 equal the sum of x0 and x1.
 		(*x0) = ((*x0) + (*x1));
 		// x1 equals x1 rotated right by a rotation constant defined by the round number and index XOR'd with x0.
 		(*x1) = ( rotate_left<u64_t>( (*x1), get_rotate_constant_( round, index ) ) ^ (*x0) );
-	}
+	} /* ~ mix_(u64_t*,u64_t*,int,int) */
 
-	TEMPLATE_PARAMETERS
+	TEMPLATE_ARGS
 	void CLASS::inverse_mix_ (u64_t *__restrict x0, u64_t *__restrict x1, int const round, int const index)
 	{
 		// x1 equls x0 XOR'd with x1.
@@ -159,9 +148,9 @@ namespace ssc
 		(*x1) = rotate_right<u64_t>( (*x1), get_rotate_constant_( round, index ) ) ;
 		// x0 equals x0 minus x1.
 		(*x0) = (*x0) - (*x1);
-	}
+	} /* ~ inverse_mix_(u64_t*,u64_t*,int,int) */
 
-	TEMPLATE_PARAMETERS
+	TEMPLATE_ARGS
 	unsigned int CLASS::get_rotate_constant_ (int const round, int const index)
 	{
 		static_assert (Key_Bits == 256 || Key_Bits == 512 || Key_Bits == 1024);
@@ -203,9 +192,9 @@ namespace ssc
 			};
 			return rc[ (round % 8) ][ index ];
 		}
-	}/* ! get_rotate_constant_ */
+	}/* ~ get_rotate_constant_(int,int) */
 
-	TEMPLATE_PARAMETERS
+	TEMPLATE_ARGS
 	void CLASS::expand_key_ (u8_t const *__restrict k, u8_t const *__restrict tw)
 	{
 		using std::memcpy, std::memset;
@@ -220,35 +209,35 @@ namespace ssc
 			memset( tweak, 0, Buffer_Tweak_Bytes );
 		}
 
-		for (int subkey = 0; subkey < Number_Subkeys; ++subkey) {// for each subkey
+		for (int subkey = 0; subkey < Number_Subkeys; ++subkey) {// for each subkey...
 			int const subkey_index = subkey * Number_Words;
-			for (int i = 0; i <= Number_Words - 4; ++i)// for each word of the subkey
+			for (int i = 0; i <= Number_Words - 4; ++i)// for each word of the subkey, except the last three...
 				key_schedule[ subkey_index + i ] = key[ (subkey + i) % (Number_Words + 1) ];
 			key_schedule[ subkey_index + (Number_Words - 3) ] =  key[ (subkey + (Number_Words - 3)) % (Number_Words + 1) ] + tweak[ subkey % 3 ];
 			key_schedule[ subkey_index + (Number_Words - 2) ] =  key[ (subkey + (Number_Words - 2)) % (Number_Words + 1) ] + tweak[ (subkey + 1) % 3 ];
 			key_schedule[ subkey_index + (Number_Words - 1) ] =  key[ (subkey + (Number_Words - 1)) % (Number_Words + 1) ] + static_cast<u64_t>(subkey);
 		}
-	} /* expand_key_ */
+	} /* ~ expand_key_(u8_t*,u8_t*) */
 
-	TEMPLATE_PARAMETERS
+	TEMPLATE_ARGS
 	void CLASS::add_subkey_	(int const round)
 	{
 		int const subkey = round / 4;
 		int const offset = subkey * Number_Words;
 		for (int i = 0; i < Number_Words; ++i)
 			state[ i ] += key_schedule[ offset + i ];
-	}
+	} /* ~ add_subkey_(int) */
 
-	TEMPLATE_PARAMETERS
+	TEMPLATE_ARGS
 	void CLASS::subtract_subkey_ (int const round)
 	{
 		int const subkey = round / 4;
 		int const offset = subkey * Number_Words;
 		for (int i = 0; i < Number_Words; ++i)
 			state[ i ] -= key_schedule[ offset + i ];
-	}
+	} /* ~ subtract_subkey_(int) */
 
-	TEMPLATE_PARAMETERS
+	TEMPLATE_ARGS
 	void CLASS::cipher (u8_t *out, u8_t const *in)
 	{
 		using std::memcpy;
@@ -263,9 +252,9 @@ namespace ssc
 		}
 		add_subkey_( Number_Rounds );
 		memcpy( out, state, Block_Bytes );
-	} /* cipher */
+	} /* ~ cipher(u8_t*,u8_t*) */
 
-	TEMPLATE_PARAMETERS
+	TEMPLATE_ARGS
 	void CLASS::inverse_cipher (u8_t *out, u8_t const *in)
 	{
 		using std::memcpy;
@@ -280,9 +269,9 @@ namespace ssc
 				subtract_subkey_( round );
 		}
 		memcpy( out, state, Block_Bytes );
-	} /* inverse_cipher */
+	} /* ~ inverse_cipher(u8_t*,u8_t*) */
 
-	TEMPLATE_PARAMETERS
+	TEMPLATE_ARGS
 	void CLASS::permute_state_ (void)
 	{
 		if constexpr(Key_Bits == 256) {
@@ -355,9 +344,9 @@ namespace ssc
 			// 10 (in w0) overwrites 8
 			state[ 8 ] = w0;
 		}
-	} /* permute_state_ */
+	} /* ~ permute_state_() */
 
-	TEMPLATE_PARAMETERS
+	TEMPLATE_ARGS
 	void CLASS::inverse_permute_state_ (void)
 	{
 		static_assert (Key_Bits == 256 || Key_Bits == 512 || Key_Bits == 1024);
@@ -428,7 +417,7 @@ namespace ssc
 			// 14 (in w0) overwrites 8
 			state[ 8 ] = w0;
 		}
-	}/* inverse_permute_state */
-} /* ! namespace ssc */
+	}/* ~ inverse_permute_state_() */
+} /* ~ namespace ssc */
 #undef CLASS
-#undef TEMPLATE_PARAMETERS
+#undef TEMPLATE_ARGS

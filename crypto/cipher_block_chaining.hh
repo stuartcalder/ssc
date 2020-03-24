@@ -33,10 +33,10 @@ See accompanying LICENSE file for licensing information.
 	Block_Bits      =====> a size_t unsigned integer describing the number of bits in 1 block of the block cipher.
  */
 
-#ifdef TEMPLATE_ARGUMENTS
-#	error 'TEMPLATE_ARGUMENTS Already Defined'
+#ifdef TEMPLATE_ARGS
+#	error 'TEMPLATE_ARGS Already Defined'
 #else
-#	define TEMPLATE_ARGUMENTS template <typename Block_Cipher_t,int Block_Bits>
+#	define TEMPLATE_ARGS template <typename Block_Cipher_t,int Block_Bits>
 #endif
 
 #ifdef CLASS
@@ -47,8 +47,9 @@ See accompanying LICENSE file for licensing information.
 
 namespace ssc
 {
-	TEMPLATE_ARGUMENTS
-	class Cipher_Block_Chaining {
+	TEMPLATE_ARGS
+	class Cipher_Block_Chaining
+	{
 	public:
 		/* COMPILE TIME CHECKS */
 		static_assert (CHAR_BIT == 8);
@@ -65,7 +66,7 @@ namespace ssc
 		Cipher_Block_Chaining (Block_Cipher_t *__restrict cipher, u8_t *__restrict buffer)
 			: blk_cipher{ cipher }, state{ buffer }, scratch{ buffer + State_Bytes }
 		{
-		}
+		} /* ~ Cipher_Block_Chaining (Block_Cipher_t*,u8_t*) */
 		size_t	encrypt (u8_t *__restrict bytes_out, u8_t const *__restrict bytes_in, size_t const size_in, u8_t const *__restrict iv);
 		size_t	decrypt	(u8_t *__restrict bytes_out, u8_t const *__restrict bytes_in, size_t const size_in, u8_t const *__restrict iv);
 	private:
@@ -75,12 +76,12 @@ namespace ssc
 		u8_t		*scratch;
 		/* PRIVATE INTERFACE */
 
-		static size_t	count_iso_iec_7816_padding_bytes_ (u8_t const * const bytes, size_t const padded_size);
-		static size_t	calculate_padded_ciphertext_size_ (size_t const unpadded_plaintext_size);
+		static size_t count_iso_iec_7816_padding_bytes_ (u8_t const * const bytes, size_t const padded_size);
+		static size_t calculate_padded_ciphertext_size_ (size_t const unpadded_plaintext_size);
 	}; /* Cipher_Block_Chaining */
 	/* Constructors */
 
-	TEMPLATE_ARGUMENTS
+	TEMPLATE_ARGS
 	size_t CLASS::count_iso_iec_7816_padding_bytes_ (u8_t const * const bytes, size_t const padded_size)
 	{
 		using namespace std;
@@ -92,15 +93,15 @@ namespace ssc
 		}
 		errx( "Error: Invalid Cipher_Block_Chaining padding\n" );
 		return 1; // This should be unreachable, but will supress warnings about return values.
-	} /* count_iso_iec_7816_padding_bytes_(u8_t*,size_t) */
+	} /* ~ count_iso_iec_7816_padding_bytes_(u8_t*,size_t) */
 
-	TEMPLATE_ARGUMENTS
+	TEMPLATE_ARGS
 	size_t CLASS::calculate_padded_ciphertext_size_ (size_t const unpadded_plaintext_size)
 	{
 		return unpadded_plaintext_size + (Block_Bytes - (unpadded_plaintext_size % Block_Bytes));
-	} /* calculate_padded_ciphertext_size_(size_t) */
+	} /* ~ calculate_padded_ciphertext_size_(size_t) */
 
-	TEMPLATE_ARGUMENTS
+	TEMPLATE_ARGS
 	size_t CLASS::encrypt (u8_t *bytes_out, u8_t const *bytes_in, size_t const size_in, u8_t const * __restrict iv)
 	{
 		using std::memcpy;
@@ -129,9 +130,9 @@ namespace ssc
 		memcpy( out, state, Block_Bytes );
 
 		return calculate_padded_ciphertext_size_( size_in );
-	} /* encrypt(u8_t*,u8_t const*,size_t const, u8_t const*) */
+	} /* ~ encrypt(u8_t*,u8_t const*,size_t const, u8_t const*) */
 
-	TEMPLATE_ARGUMENTS
+	TEMPLATE_ARGS
 	size_t CLASS::decrypt (u8_t *bytes_out, u8_t const *bytes_in, size_t const size_in, u8_t const *__restrict iv)
 	{
 		using std::memcpy;
@@ -154,7 +155,7 @@ namespace ssc
 		}
 
 		return size_in - count_iso_iec_7816_padding_bytes_( bytes_out, size_in );
-	} /* decrypt(u8_t*,u8_t const*,size_t const,u8_t const*) */
+	} /* ~ decrypt(u8_t*,u8_t const*,size_t const,u8_t const*) */
 }/* namespace ssc */
 #undef CLASS
-#undef TEMPLATE_ARGUMENTS
+#undef TEMPLATE_ARGS

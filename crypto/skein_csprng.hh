@@ -15,10 +15,10 @@ See accompanying LICENSE file for licensing information.
 #include <ssc/general/macros.hh>
 #include <ssc/general/error_conditions.hh>
 
-#ifdef TEMPLATE_PARAMETERS
-#	error 'TEMPLATE_PARAMETERS Already Defined'
+#ifdef TEMPLATE_ARGS
+#	error 'TEMPLATE_ARGS Already Defined'
 #else
-#	define TEMPLATE_PARAMETERS template <int State_Bits,int Max>
+#	define TEMPLATE_ARGS template <int State_Bits,int Max>
 #endif
 
 #ifdef CLASS
@@ -73,7 +73,7 @@ namespace ssc
         }; /* ! class Skein_CSPRNG */
 
 
-	TEMPLATE_PARAMETERS
+	TEMPLATE_ARGS
 	void CLASS::reseed (void const * const seed)
 	{
 		using std::memcpy;
@@ -88,7 +88,7 @@ namespace ssc
 		skein->hash_native( state, state_copy, (State_Bytes * 2) );
         } /* reseed (u8_t *,u64_t) */
 
-	TEMPLATE_PARAMETERS
+	TEMPLATE_ARGS
         void CLASS::os_reseed (void)
 	{
 		using std::memcpy;
@@ -102,7 +102,7 @@ namespace ssc
 		skein->hash_native( state, state_copy, (State_Bytes * 2) );
         } /* os_reseed (u64_t) */
 
-	TEMPLATE_PARAMETERS
+	TEMPLATE_ARGS
         void CLASS::get (void * const output_buffer, u64_t const requested_bytes)
 	{
 #ifndef __SSC_DISABLE_RUNTIME_CHECKS
@@ -119,4 +119,4 @@ namespace ssc
         } /* get (u8_t *,u64_t) */
 }/* ! namespace ssc */
 #undef CLASS
-#undef TEMPLATE_PARAMETERS
+#undef TEMPLATE_ARGS

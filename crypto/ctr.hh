@@ -68,13 +68,13 @@ namespace ssc
 	CLASS::CTR_Mode (Block_Cipher_t *cipher, u8_t *ctr_data)
 		: blk_cipher{ cipher }, random_nonce{ ctr_data }, scratch_buffer{ ctr_data + Nonce_Bytes }
 	{
-	}
+	} /* ~ CTR_Mode(Block_Cipher_t*,u8_t*) */
 
 	TEMPLATE_ARGS
 	void CLASS::set_nonce (void const *nonce)
 	{
 		std::memcpy( random_nonce, nonce, Nonce_Bytes );
-	}
+	} /* ~ set_nonce (void*) */
 
 	TEMPLATE_ARGS
 	void CLASS::xorcrypt (void *output, void const *input, size_t const input_size, u64_t start)
@@ -112,7 +112,7 @@ namespace ssc
 				buffer[ i ] ^= in[ i ];
 			memcpy( out, buffer, bytes_left );
 		}
-	}
+	} /* ~ xorcrypt(void*,void*,size_t,u64_t) */
 }/*namespace ssc*/
 #undef CLASS
 #undef TEMPLATE_ARGS

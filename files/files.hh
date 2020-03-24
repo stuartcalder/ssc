@@ -45,8 +45,8 @@ namespace ssc {
 	inline void	 close_os_file		(OS_File_t const);
 	inline void	 set_os_file_size	(OS_File_t const, size_t const);
 
-	size_t
-	get_file_size (OS_File_t const os_file) {
+	size_t get_file_size (OS_File_t const os_file)
+	{
 		using namespace std;
 #if    defined (__UnixLike__)
 		struct stat stat_struct;
@@ -61,10 +61,10 @@ namespace ssc {
 #else
 #	error 'Unsupported OS'
 #endif
-	}
+	} /* ~ get_file_size(OS_File_t) */
 
-	size_t
-	get_file_size (char const *filename) {
+	size_t get_file_size (char const *filename)
+	{
 		using namespace std;
 #if    defined (__UnixLike__)
 		struct stat s;
@@ -87,10 +87,10 @@ namespace ssc {
 			errx( "Error: Failed to close file %s with fclose()\n", filename );
 		return num_bytes;
 #endif
-	}
+	} /* ~ get_file_size(char*) */
 
-	size_t
-	get_file_size (std::FILE *file) {
+	size_t get_file_size (std::FILE *file)
+	{
 		using namespace std;
 
 		size_t num_bytes = 0;
@@ -102,10 +102,10 @@ namespace ssc {
 		if (fsetpos( file, &position ) == -1)
 			errx( "Error: Failed to set file position to its original position with fsetpos()\n" );
 		return num_bytes;
-	}
+	} /* ~ get_file_size(FILE*) */
 	
-	bool
-	file_exists (char const *filename) {
+	bool file_exists (char const *filename)
+	{
 		using namespace std;
 
 		bool exists = false;
@@ -115,18 +115,15 @@ namespace ssc {
 			exists = true;
 		}
 		return exists;
-	}
+	} /* ~ file_exists(char*) */
 
-	void
-	check_file_name_sanity (std::string const &str, size_t const min_size) {
+	void check_file_name_sanity (std::string const &str, size_t const min_size)
+	{
 		if (str.size() < min_size)
 			errx( "Error: Filename %s must have at least %zu character(s)\n", str.c_str(), min_size );
-	}
+	} /* ~ check_file_name_sanity(string&,size_t) */
 
-	void
-	enforce_file_existence (char const *__restrict filename,
-			        bool const             force_to_exist,
-				char const *__restrict opt_error_msg)
+	void enforce_file_existence (char const *__restrict filename, bool const force_to_exist, char const *__restrict opt_error_msg)
 	{
 		using namespace std;
 
@@ -140,10 +137,10 @@ namespace ssc {
 			if (force_to_exist)
 				errx( "Error: The file %s does not seem to exist.\n", filename );
 		}
-	}
+	} /* ~ enforce_file_existence(char*,bool,char*) */
 
-	OS_File_t
-	open_existing_os_file (char const *filename, bool const readonly) {
+	OS_File_t open_existing_os_file (char const *filename, bool const readonly)
+	{
 		using namespace std;
 		enforce_file_existence( filename, true );
 #if    defined (__UnixLike__)
@@ -161,10 +158,10 @@ namespace ssc {
 #else
 #	error 'Unsupported OS'
 #endif
-	}
+	} /* ~ open_existing_os_file(char*,bool) */
 
-	OS_File_t
-	create_os_file (char const *filename) {
+	OS_File_t create_os_file (char const *filename)
+	{
 		using namespace std;
 		enforce_file_existence( filename, false );
 #if    defined (__UnixLike__)
@@ -180,10 +177,10 @@ namespace ssc {
 #else
 #	error 'Unsupported OS'
 #endif
-	}
+	} /* ~ create_os_file(char*) */
 
-	void
-	close_os_file (OS_File_t const os_file) {
+	void close_os_file (OS_File_t const os_file)
+	{
 		using namespace std;
 #if    defined (__UnixLike__)
 		if (close( os_file ) == -1)
@@ -194,10 +191,10 @@ namespace ssc {
 #else
 #	error 'Unsupported OS'
 #endif
-	}
+	} /* ~ close_os_file(OS_File_t) */
 
-	void
-	set_os_file_size (OS_File_t const os_file, size_t const new_size) {
+	void set_os_file_size (OS_File_t const os_file, size_t const new_size)
+	{
 		using namespace std;
 #if    defined (__UnixLike__)
 		if (ftruncate( os_file, new_size ) == -1)
@@ -212,6 +209,6 @@ namespace ssc {
 #else
 #	error 'Unsupported OS'
 #endif
-	}
+	} /* ~ set_os_file_size(OS_File_t,size_t) */
 
 }/* ! namespace ssc */

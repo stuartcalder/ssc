@@ -37,7 +37,7 @@ namespace ssc
 		_CTIME_CONST(uint_t) mask = (CHAR_BIT * sizeof(uint_t)) - 1;
 		count &= mask;
 		return ( value << count ) | ( value >> (-count & mask));
-	} /* rotate_left (uint_t,unsigned int) */
+	} /* ~ rotate_left(uint_t,unsigned int) */
 
 	template <typename uint_t>
 	uint_t rotate_right (uint_t value, unsigned int count)
@@ -45,7 +45,7 @@ namespace ssc
 		_CTIME_CONST(uint_t) mask = (CHAR_BIT * sizeof(uint_t)) - 1;
 		count &= mask;
 		return ( value >> count ) | ( value << (-count & mask));
-	} /* rotate_right (uint_t,unsigned int) */
+	} /* ~ rotate_right(uint_t,unsigned int) */
 
 	template <int Block_Bits>
 	void xor_block (void *__restrict block, void const *__restrict add)
@@ -92,7 +92,7 @@ namespace ssc
 			for (int i = 0; i < Block_Bytes; ++i)
 				first_byte[ i ] ^= second_byte[ i ];
 		}
-	}/* xor_block (void*,void*) */
+	}/* ~ xor_block(void*,void*) */
 
 	
 	template <typename Integer_t>
@@ -146,7 +146,7 @@ namespace ssc
 			}
 		}
 		return hamming_weight;
-	}/* int bit_hamming_weight(x) */
+	}/* ~ bit_hamming_weight(Integer_t) */
 
 	inline void obtain_os_entropy (u8_t *buffer, size_t num_bytes)
 	{
@@ -175,7 +175,7 @@ namespace ssc
 #else
 #	error 'Unsupported OS'
 #endif
-	} /* obtain_os_entropy (u8_t *,size_t) */
+	} /* ~ obtain_os_entropy(u8_t *,size_t) */
 
 	inline void zero_sensitive (void *buffer, size_t num_bytes)
 	{
@@ -187,6 +187,6 @@ namespace ssc
 #else
 #	error 'Unsupported OS'
 #endif
-	} /* zero_sensitive (u8_t *,size_t) */
+	} /* ~ zero_sensitive(u8_t *,size_t) */
 	
-}/* namespace ssc */
+}/* ~ namespace ssc */

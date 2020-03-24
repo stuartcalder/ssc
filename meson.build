@@ -22,9 +22,9 @@ ssc_src = [
 	'crypto/implementation/sspkdf.cc',
 	'crypto/implementation/cbc_v2.cc',
 	]
-lib_deps   = []
+lib_deps  = []
 cpp_flags = []
-inc_dir    = []
+inc_dir   = []
 
 if os   == 'openbsd' or os == 'freebsd'
 	cpp_flags += '-fvisibility=hidden'

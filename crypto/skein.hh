@@ -10,10 +10,10 @@ See accompanying LICENSE file for licensing information.
 #include <ssc/general/integers.hh>
 #include <ssc/general/macros.hh>
 
-#ifndef TEMPLATE_ARGUMENTS
-#	define	TEMPLATE_ARGUMENTS template <size_t State_Bits>
+#ifndef TEMPLATE_ARGS
+#	define	TEMPLATE_ARGS template <size_t State_Bits>
 #else
-#	error 'TEMPLATE_ARGUMENTS Already Defined'
+#	error 'TEMPLATE_ARGS Already Defined'
 #endif
 #ifndef	CLASS
 #	define	CLASS Skein<State_Bits>
@@ -23,7 +23,7 @@ See accompanying LICENSE file for licensing information.
 
 namespace ssc
 {
-	TEMPLATE_ARGUMENTS
+	TEMPLATE_ARGS
 	class Skein
 	{
 	public:
@@ -86,7 +86,7 @@ namespace ssc
 				   u64_t const num_output_bytes);
 	}; /* ! Skein */
     
-	TEMPLATE_ARGUMENTS
+	TEMPLATE_ARGS
 	void CLASS::process_config_block_ (u64_t const num_output_bits)
 	{
 		/* Setup configuration string. */
@@ -110,21 +110,21 @@ namespace ssc
 		ubi->chain( Type_Mask_E::T_cfg, config, sizeof(config) );
 	} /* process_config_block_ */
     
-	TEMPLATE_ARGUMENTS
+	TEMPLATE_ARGS
 	void CLASS::process_key_block_ (u8_t const * const key_in,
 			                u64_t const        key_size)
 	{
 		ubi->chain( Type_Mask_E::T_key, key_in, key_size );
 	}
     
-	TEMPLATE_ARGUMENTS
+	TEMPLATE_ARGS
 	void CLASS::process_message_block_ (u8_t const * const message_in,
 			                    u64_t const        message_size)
 	{
 		ubi->chain( Type_Mask_E::T_msg, message_in, message_size );
 	}
     
-	TEMPLATE_ARGUMENTS
+	TEMPLATE_ARGS
 	void CLASS::output_transform_ (u8_t	   *out,
 			               u64_t const num_output_bytes)
 	{
@@ -144,7 +144,7 @@ namespace ssc
 		}
 	}/* ! output_transform(...) */
     
-	TEMPLATE_ARGUMENTS
+	TEMPLATE_ARGS
 	void CLASS::hash (u8_t * const          bytes_out,
 			  u8_t const * const	bytes_in,
 			  u64_t const		num_bytes_in,
@@ -159,7 +159,7 @@ namespace ssc
 		output_transform_( bytes_out, num_bytes_out );
 	}
     
-	TEMPLATE_ARGUMENTS
+	TEMPLATE_ARGS
 	void CLASS::message_auth_code	(u8_t * const       bytes_out,
 					 u8_t const * const bytes_in,
 					 u8_t const * const key_in,
@@ -177,7 +177,7 @@ namespace ssc
 		output_transform_( bytes_out, num_bytes_out );
 	}
     
-	TEMPLATE_ARGUMENTS
+	TEMPLATE_ARGS
 	void CLASS::hash_native	(u8_t * const       bytes_out,
 				 u8_t const * const bytes_in,
 				 u64_t const        num_bytes_in)
@@ -232,4 +232,4 @@ namespace ssc
 	} /* hash_native */
 } /* ! namespace ssc */
 #undef CLASS
-#undef TEMPLATE_ARGUMENTS
+#undef TEMPLATE_ARGS
