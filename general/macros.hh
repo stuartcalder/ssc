@@ -93,7 +93,7 @@ See accompanying LICENSE file for licensing information.
 #	include <ssc/general/error_conditions.hh>
 #	include <unistd.h>
 #	define _OPENBSD_UNVEIL(path,permissions) \
-		if (unveil( path, permission ) != 0) \
+		if (unveil( path, permissions ) != 0) \
 			errx( "Failed to unveil()\n" )
 #else
 #	define _OPENBSD_UNVEIL // Define as nothing on Non-OpenBSD systems.
