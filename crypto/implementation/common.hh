@@ -55,10 +55,10 @@ namespace ssc::crypto_impl {
 	_CTIME_CONST(auto)	Password_Reentry_Prompt = "Please input the same password again (max length 120 characters)." OS_PROMPT;
 	_CTIME_CONST(auto)	Entropy_Prompt		= "Please input up to 120 random characters." OS_PROMPT;
 
-	using Threefish_t =	Threefish<Block_Bits>;
-	using UBI_t       =     Unique_Block_Iteration<Threefish_t, Block_Bits>;
-	using Skein_t     =	Skein<Block_Bits>;
-	using CSPRNG_t    =	Skein_CSPRNG<Block_Bits>;
+	using Threefish_t = Threefish<Block_Bits>;
+	using UBI_t       = Unique_Block_Iteration<Threefish_t, Block_Bits>;
+	using Skein_t     = Skein<Block_Bits>;
+	using CSPRNG_t    = Skein_CSPRNG<Block_Bits>;
 	struct _PUBLIC Input {
 		std::string	input_filename;
 		std::string	output_filename;

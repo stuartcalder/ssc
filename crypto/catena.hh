@@ -8,18 +8,17 @@ See accompanying LICENSE file for licensing information.
 
 #include <cstdlib>
 #include <cstring>
-#include <ssc/crypto/operations.hh>
-#include <ssc/crypto/skein.hh>
 #include <ssc/general/integers.hh>
 #include <ssc/general/macros.hh>
 
 #ifndef TEMPLATE_ARGS
-#	define TEMPLATE_ARGS template <int State_Bits>
+#	define TEMPLATE_ARGS template <typename Hash_Func_t, \
+	                               char const *Hash_Func_Name>//TODO
 #else
 #	error 'TEMPLATE_ARGS Already Defined'
 #endif
 #ifndef CLASS
-#	define CLASS Catena<State_Bits>
+#	define CLASS //TODO
 #else
 #	error 'CLASS Already Defined'
 #endif
@@ -29,29 +28,22 @@ namespace ssc
 	TEMPLATE_ARGS
 	class Catena
 	{
-		public:
-			static_assert (CHAR_BIT == 8);
-			_CTIME_CONST(int) State_Bytes = State_Bits / CHAR_BIT;
+	public:
+	/* CONSTRUCTORS */
+		Catena (void) = delete;
 
-			using Skein_t = Skein<State_Bits>;
-
-			Catena() = delete; // Disallow construction without arguments.
-			Catena(Skein_t *sk);
-		private:
-			Skein_t *skein;
-			/* Private procedures */
-			void hash_first_ (u8_t *output, u8_t const *alpha, u8_t const *beta);
-	}; /* ~ class Catena */
-
-	TEMPLATE_ARGS
-	void CLASS::hash_first_ (u8_t *output, u8_t const *alpha, u8_t const *beta)
-	{
-		u8_t buffer [State_Bytes * 2];
-		memcpy( buffer, alpha, State_Bytes );
-		memcpy( (buffer + State_Bytes), beta, State_Bytes );
-		skein->hash_native( buffer, buffer, sizeof(buffer) );
-	} /* ~ hash_first_(u8_t*,u8_t*,u8_t*) */
-
+	private:
+	};
+#if 0
+	_CTIME_CONST(auto) Catena_ID_String = "Dragonfly-Skein512-Full";
+	void _PUBLIC catena (u8_t       *output,   Skein_t * const skein,
+		             u8_t       *password, int const       password_size,
+		             u8_t const *salt,     int const       salt_size,
+		             u8_t const *data,     int const       data_size,
+		             u8_t const lambda,    u8_t const      min_garlic,
+		             u8_t const garlic,    u8_t const      output_size,
+		             u8_t const client,    u8_t const      tweak_id);
+#endif
 }/* ~ namespace ssc */
 #undef CLASS
 #undef TEMPLATE_ARGS

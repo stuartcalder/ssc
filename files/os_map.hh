@@ -18,18 +18,20 @@ See accompanying LICENSE file for licensing information.
 #	error 'Unsupported OS'
 #endif
 
-namespace ssc {
-	struct _PUBLIC OS_Map {
+namespace ssc
+{
+	struct _PUBLIC OS_Map
+	{
 		u8_t	  *ptr;
 		u64_t     size;
 		OS_File_t os_file;
 #ifdef __Win64__
 		OS_File_t win64_filemapping;
 #endif
-	};
+	};/* ~ struct OS_Map */
 
-	inline void
-	map_file (OS_Map &os_map, bool const readonly) {
+	inline void map_file (OS_Map &os_map, bool const readonly)
+	{
 		using namespace std;
 #if    defined (__UnixLike__)
 		decltype(PROT_READ) const readwrite_flag = (readonly ? PROT_READ : (PROT_READ|PROT_WRITE));
@@ -58,10 +60,10 @@ namespace ssc {
 #else
 #	error 'Unsupported OS'
 #endif
-	}
+	}/* ~ void map_file (OS_Map&,bool const) */
 
-	inline void
-	unmap_file (OS_Map const &os_map) {
+	inline void unmap_file (OS_Map const &os_map)
+	{
 		using namespace std;
 #if    defined (__UnixLike__)
 		if (munmap( os_map.ptr, os_map.size ) == -1)
@@ -73,10 +75,10 @@ namespace ssc {
 #else
 #	error 'Unsupported OS'
 #endif
-	}
+	}/* ~ void unmap_file (OS_Map const &) */
 
-	inline void
-	sync_map (OS_Map const &os_map) {
+	inline void sync_map (OS_Map const &os_map)
+	{
 #if    defined (__UnixLike__)
 		if (msync( os_map.ptr, os_map.size, MS_SYNC ) == -1)
 			errx( "Error: Failed to msync()\n" );
@@ -86,6 +88,6 @@ namespace ssc {
 #else
 #	error 'Unsupported OS'
 #endif
-	}
+	}/* ~ void sync_map (OS_Map const &) */
 
-}/* ! namespace ssc */
+}/* ~ namespace ssc */

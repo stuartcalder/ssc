@@ -18,7 +18,7 @@ namespace ssc {
 	print_integral_buffer (Uint_t * const i_buf, const size_t num_elements) {
 		_CTIME_CONST(auto &) format_str = [](size_t const size) {
 			if (size == sizeof(unsigned char))
-				return "%2hhx";
+				return "%02hhx";
 			else if (size == sizeof(unsigned short))
 				return "%2hx";
 			else if (size == sizeof(unsigned int))
@@ -43,7 +43,6 @@ namespace ssc {
 
         for ( size_t i = 0; i < backtick_one_index; ++i ) {
 	    printf( format_str, alias[ i ] );
-            fputs( ","/*TODO*/, stdout );
         }
         printf( format_str, alias[ backtick_one_index ] );
         putchar( '\n' );

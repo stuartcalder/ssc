@@ -37,59 +37,48 @@ namespace ssc
 
 		_CTIME_CONST(size_t)	State_Bytes = State_Bits / CHAR_BIT;
 
-		/* PUBLIC INTERFACE */
+		/* CONSTRUCTORS */
 		Skein (void) = delete;
 		Skein (UBI_t *u)
 			: ubi{ u }
 		{
-		}
+		}/* ~ Skein(Ubi_t*) */
 
+		/* PUBLIC PROCEDURES */
 		// Receive output bytes and output pseudorandom bytes from the hash function.
-		void
-		hash (u8_t * const         bytes_out,
-		      u8_t const * const   bytes_in,
-		      u64_t const          num_bytes_in,
-		      u64_t const          num_bytes_out = State_Bytes);
-
+		void hash (u8_t * const       bytes_out,
+			   u8_t const * const bytes_in,
+			   u64_t const        num_bytes_in,
+			   u64_t const        num_bytes_out);
 		// Authenticate the input bytes with the input key.
-		void
-		message_auth_code (u8_t * const         bytes_out,
-		                   u8_t const * const   bytes_in,
-		                   u8_t const * const   key_in,
-		                   u64_t const          num_bytes_in,
-		                   u64_t const          num_key_bytes_in,
-		                   u64_t const          num_bytes_out = State_Bytes);
-
+		void message_auth_code (u8_t * const bytes_out,
+				        u8_t const * const bytes_in,
+					u8_t const * const key_in,
+					u64_t const        num_bytes_in,
+					u64_t const        num_key_bytes_in,
+					u64_t const        num_bytes_out);
 		// Hash the input bytes, outputting State_Bytes pseudorandom bytes.
-		void
-		hash_native (u8_t * const         bytes_out,
-		             u8_t const * const   bytes_in,
-		             u64_t const          num_bytes_in);
+		void hash_native (u8_t * const         bytes_out,
+		                  u8_t const * const   bytes_in,
+		                  u64_t const          num_bytes_in);
 	private:
 		/* PRIVATE DATA */
-		UBI_t	*ubi;
-		
-		/* PRIVATE INTERFACE */
-		void
-		process_config_block_ (u64_t const num_output_bits);
+		UBI_t *ubi;
 
-		inline void
-		process_key_block_ (u8_t const * const   key_in,
-				    u64_t const          key_size);
+		/* PRIVATE PROCEDURES */
+		void process_config_block_ (u64_t const num_output_bits);
 
-		inline void
-		process_message_block_ (u8_t const * const   message_in,
-				        u64_t const          message_size);
+		inline void process_key_block_ (u8_t const * const key_in, u64_t const key_size);
 
-		void
-		output_transform_ (u8_t        *out,
-				   u64_t const num_output_bytes);
-	}; /* ! Skein */
+		inline void process_message_block_ (u8_t const * const message_in, u64_t const message_size);
+
+		void output_transform_ (u8_t *out, u64_t const num_output_bytes);
+	}; /* ~ class Skein */
     
 	TEMPLATE_ARGS
 	void CLASS::process_config_block_ (u64_t const num_output_bits)
 	{
-		/* Setup configuration string. */
+		// Setup configuration string.
 		u8_t config [32] = {
 			// First 4 bytes
 			0x53, 0x48, 0x41, 0x33, // Schema identifier "SHA3"
@@ -108,21 +97,21 @@ namespace ssc
 		};
 		std::memcpy( config + 8, &num_output_bits, sizeof(num_output_bits) );
 		ubi->chain( Type_Mask_E::T_cfg, config, sizeof(config) );
-	} /* process_config_block_ */
+	}/* ~ void process_config_block_(u64_t) */
     
 	TEMPLATE_ARGS
 	void CLASS::process_key_block_ (u8_t const * const key_in,
 			                u64_t const        key_size)
 	{
 		ubi->chain( Type_Mask_E::T_key, key_in, key_size );
-	}
+	}/* ~ void process_key_block_(u8_t*,u64_t) */
     
 	TEMPLATE_ARGS
 	void CLASS::process_message_block_ (u8_t const * const message_in,
 			                    u64_t const        message_size)
 	{
 		ubi->chain( Type_Mask_E::T_msg, message_in, message_size );
-	}
+	}/* ~ void process_message_block_(u8_t*,u64_t) */
     
 	TEMPLATE_ARGS
 	void CLASS::output_transform_ (u8_t	   *out,
@@ -142,7 +131,7 @@ namespace ssc
 				break;
 			}
 		}
-	}/* ! output_transform(...) */
+	}/* ~ void output_transform(u8_t*,u64_t) */
     
 	TEMPLATE_ARGS
 	void CLASS::hash (u8_t * const          bytes_out,
@@ -157,7 +146,7 @@ namespace ssc
 		process_config_block_( num_bytes_out * CHAR_BIT );
 		process_message_block_( bytes_in, num_bytes_in );
 		output_transform_( bytes_out, num_bytes_out );
-	}
+	}/* ~ void hash(u8_t*,u8_t*,u64_t,u64_t) */
     
 	TEMPLATE_ARGS
 	void CLASS::message_auth_code	(u8_t * const       bytes_out,
@@ -229,7 +218,7 @@ namespace ssc
 		}
 		process_message_block_( bytes_in, num_bytes_in );
 		output_transform_( bytes_out, State_Bytes );
-	} /* hash_native */
+	} /* ~ void hash_native(u8_t*,u8_t*,u64_t) */
 } /* ! namespace ssc */
 #undef CLASS
 #undef TEMPLATE_ARGS

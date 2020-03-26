@@ -23,7 +23,7 @@ See accompanying LICENSE file for licensing information.
 #include <ssc/crypto/cipher_block_chaining.hh>
 
 namespace ssc::crypto_impl::cbc_v2 {
-	_CTIME_CONST(auto)	CBC_V2_ID = "3CRYPT_CBC_V2";
+	_CTIME_CONST(auto&)	CBC_V2_ID = "3CRYPT_CBC_V2";
 	using CBC_t = Cipher_Block_Chaining<Threefish_t, Block_Bits>;
 
 	struct _PUBLIC CBC_V2_Header {

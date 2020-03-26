@@ -34,85 +34,90 @@ namespace ssc
 	TEMPLATE_ARGS
 	class CTR_Mode
 	{
-		public:
-			static_assert (CHAR_BIT == 8);
-			/* Compile-Time Constants and checks*/
-			static_assert (Block_Bits % CHAR_BIT == 0);
-			static_assert (Block_Bits >= 128);
-			static_assert (Block_Cipher_t::Block_Bits == Block_Bits);
-			_CTIME_CONST(int)	Block_Bytes = Block_Bits / CHAR_BIT;
-			static_assert (Block_Bytes % 2 == 0);
-			_CTIME_CONST(int)	Nonce_Bytes = Block_Bytes / 2;
-			_CTIME_CONST(int)	Buffer_Bytes = Nonce_Bytes + (Block_Bytes * 2);
+	public:
+	/* Compile-Time Constants and checks*/
+		static_assert (CHAR_BIT == 8);
+		static_assert (Block_Bits % CHAR_BIT == 0);
+		static_assert (Block_Bits >= 128);
+		static_assert (Block_Cipher_t::Block_Bits == Block_Bits);
+		_CTIME_CONST(int) Block_Bytes = Block_Bits / CHAR_BIT;
+		static_assert (Block_Bytes % 2 == 0);
+		_CTIME_CONST(int) Nonce_Bytes = Block_Bytes / 2;
+		_CTIME_CONST(int) Buffer_Bytes = Nonce_Bytes + (Block_Bytes * 2);
 
-			/* Public Interface */
-			CTR_Mode (void) = delete;
+	/* Public Interface */
+		CTR_Mode (void) = delete;
 
-			CTR_Mode (Block_Cipher_t *b_cipher, u8_t *ctr_data);
+		CTR_Mode (Block_Cipher_t*, u8_t*);
 
-			template <typename... Args>
-			CTR_Mode (Block_Cipher_t *b_cipher, u8_t *ctr_data, Args... args);
+		template <typename... Args>
+		CTR_Mode (Block_Cipher_t *b_cipher, u8_t *ctr_data, Args... args);
 
-			inline void
-			set_nonce (void const *nonce);
+		inline void set_nonce (u8_t const *nonce);
 
-			void
-			xorcrypt (void *output, void const *input, size_t const input_size, u64_t start = 0);
-		private:
-			Block_Cipher_t	*blk_cipher;
-			u8_t		*random_nonce;	// Nonce_Bytes bytes large
-			u8_t		*scratch_buffer;// (Block_Bytes*2) bytes large
+		void xorcrypt (u8_t *output, u8_t const *input, u64_t const input_size, u64_t start = 0);
+	private:
+		Block_Cipher_t	*blk_cipher;
+		/* u8_t pointer 'data' layout
+		 * 
+		 * offset 0
+		 * |
+		 * V
+		 * [Nonce      ][Keystream_Plaintext][Temp_Buffer]
+		 * [Nonce_Bytes][Block_Bytes        ][Block_Bytes]
+		 */
+		u8_t *data;
 	};
 
 	TEMPLATE_ARGS
 	CLASS::CTR_Mode (Block_Cipher_t *cipher, u8_t *ctr_data)
-		: blk_cipher{ cipher }, random_nonce{ ctr_data }, scratch_buffer{ ctr_data + Nonce_Bytes }
+		: blk_cipher{ cipher }, data{ ctr_data }
 	{
-	} /* ~ CTR_Mode(Block_Cipher_t*,u8_t*) */
+	}/* ~ CTR_Mode (Block_Cipher_t *,u8_t *) */
 
 	TEMPLATE_ARGS
-	void CLASS::set_nonce (void const *nonce)
+	void CLASS::set_nonce (u8_t const *nonce)
 	{
-		std::memcpy( random_nonce, nonce, Nonce_Bytes );
-	} /* ~ set_nonce (void*) */
+		std::memcpy( data, nonce, Nonce_Bytes );
+	}/* ~ void set_nonce (void*) */
 
 	TEMPLATE_ARGS
-	void CLASS::xorcrypt (void *output, void const *input, size_t const input_size, u64_t start)
+	void CLASS::xorcrypt (u8_t *output, u8_t const *input, u64_t const input_size, u64_t start)
 	{
 		using std::memcpy, std::memset;
-		u8_t		*keystream_plaintext = scratch_buffer;
-		u8_t		*buffer              = scratch_buffer + Block_Bytes;
-		size_t		bytes_left = input_size;
-		u8_t const	*in = static_cast<u8_t const *>(input);
-		u8_t		*out = static_cast<u8_t *>(output);
-		u64_t		counter = start;
+		u8_t * const keystream_plaintext = data + Nonce_Bytes;
+		u8_t * const temp_buffer         = data + (Nonce_Bytes + Block_Bytes);
+		u64_t        bytes_left = input_size;
+		u64_t	     counter = start;
 
-		// Zero the space between the counter and the nonce.
-		if constexpr(sizeof(counter) != Nonce_Bytes)
+		// Zero the space between the counter and the nonce, given that the nonce is half the keystream plaintext.
+		// [Keystream Plaintext]
+		// [Counter][...][Nonce]
+		if constexpr(sizeof(counter) != Nonce_Bytes)//if there is space between the counter and the nonce...
 			memset( (keystream_plaintext + sizeof(counter)), 0, (Nonce_Bytes - sizeof(counter)) );
 		// Copy the nonce into the second half of the keystream_plaintext.
-		static_assert(Block_Bytes == Nonce_Bytes * 2);
-		memcpy( (keystream_plaintext + Nonce_Bytes), random_nonce, Nonce_Bytes );
+		static_assert (Block_Bytes == Nonce_Bytes * 2);
+		memcpy( (keystream_plaintext + Nonce_Bytes), data, Nonce_Bytes );
 		static_assert (Nonce_Bytes > sizeof(u64_t));
 
 		while (bytes_left >= Block_Bytes) {
 			memcpy( keystream_plaintext, &counter, sizeof(counter) );
-			blk_cipher->cipher( buffer, keystream_plaintext );
-			xor_block<Block_Bits>( buffer, in );
-			memcpy( out, buffer, Block_Bytes );
-			in         += Block_Bytes;
-			out        += Block_Bytes;
+			blk_cipher->cipher( temp_buffer, keystream_plaintext );
+			xor_block<Block_Bits>( temp_buffer, input );
+			memcpy( out, temp_buffer, Block_Bytes );
+			input      += Block_Bytes;
+			output     += Block_Bytes;
 			bytes_left -= Block_Bytes;
 			++counter;
 		}
 		if (bytes_left > 0) {
 			memcpy( keystream_plaintext, &counter, sizeof(counter) );
-			blk_cipher->cipher( buffer, keystream_plaintext );
-			for (int i = 0; i < static_cast<int>(bytes_left); ++i)
-				buffer[ i ] ^= in[ i ];
-			memcpy( out, buffer, bytes_left );
+			blk_cipher->cipher( temp_buffer, keystream_plaintext );
+			for (u64_t i = 0; i < bytes_left; ++i)
+				temp_buffer[ i ] ^= input[ i ];
+			memcpy( out, temp_buffer, bytes_left );
 		}
-	} /* ~ xorcrypt(void*,void*,size_t,u64_t) */
+	} /* ~ void xorcrypt(void*,void*,size_t,u64_t) */
 }/*namespace ssc*/
 #undef CLASS
 #undef TEMPLATE_ARGS

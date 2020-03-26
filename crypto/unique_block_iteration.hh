@@ -56,9 +56,9 @@ namespace ssc
 		{
 		}
 	/* Public Interface */
-		void   chain (Type_Mask_E const type_mask, u8_t const * const message, u64_t const message_size);
-		u8_t * get_key_state (void);
-		void   clear_key_state (void);
+		void          chain (Type_Mask_E const type_mask, u8_t const * const message, u64_t const message_size);
+		inline u8_t * get_key_state (void);
+		inline void   clear_key_state (void);
 	private:
 	/* Private Compile-Time constants */
 	/* Private Data */
