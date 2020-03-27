@@ -1,21 +1,20 @@
-/*
-Copyright (c) 2019-2020 Stuart Steven Calder
-All rights reserved.
-See accompanying LICENSE file for licensing information.
-*/
+/* Copyright (c) 2019-2020 Stuart Steven Calder
+ * All rights reserved.
+ * See accompanying LICENSE file for licensing information.
+ */
 #pragma once
 #include <cstdint>
 #include <cstdio>
 #include <ssc/general/macros.hh>
 #include <ssc/general/integers.hh>
 
-namespace ssc {
-	void _PUBLIC
-	print_binary_buffer (const uint8_t * buffer, const size_t num_bytes);
+namespace ssc
+{
+	void _PUBLIC print_binary_buffer (const uint8_t * buffer, const size_t num_bytes);
     
 	template <typename Uint_t>
-	void
-	print_integral_buffer (Uint_t * const i_buf, const size_t num_elements) {
+	void print_integral_buffer (Uint_t * const i_buf, const size_t num_elements)
+	{
 		_CTIME_CONST(auto &) format_str = [](size_t const size) {
 			if (size == sizeof(unsigned char))
 				return "%02hhx";
@@ -46,5 +45,5 @@ namespace ssc {
         }
         printf( format_str, alias[ backtick_one_index ] );
         putchar( '\n' );
-    }
-}/* ! namespace isc */
+    }/* ~ void print_integral_buffer (Uint_t * const, size_t const) */
+}/* ~ namespace ssc */

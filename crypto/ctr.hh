@@ -1,8 +1,7 @@
-/*
-Copyright (c) 2019-2020 Stuart Steven Calder
-All rights reserved.
-See accompanying LICENSE file for licensing information.
-*/
+/* Copyright (c) 2019-2020 Stuart Steven Calder
+ * All rights reserved.
+ * See accompanying LICENSE file for licensing information.
+ */
 #pragma once
 
 #include <cstdint>
@@ -38,14 +37,14 @@ namespace ssc
 	/* Compile-Time Constants and checks*/
 		static_assert (CHAR_BIT == 8);
 		static_assert (Block_Bits % CHAR_BIT == 0);
-		static_assert (Block_Bits >= 128);
+		static_assert (Block_Bits >= 128, "Modern block ciphers have blocks of at least 128 bits.");
 		static_assert (Block_Cipher_t::Block_Bits == Block_Bits);
 		_CTIME_CONST(int) Block_Bytes = Block_Bits / CHAR_BIT;
-		static_assert (Block_Bytes % 2 == 0);
+		static_assert (Block_Bytes % 2 == 0, "We must be able to divide the bytes of one block evenly in half.");
 		_CTIME_CONST(int) Nonce_Bytes = Block_Bytes / 2;
 		_CTIME_CONST(int) Buffer_Bytes = Nonce_Bytes + (Block_Bytes * 2);
 
-	/* Public Interface */
+	/* Constructors */
 		CTR_Mode (void) = delete;
 
 		CTR_Mode (Block_Cipher_t*, u8_t*);
@@ -53,18 +52,21 @@ namespace ssc
 		template <typename... Args>
 		CTR_Mode (Block_Cipher_t *b_cipher, u8_t *ctr_data, Args... args);
 
+	/* Public Procedures */
 		inline void set_nonce (u8_t const *nonce);
 
 		void xorcrypt (u8_t *output, u8_t const *input, u64_t const input_size, u64_t start = 0);
 	private:
+	/* Private Data */
 		Block_Cipher_t	*blk_cipher;
 		/* u8_t pointer 'data' layout
 		 * 
 		 * offset 0
 		 * |
 		 * V
-		 * [Nonce      ][Keystream_Plaintext][Temp_Buffer]
-		 * [Nonce_Bytes][Block_Bytes        ][Block_Bytes]
+		 * [Nonce......][Keystream_Plaintext][Temp_Buffer] <-- Names of data segments
+		 * [Nonce_Bytes][Block_Bytes........][Block_Bytes] <-- Sizes of data segments
+		 * [..........Buffer_Bytes.......................]
 		 */
 		u8_t *data;
 	};

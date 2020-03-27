@@ -1,8 +1,7 @@
-/*
-Copyright (c) 2019-2020 Stuart Steven Calder
-All rights reserved.
-See accompanying LICENSE file for licensing information.
-*/
+/* Copyright (c) 2019-2020 Stuart Steven Calder
+ * All rights reserved.
+ * See accompanying LICENSE file for licensing information.
+ */
 #pragma once
 #include <cstdint>
 #include <cstdlib>
@@ -61,25 +60,29 @@ namespace ssc
 		_CTIME_CONST(int) State_Bytes   = Block_Bytes;
 		_CTIME_CONST(int) Scratch_Bytes = Block_Bytes * 2;
 		_CTIME_CONST(int) Buffer_Bytes  = State_Bytes + Scratch_Bytes;
-		/* PUBLIC INTERFACE */
+		/* PUBLIC CONSTRUCTORS */
 		Cipher_Block_Chaining (void) = delete;
-		Cipher_Block_Chaining (Block_Cipher_t *__restrict cipher, u8_t *__restrict buffer)
-			: blk_cipher{ cipher }, state{ buffer }, scratch{ buffer + State_Bytes }
-		{
-		} /* ~ Cipher_Block_Chaining (Block_Cipher_t*,u8_t*) */
-		size_t	encrypt (u8_t *__restrict bytes_out, u8_t const *__restrict bytes_in, size_t const size_in, u8_t const *__restrict iv);
-		size_t	decrypt	(u8_t *__restrict bytes_out, u8_t const *__restrict bytes_in, size_t const size_in, u8_t const *__restrict iv);
+		Cipher_Block_Chaining (Block_Cipher_t *__restrict cipher, u8_t *__restrict buffer);
+		/* PUBLIC PROCEDURES */
+		size_t encrypt (u8_t *__restrict bytes_out, u8_t const *__restrict bytes_in, size_t const size_in, u8_t const *__restrict iv);
+		size_t decrypt (u8_t *__restrict bytes_out, u8_t const *__restrict bytes_in, size_t const size_in, u8_t const *__restrict iv);
 	private:
-		/* PRIVATE STATE */
+		/* PRIVATE DATA */
 		Block_Cipher_t	*blk_cipher;
 		u8_t		*state;
 		u8_t		*scratch;
-		/* PRIVATE INTERFACE */
+		/* PRIVATE PROCEDURES */
 
 		static size_t count_iso_iec_7816_padding_bytes_ (u8_t const * const bytes, size_t const padded_size);
 		static size_t calculate_padded_ciphertext_size_ (size_t const unpadded_plaintext_size);
-	}; /* Cipher_Block_Chaining */
+	}; /* ~ class Cipher_Block_Chaining */
+
 	/* Constructors */
+	TEMPLATE_ARGS
+	CLASS::Cipher_Block_Chaining (Block_Cipher_t *__restrict cipher, u8_t *__restrict buffer)
+		: blk_cipher{ cipher }, state{ buffer }, scratch{ buffer + State_Bytes }
+	{
+	}/* ~ Cipher_Block_Chaining(Block_Cipher_t*, u8_t*) */
 
 	TEMPLATE_ARGS
 	size_t CLASS::count_iso_iec_7816_padding_bytes_ (u8_t const * const bytes, size_t const padded_size)
@@ -92,14 +95,14 @@ namespace ssc
 				return count;
 		}
 		errx( "Error: Invalid Cipher_Block_Chaining padding\n" );
-		return 1; // This should be unreachable, but will supress warnings about return values.
-	} /* ~ count_iso_iec_7816_padding_bytes_(u8_t*,size_t) */
+		return 1; // This should be unreachable, but will suppress warnings about return values.
+	} /* ~ size_t count_iso_iec_7816_padding_bytes_(u8_t*,size_t) */
 
 	TEMPLATE_ARGS
 	size_t CLASS::calculate_padded_ciphertext_size_ (size_t const unpadded_plaintext_size)
 	{
 		return unpadded_plaintext_size + (Block_Bytes - (unpadded_plaintext_size % Block_Bytes));
-	} /* ~ calculate_padded_ciphertext_size_(size_t) */
+	} /* ~ size_t calculate_padded_ciphertext_size_(size_t) */
 
 	TEMPLATE_ARGS
 	size_t CLASS::encrypt (u8_t *bytes_out, u8_t const *bytes_in, size_t const size_in, u8_t const * __restrict iv)
@@ -107,9 +110,9 @@ namespace ssc
 		using std::memcpy;
 		if (iv != nullptr)
 			memcpy( state, iv, State_Bytes );
-		u8_t const	*in  = bytes_in;
-		u8_t		*out = bytes_out;
-		size_t		bytes_left = size_in;
+		u8_t const *in  = bytes_in;
+		u8_t	   *out = bytes_out;
+		size_t	   bytes_left = size_in;
 
 		while (bytes_left >= Block_Bytes) {
 			memcpy( scratch, in, Block_Bytes );
@@ -130,7 +133,7 @@ namespace ssc
 		memcpy( out, state, Block_Bytes );
 
 		return calculate_padded_ciphertext_size_( size_in );
-	} /* ~ encrypt(u8_t*,u8_t const*,size_t const, u8_t const*) */
+	} /* ~ size_t encrypt(u8_t*,u8_t const*,size_t const, u8_t const*) */
 
 	TEMPLATE_ARGS
 	size_t CLASS::decrypt (u8_t *bytes_out, u8_t const *bytes_in, size_t const size_in, u8_t const *__restrict iv)
@@ -155,7 +158,7 @@ namespace ssc
 		}
 
 		return size_in - count_iso_iec_7816_padding_bytes_( bytes_out, size_in );
-	} /* ~ decrypt(u8_t*,u8_t const*,size_t const,u8_t const*) */
-}/* namespace ssc */
+	} /* ~ size_t decrypt(u8_t*,u8_t const*,size_t const,u8_t const*) */
+}/* ~ namespace ssc */
 #undef CLASS
 #undef TEMPLATE_ARGS

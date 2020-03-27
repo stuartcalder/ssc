@@ -1,8 +1,7 @@
-/*
-Copyright (c) 2019-2020 Stuart Steven Calder
-All rights reserved.
-See accompanying LICENSE file for licensing information.
-*/
+/* Copyright (c) 2019-2020 Stuart Steven Calder
+ * All rights reserved.
+ * See accompanying LICENSE file for licensing information.
+ */
 #pragma once
 
 #include <cstdlib>
@@ -19,49 +18,62 @@ See accompanying LICENSE file for licensing information.
 #include <ssc/crypto/operations.hh>
 #include <ssc/memory/os_memory_locking.hh>
 
-namespace ssc {
+#ifndef TEMPLATE_ARGS
+#	define TEMPLATE_ARGS template <typename CSPRNG_t, size_t Pool_Bits, size_t Max_Bits_Per_Call>
+#else
+#	error 'TEMPLATE_ARGS Already Defined'
+#endif
+#ifndef CLASS
+#	define CLASS Entropy_Pool<CSPRNG_t,Pool_Bits,Max_Bits_Per_Call>
+#else
+#	error 'CLASS Already Defined'
+#endif
 
-	template <typename CSPRNG_t, size_t Pool_Bits, size_t Max_Bits_Per_Call>
-	class Entropy_Pool {
-		public:
-			/* Compile-Time Assertions & Data */
-			static_assert (CHAR_BIT == 8);				// Chars must be 8 bits.
-			static_assert (Pool_Bits % CHAR_BIT == 0);		// Pool_Bits must be divisible into bytes. 
-			static_assert (Max_Bits_Per_Call % CHAR_BIT == 0);	// Max_Bits_Per_call must be divisibile into bytes.
-			static_assert (Pool_Bits >= (5 * Max_Bits_Per_Call));	// Must Have at 64 bytes of headroom between the size of the pool
-			static_assert (Pool_Bits % Max_Bits_Per_Call == 0);
+namespace ssc
+{
 
-			enum class Thread_Status_E {
-				None, Running, Finished
-			};
-			_CTIME_CONST(size_t)	Pool_Bytes = Pool_Bits / CHAR_BIT;
-			_CTIME_CONST(size_t)	Max_Bytes_Per_Call = Max_Bits_Per_Call / CHAR_BIT;
-			_CTIME_CONST(size_t)	Num_Calls_Ahead = 5;
-			_CTIME_CONST(int)	Num_Consec_Prng_Calls = 100;
-			_CTIME_CONST(size_t)	Bytes_Left_Before_Reset = Max_Bytes_Per_Call * Num_Calls_Ahead;
-			static_assert (Pool_Bytes > Bytes_Left_Before_Reset);
-			/* Constructors / Destructor */
-			Entropy_Pool() = delete;
-			Entropy_Pool(CSPRNG_t &&);
-			~Entropy_Pool();
-			u8_t *get(int const requested_bytes);
-		private:
-			u8_t *pool;
-			u8_t *reset_buffer;
-			u8_t *current;
-			u8_t *to_return;
-			std::mutex pool_reset_mutex;
-			std::mutex prng_mutex;
-			std::atomic<Thread_Status_E> reset_thread_status;
-			std::atomic<Thread_Status_E> prng_thread_status;
-			std::atomic_int bytes_left;
-			std::atomic_int prng_calls_left;
-			std::thread reset_thread;
-			std::thread prng_thread;
-			CSPRNG_t prng;
-			/* Private Functions */
-			void reset_pool_ (void);
-			void reset_prng_ (void);
+	TEMPLATE_ARGS
+	class Entropy_Pool
+	{
+	public:
+		/* Compile-Time Assertions & Data */
+		static_assert (CHAR_BIT == 8, "Bytes must be 8-bits.");
+		static_assert (Pool_Bits % CHAR_BIT == 0, "Pool_Bits must be divisible into bytes.");
+		static_assert (Max_Bits_Per_Call % CHAR_BIT == 0, "Max_Bits_Per_Call must be divisible into bytes.");
+		static_assert (Pool_Bits >= (5 * Max_Bits_Per_Call));	// Must Have at 64 bytes of headroom between the size of the pool
+		static_assert (Pool_Bits % Max_Bits_Per_Call == 0, "Max_Bits_Per_Call must evenly divide into Pool_Bits");
+
+		enum class Thread_Status_E {
+			None, Running, Finished
+		};
+		_CTIME_CONST(size_t)	Pool_Bytes = Pool_Bits / CHAR_BIT;
+		_CTIME_CONST(size_t)	Max_Bytes_Per_Call = Max_Bits_Per_Call / CHAR_BIT;
+		_CTIME_CONST(size_t)	Num_Calls_Ahead = 5;
+		_CTIME_CONST(int)	Num_Consec_Prng_Calls = 100;
+		_CTIME_CONST(size_t)	Bytes_Left_Before_Reset = Max_Bytes_Per_Call * Num_Calls_Ahead;
+		static_assert (Pool_Bytes > Bytes_Left_Before_Reset);
+		/* Constructors / Destructor */
+		Entropy_Pool() = delete;
+		Entropy_Pool(CSPRNG_t &&);
+		~Entropy_Pool();
+		u8_t *get(int const requested_bytes);
+	private:
+		u8_t *pool;
+		u8_t *reset_buffer;
+		u8_t *current;
+		u8_t *to_return;
+		std::mutex pool_reset_mutex;
+		std::mutex prng_mutex;
+		std::atomic<Thread_Status_E> reset_thread_status;
+		std::atomic<Thread_Status_E> prng_thread_status;
+		std::atomic_int bytes_left;
+		std::atomic_int prng_calls_left;
+		std::thread reset_thread;
+		std::thread prng_thread;
+		CSPRNG_t prng;
+		/* Private Functions */
+		void reset_pool_ (void);
+		void reset_prng_ (void);
 	};/*class Entropy_Pool*/
 
 	template <typename CSPRNG_t, size_t Pool_Bits, size_t Max_Bits_Per_Call>
@@ -190,4 +202,4 @@ namespace ssc {
 		}
 		return to_return;
 	}/*get()*/
-}/*namespace ssc*/
+}/* ~ namespace ssc */

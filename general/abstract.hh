@@ -1,8 +1,7 @@
-/*
-Copyright (c) 2019-2020 Stuart Steven Calder
-All rights reserved.
-See accompanying LICENSE file for licensing information.
-*/
+/* Copyright (c) 2019-2020 Stuart Steven Calder
+ * All rights reserved.
+ * See accompanying LICENSE file for licensing information.
+ */
 #pragma once
 
 namespace ssc
@@ -38,4 +37,4 @@ namespace ssc
 				smallest = second;
 			return Return_Smallest( smallest, args... );
 		}
-}/*namespace ssc*/
+}/* ~ namespace ssc */

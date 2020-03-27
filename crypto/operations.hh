@@ -37,7 +37,7 @@ namespace ssc
 		_CTIME_CONST(uint_t) mask = (CHAR_BIT * sizeof(uint_t)) - 1;
 		count &= mask;
 		return ( value << count ) | ( value >> (-count & mask));
-	} /* ~ rotate_left(uint_t,unsigned int) */
+	} /* ~ uint_t rotate_left(uint_t,unsigned int) */
 
 	template <typename uint_t>
 	uint_t rotate_right (uint_t value, unsigned int count)
@@ -45,7 +45,7 @@ namespace ssc
 		_CTIME_CONST(uint_t) mask = (CHAR_BIT * sizeof(uint_t)) - 1;
 		count &= mask;
 		return ( value >> count ) | ( value << (-count & mask));
-	} /* ~ rotate_right(uint_t,unsigned int) */
+	} /* ~ uint_t rotate_right(uint_t,unsigned int) */
 
 	template <int Block_Bits>
 	void xor_block (void *__restrict block, void const *__restrict add)
