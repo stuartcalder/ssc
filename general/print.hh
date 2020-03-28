@@ -37,7 +37,6 @@ namespace ssc
             return;
         auto alias = reinterpret_cast<Uint_t const *>(i_buf);
         
-        printf( "0x" );
         auto const backtick_one_index = num_elements - 1;
 
         for ( size_t i = 0; i < backtick_one_index; ++i ) {
