@@ -57,6 +57,12 @@ namespace ssc
 					u64_t const        num_bytes_in,
 					u64_t const        num_key_bytes_in,
 					u64_t const        num_bytes_out);
+		void nonce_hash (u8_t *bytes_out,
+				 u8_t const *bytes_in,
+				 u8_t const *nonce_in,
+				 u64_t const num_bytes_in,
+				 u64_t const num_nonce_bytes_in,
+				 u64_t const num_bytes_out);
 		// Hash the input bytes, outputting State_Bytes pseudorandom bytes.
 		void hash_native (u8_t * const         bytes_out,
 		                  u8_t const * const   bytes_in,
@@ -69,6 +75,8 @@ namespace ssc
 		void process_config_block_ (u64_t const num_output_bits);
 
 		inline void process_key_block_ (u8_t const * const key_in, u64_t const key_size);
+
+		inline void process_nonce_block_ (u8_t const *nonce_in, u64_t const nonce_size);
 
 		inline void process_message_block_ (u8_t const * const message_in, u64_t const message_size);
 
@@ -105,6 +113,12 @@ namespace ssc
 	{
 		ubi->chain( Type_Mask_E::T_key, key_in, key_size );
 	}/* ~ void process_key_block_(u8_t*,u64_t) */
+
+	TEMPLATE_ARGS
+	void CLASS::process_nonce_block_ (u8_t const *nonce_in, u64_t const nonce_size)
+	{
+		ubi->chain( Type_Mask_E::T_non, nonce_in, nonce_size );
+	}
     
 	TEMPLATE_ARGS
 	void CLASS::process_message_block_ (u8_t const * const message_in,
@@ -160,6 +174,24 @@ namespace ssc
 			return;
 		ubi->clear_key_state();
 		process_key_block_( key_in, num_key_bytes_in );
+		static_assert (CHAR_BIT == 8);
+		process_config_block_( num_bytes_out * CHAR_BIT );
+		process_message_block_( bytes_in, num_bytes_in );
+		output_transform_( bytes_out, num_bytes_out );
+	}
+
+	TEMPLATE_ARGS
+	void CLASS::nonce_hash (u8_t *bytes_out,
+			        u8_t const *bytes_in,
+				u8_t const *nonce_in,
+				u64_t const num_bytes_in,
+				u64_t const num_nonce_bytes_in,
+				u64_t const num_bytes_out)
+	{
+		if (num_bytes_out == 0)
+			return;
+		ubi->clear_key_state();
+		process_nonce_block_( nonce_in, num_nonce_bytes_in );
 		static_assert (CHAR_BIT == 8);
 		process_config_block_( num_bytes_out * CHAR_BIT );
 		process_message_block_( bytes_in, num_bytes_in );

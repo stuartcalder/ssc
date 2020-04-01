@@ -3,22 +3,21 @@ Copyright (c) 2019-2020 Stuart Steven Calder
 All rights reserved.
 See accompanying LICENSE file for licensing information.
 */
-#ifndef __SSC_ENABLE_EXPERIMENTAL
-#	error 'This is experimental.'
-#endif
-
-#include <cstdio>
-
-#include "ctr_v1.hh"
-#include "sspkdf.hh"
-
+/* SSC General Headers */
 #include <ssc/general/macros.hh>
 #include <ssc/general/print.hh>
 #include <ssc/general/error_conditions.hh>
+/* SSC File I/O Headers */
 #include <ssc/files/files.hh>
 #include <ssc/files/os_map.hh>
+/* SSC Interface Headers */
 #include <ssc/interface/terminal.hh>
+/* SSC Memory Headers */
 #include <ssc/memory/os_memory_locking.hh>
+/* C Headers */
+#include <cstdio>
+
+#include "ctr_v1.hh"
 
 #if    defined (LOCK_MEMORY) || defined (UNLOCK_MEMORY)
 #	error 'LOCK_MEMORY or UNLOCK_MEMORY Already Defined'

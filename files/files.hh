@@ -5,35 +5,44 @@ See accompanying LICENSE file for licensing information.
 */
 #pragma once
 
-#include <cstdlib>
-#include <cstdio>
-#include <string>
+/* SSC General Headers */
 #include <ssc/general/macros.hh>
 #include <ssc/general/error_conditions.hh>
 #include <ssc/general/integers.hh>
+/* C Standard Headers */
+#include <cstdlib>
+#include <cstdio>
+/* C++ Standard Headers */
+#include <string>
 
 #if    defined (__UnixLike__)
+/* Unix-like Headers */
 #	include <sys/types.h>
 #	include <sys/stat.h>
 #	include <unistd.h>
 #	include <fcntl.h>
 #elif  defined (__Win64__)
+/* Windows Headers */
 #	include <windows.h>
 #else
 #	error 'Unsupported OS'
 #endif
 
-namespace ssc {
+namespace ssc
+{
 
 #if    defined (__UnixLike__)
 	using OS_File_t = int;
+	_CTIME_CONST(OS_File_t) Null_OS_File = -1;
 #elif  defined (__Win64__)
 	using OS_File_t = HANDLE;
+	_CTIME_CONST(OS_File_t) Null_OS_File = INVALID_HANDLE_VALUE;
 #else
 #	error 'Unsupported OS'
 #endif
 
-	/* Prototype all the inline functions defined in this header. */
+	/* Prototype all the inline functions defined in this header.
+	 */
 	inline size_t	 get_file_size (OS_File_t const);
 	inline size_t	 get_file_size (char const *);
 	inline size_t	 get_file_size (std::FILE *);
@@ -61,7 +70,7 @@ namespace ssc {
 #else
 #	error 'Unsupported OS'
 #endif
-	} /* ~ get_file_size(OS_File_t) */
+	} /* ~ size_t get_file_size(OS_File_t const) */
 
 	size_t get_file_size (char const *filename)
 	{
@@ -87,7 +96,7 @@ namespace ssc {
 			errx( "Error: Failed to close file %s with fclose()\n", filename );
 		return num_bytes;
 #endif
-	} /* ~ get_file_size(char*) */
+	} /* ~ size_t get_file_size(char const*) */
 
 	size_t get_file_size (std::FILE *file)
 	{
@@ -102,7 +111,7 @@ namespace ssc {
 		if (fsetpos( file, &position ) == -1)
 			errx( "Error: Failed to set file position to its original position with fsetpos()\n" );
 		return num_bytes;
-	} /* ~ get_file_size(FILE*) */
+	} /* ~ size_t get_file_size(FILE*) */
 	
 	bool file_exists (char const *filename)
 	{
@@ -115,13 +124,13 @@ namespace ssc {
 			exists = true;
 		}
 		return exists;
-	} /* ~ file_exists(char*) */
+	} /* ~ bool file_exists(char const*) */
 
 	void check_file_name_sanity (std::string const &str, size_t const min_size)
 	{
 		if (str.size() < min_size)
 			errx( "Error: Filename %s must have at least %zu character(s)\n", str.c_str(), min_size );
-	} /* ~ check_file_name_sanity(string&,size_t) */
+	} /* ~ check_file_name_sanity(std::string const&,size_t const) */
 
 	void enforce_file_existence (char const *__restrict filename, bool const force_to_exist, char const *__restrict opt_error_msg)
 	{
@@ -137,28 +146,30 @@ namespace ssc {
 			if (force_to_exist)
 				errx( "Error: The file %s does not seem to exist.\n", filename );
 		}
-	} /* ~ enforce_file_existence(char*,bool,char*) */
+	} /* ~ void enforce_file_existence(char const*,bool const,char const*) */
 
 	OS_File_t open_existing_os_file (char const *filename, bool const readonly)
 	{
 		using namespace std;
 		enforce_file_existence( filename, true );
 #if    defined (__UnixLike__)
+		using Read_Write_t = decltype(O_RDWR);
 		int file_d;
-		decltype(O_RDWR) const read_write_rights = (readonly ? O_RDONLY : O_RDWR);
+		Read_Write_t const read_write_rights = (readonly ? O_RDONLY : O_RDWR);
 		if ((file_d = open( filename, read_write_rights, static_cast<mode_t>(0600) )) == -1)
 			errx( "Error: Unable to open existing file %s with open()\n", filename );
 		return file_d;
 #elif  defined (__Win64__)
+		using Read_Write_t = decltype(GENERIC_READ);
 		HANDLE file_h;
-		decltype(GENERIC_READ) const read_write_rights = (readonly ? GENERIC_READ : (GENERIC_READ|GENERIC_WRITE));
+		Read_Write_t const read_write_rights = (readonly ? GENERIC_READ : (GENERIC_READ|GENERIC_WRITE));
 		if ((file_h = CreateFileA( filename, read_write_rights, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr )) == INVALID_HANDLE_VALUE)
 			errx( "Error: Unable to open existing file %s with CreateFileA()\n", filename );
 		return file_h;
 #else
 #	error 'Unsupported OS'
 #endif
-	} /* ~ open_existing_os_file(char*,bool) */
+	} /* ~ OS_File_t open_existing_os_file(char const*,bool const) */
 
 	OS_File_t create_os_file (char const *filename)
 	{
@@ -177,7 +188,7 @@ namespace ssc {
 #else
 #	error 'Unsupported OS'
 #endif
-	} /* ~ create_os_file(char*) */
+	} /* ~ OS_File_t create_os_file(char const*) */
 
 	void close_os_file (OS_File_t const os_file)
 	{
@@ -191,7 +202,7 @@ namespace ssc {
 #else
 #	error 'Unsupported OS'
 #endif
-	} /* ~ close_os_file(OS_File_t) */
+	} /* ~ void close_os_file(OS_File_t const) */
 
 	void set_os_file_size (OS_File_t const os_file, size_t const new_size)
 	{
@@ -209,6 +220,6 @@ namespace ssc {
 #else
 #	error 'Unsupported OS'
 #endif
-	} /* ~ set_os_file_size(OS_File_t,size_t) */
+	} /* ~ void set_os_file_size(OS_File_t const,size_t const) */
 
-}/* ! namespace ssc */
+}/* ~ namespace ssc */

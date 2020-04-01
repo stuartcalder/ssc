@@ -3,18 +3,20 @@
  * See accompanying LICENSE file for licensing information.
  */
 #pragma once
-
+/* SSC General Headers */
+#include <ssc/general/macros.hh>
+#include <ssc/general/integers.hh>
+#include <ssc/general/error_conditions.hh>
+/* SSC Crypto Headers */
+#include <ssc/crypto/operations.hh>
+/* C Standard Headers */
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <cstdio>
 #include <climits>
-
+/* C++ Standard Headers */
 #include <utility>
-#include <ssc/general/macros.hh>
-#include <ssc/general/integers.hh>
-#include <ssc/general/error_conditions.hh>
-#include <ssc/crypto/operations.hh>
 
 #ifndef TEMPLATE_ARGS
 #	define TEMPLATE_ARGS template <typename Block_Cipher_t, int Block_Bits>

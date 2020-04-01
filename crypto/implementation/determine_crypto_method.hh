@@ -13,7 +13,8 @@ See accompanying LICENSE file for licensing information.
 #	error 'Crypto implementations must be #included before this file.'
 #endif
 
-namespace ssc::crypto_impl {
+namespace ssc::crypto_impl
+{
 
 	// Enums
 	enum class Crypto_Method_E {
@@ -28,8 +29,8 @@ namespace ssc::crypto_impl {
 	};/*enum class Crypto_Method_E*/
 
 	// Compile-Time constants
-	inline constexpr size_t
-	Biggest_ID_String_Size (void) {
+	constexpr size_t Biggest_ID_String_Size (void)
+	{
 		size_t s = 0;
 #ifdef __SSC_CBC_V2__
 		if (sizeof(cbc_v2::CBC_V2_ID) > s)
@@ -40,9 +41,9 @@ namespace ssc::crypto_impl {
 			s = sizeof(ctr_v1::CTR_V1_ID);
 #endif
 		return s;
-	}/*Biggest_ID_String_Size*/
-	inline constexpr size_t
-	Smallest_ID_String_Size (void) {
+	}/* ~ constexpr size_t Biggest_ID_String_Size() */
+	constexpr size_t Smallest_ID_String_Size (void)
+	{
 		size_t s = Biggest_ID_String_Size();
 #ifdef __SSC_CBC_V2__
 		if (sizeof(cbc_v2::CBC_V2_ID) < s)
@@ -53,11 +54,11 @@ namespace ssc::crypto_impl {
 			s = sizeof(ctr_v1::CTR_V1_ID);
 #endif
 		return s;
-	}/*Smallest_ID_String_Size*/
+	}/* ~ constexpr size_t Smallest_ID_String_Size() */
 
 	// Functions
-	inline Crypto_Method_E
-	determine_crypto_method (char const *filename) {
+	inline Crypto_Method_E determine_crypto_method (char const *filename)
+	{
 		Crypto_Method_E method = Crypto_Method_E::None;
 		// Memory map the file.
 		OS_Map os_map;
@@ -102,5 +103,5 @@ End_Methods_L:
 		unmap_file( os_map );
 		close_os_file( os_map.os_file );
 		return method;
-	}/*determine_crypto_method*/
-}/*namespace ssc::crypto_impl*/
+	}/* ~ Crypto_Method_e determine_crypto_method(char const*) */
+}/* ~ namespace ssc::crypto_impl */

@@ -5,18 +5,23 @@ See accompanying LICENSE file for licensing information.
 */
 #pragma once
 
+/* SSC General Headers */
 #include <ssc/general/macros.hh>
 #include <ssc/general/integers.hh>
+/* SSC Crypto Headers */
 #include <ssc/crypto/operations.hh>
 #include <ssc/crypto/threefish.hh>
 #include <ssc/crypto/unique_block_iteration.hh>
 #include <ssc/crypto/skein.hh>
 #include <ssc/crypto/skein_csprng.hh>
+/* SSC Memory I/O Headers */
 #include <ssc/memory/os_memory_locking.hh>
+/* SSC Interface Headers */
 #include <ssc/interface/terminal.hh>
-
+/* C Library Headers */
 #include <climits>
 #include <cstring>
+/* C++ Library Headers */
 #include <string>
 
 #ifndef NEW_LINE
@@ -51,9 +56,9 @@ namespace ssc::crypto_impl {
 	_CTIME_CONST(int)	Max_Password_Chars = 120;
 	_CTIME_CONST(int)	Max_Entropy_Chars  = 120;
 	_CTIME_CONST(int)	Password_Buffer_Bytes   = Max_Password_Chars + 1;
-	_CTIME_CONST(auto)	Password_Prompt	        = "Please input a password (max length 120 characters)." OS_PROMPT;
-	_CTIME_CONST(auto)	Password_Reentry_Prompt = "Please input the same password again (max length 120 characters)." OS_PROMPT;
-	_CTIME_CONST(auto)	Entropy_Prompt		= "Please input up to 120 random characters." OS_PROMPT;
+	_CTIME_CONST(auto&)	Password_Prompt	        = "Please input a password (max length 120 characters)." OS_PROMPT;
+	_CTIME_CONST(auto&)	Password_Reentry_Prompt = "Please input the same password again (max length 120 characters)." OS_PROMPT;
+	_CTIME_CONST(auto&)	Entropy_Prompt		= "Please input up to 120 random characters." OS_PROMPT;
 
 	using Threefish_t = Threefish<Block_Bits>;
 	using UBI_t       = Unique_Block_Iteration<Threefish_t, Block_Bits>;
@@ -67,34 +72,13 @@ namespace ssc::crypto_impl {
 		bool		supplement_os_entropy;
 	};
 
-#if 0
-	int _PUBLIC
-	obtain_password (char       *password_buffer,
-			 char const *entry_prompt,
-			 int const  buffer_size);
-
-	int _PUBLIC
-	obtain_password (char       *password_buffer,
-			 char       *check_buffer,
-			 char const *entry_prompt,
-			 char const *reentry_prompt,
-			 int const  buffer_size);
-#endif
-
 	_CTIME_CONST(int) Supplement_Entropy_Buffer_Bytes = Block_Bytes + Max_Entropy_Chars + 1;
 
-#if 0
-	void _PUBLIC
-	supplement_entropy (CSPRNG_t &csprng, Skein_t &skein, u8_t *buffer);
-#endif
 	inline void supplement_entropy (CSPRNG_t &csprng, Skein_t &skein, u8_t *buffer)
 	{
 		using namespace std;
 		_CTIME_CONST(int) Hash_Size = Block_Bytes;
 		_CTIME_CONST(int) Input_Size = Max_Entropy_Chars + 1;
-#if 0
-		_CTIME_CONST(int) Buffer_Size = Hash_Size + Input_Size;
-#endif
 
 		static_assert (sizeof(u8_t) == sizeof(char));
 		u8_t *hash  = buffer;

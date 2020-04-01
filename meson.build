@@ -3,9 +3,9 @@ project('ssc', 'cpp',
 	default_options: ['cpp_std=c++17', 'buildtype=release',
                           'optimization=3', 'strip=true',
 			  'cpp_eh=none'])
-cc = meson.get_compiler('cpp')
+cc = meson.get_compiler('cpp') # Get the C++ compiler.
 
-os = host_machine.system()
+os = host_machine.system() # Get the operating system.
 
 if os == 'windows' and cc.get_id() == 'msvc'
 	_Define_Flag_Prefix = '/D'
@@ -50,10 +50,15 @@ if get_option('disable_memorylocking')
 	_flag = _Define_Flag_Prefix + '__SSC_DISABLE_MEMORYLOCKING'
 	cpp_flags += _flag
 endif
-
 if get_option('disable_runtime_checks')
 	_flag = _Define_Flag_Prefix + '__SSC_DISABLE_RUNTIME_CHECKS'
 	cpp_flags += _flag
+endif
+if get_option('enable_cbc_v2')
+	ssc_src += 'crypto/implementation/cbc_v2.cc'
+endif
+if get_option('enable_ctr_v1')
+	ssc_src += 'crypto/implementation/ctr_v1.cc'
 endif
 
 install_subdir('../ssc', install_dir: include_install, exclude_directories: ['builddir','.git'],

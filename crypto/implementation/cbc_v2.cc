@@ -30,10 +30,12 @@ See accompanying LICENSE file for licensing information.
 #	define UNLOCK_MEMORY(address,size)
 #endif
 
-namespace ssc::crypto_impl::cbc_v2 {
+namespace ssc::crypto_impl::cbc_v2
+{
 
 	static u64_t calculate_encrypted_size (u64_t const pre_encryption_size)
 	{
+		// Every CBC_V2 encrypted file has a CBC_V2 header and an authentication code appended to the end.
 		_CTIME_CONST(int) File_Metadata_Size = CBC_V2_Header::Total_Size + MAC_Bytes;
 
 		auto s = pre_encryption_size;
@@ -388,6 +390,6 @@ namespace ssc::crypto_impl::cbc_v2 {
 		print_integral_buffer<u8_t>( mac, sizeof(mac) );
 		putchar( '\n' );
 	}/* ! dump_header */
-}/*namespace ssc::crypto_impl::cbc_v2*/
+}/* ~ namespace ssc::crypto_impl::cbc_v2 */
 #undef UNLOCK_MEMORY
 #undef LOCK_MEMORY

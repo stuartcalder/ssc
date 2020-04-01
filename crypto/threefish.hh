@@ -222,8 +222,7 @@ namespace ssc
 	TEMPLATE_ARGS
 	void CLASS::add_subkey_	(int const round)
 	{
-		int const subkey = round / 4;
-		int const offset = subkey * Number_Words;
+		int const offset = round * (Number_Words / 4);
 		for (int i = 0; i < Number_Words; ++i)
 			state[ i ] += key_schedule[ offset + i ];
 	} /* ~ add_subkey_(int) */
@@ -231,8 +230,7 @@ namespace ssc
 	TEMPLATE_ARGS
 	void CLASS::subtract_subkey_ (int const round)
 	{
-		int const subkey = round / 4;
-		int const offset = subkey * Number_Words;
+		int const offset = round * (Number_Words / 4);
 		for (int i = 0; i < Number_Words; ++i)
 			state[ i ] -= key_schedule[ offset + i ];
 	} /* ~ subtract_subkey_(int) */

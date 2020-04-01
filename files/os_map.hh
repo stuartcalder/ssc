@@ -4,14 +4,19 @@ All rights reserved.
 See accompanying LICENSE file for licensing information.
 */
 #pragma once
-#include <ssc/files/files.hh>
+
+/* SSC General Headers */
 #include <ssc/general/macros.hh>
-#include <ssc/general/integers.hh>
 #include <ssc/general/error_conditions.hh>
+#include <ssc/general/integers.hh>
+/* SSC File I/O Headers */
+#include <ssc/files/files.hh>
 
 #if    defined (__UnixLike__)
+/* Unix-like Headers */
 #	include <sys/mman.h>
 #elif  defined (__Win64__)
+/* Windows Headers */
 #	include <windows.h>
 #	include <memoryapi.h>
 #else
@@ -34,13 +39,16 @@ namespace ssc
 	{
 		using namespace std;
 #if    defined (__UnixLike__)
-		decltype(PROT_READ) const readwrite_flag = (readonly ? PROT_READ : (PROT_READ|PROT_WRITE));
+		using Map_Read_Write_t = decltype(PROT_READ);
+		Map_Read_Write_t const readwrite_flag = (readonly ? PROT_READ : (PROT_READ|PROT_WRITE));
 		os_map.ptr = static_cast<u8_t *>(mmap( nullptr, os_map.size, readwrite_flag, MAP_SHARED, os_map.os_file, 0 ));
 		if (os_map.ptr == MAP_FAILED)
 			errx( "Error: Failed to mmap() the file descriptor %d\n", os_map.os_file );
 #elif  defined (__Win64__)
-		decltype(PAGE_READONLY) page_readwrite_flag;
-		decltype(FILE_MAP_READ) map_readwrite_flag;
+		using Page_Read_Write_t = decltype(PAGE_READONLY);
+		using Map_Read_Write_t  = decltype(FILE_MAP_READ);
+		Page_Read_Write_t page_readwrite_flag;
+		Map_Read_Write_t  map_readwrite_flag;
 		if (readonly) {
 			page_readwrite_flag = PAGE_READONLY;
 			map_readwrite_flag = FILE_MAP_READ;
@@ -49,6 +57,8 @@ namespace ssc
 			map_readwrite_flag = (FILE_MAP_READ|FILE_MAP_WRITE);
 		}
 
+		static_assert (sizeof(os_map.size) == 8);
+		static_assert (sizeof(DWORD) == 4);
 		DWORD high_bits = static_cast<DWORD>(os_map.size >> 32);
 		DWORD low_bits  = static_cast<DWORD>(os_map.size);
 		os_map.win64_filemapping = CreateFileMappingA( os_map.os_file, nullptr, page_readwrite_flag, high_bits, low_bits, nullptr );

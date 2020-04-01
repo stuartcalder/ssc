@@ -43,6 +43,5 @@ namespace ssc
 	    printf( format_str, alias[ i ] );
         }
         printf( format_str, alias[ backtick_one_index ] );
-        putchar( '\n' );
     }/* ~ void print_integral_buffer (Uint_t * const, size_t const) */
 }/* ~ namespace ssc */

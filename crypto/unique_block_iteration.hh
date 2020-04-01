@@ -166,8 +166,8 @@ namespace ssc
 			std::memcpy( msg_state, message_offset, State_Bytes );
 			bytes_read = State_Bytes;
 		} else {
-			std::memset( msg_state, 0, Msg_Bytes );
 			std::memcpy( msg_state, message_offset, bytes_left );
+			std::memset( (msg_state + bytes_left), 0, (Msg_Bytes - bytes_left) );
 			bytes_read = bytes_left;
 		}
 		return bytes_read;
