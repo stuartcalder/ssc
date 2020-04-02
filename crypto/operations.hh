@@ -8,16 +8,19 @@ See accompanying LICENSE file for licensing information.
  * No operating-system specific code here
  */
 #pragma once
+/* SSC General Headers */
+#include <ssc/general/integers.hh>
+#include <ssc/general/macros.hh>
+#include <ssc/general/error_conditions.hh>
+/* C Standard Headers */
 #include <cstdint>
 #include <cstdlib>
 #include <cstdio>
 #include <climits>
 #include <cstring>
+/* C++ Standard Headers */
 #include <type_traits>
-#include <ssc/general/integers.hh>
-#include <ssc/general/macros.hh>
-#include <ssc/general/error_conditions.hh>
-
+/* OS-Specific Headers */
 #if    defined (__UnixLike__)
 #	include <unistd.h>
 #elif  defined (__Win64__)
@@ -27,32 +30,61 @@ See accompanying LICENSE file for licensing information.
 #else
 #	error 'Unsupported OS'
 #endif
+/* Byte-swapping OS-Specific Headers */
+#if    defined (__OpenBSD__)
+#	include <endian.h>
+#elif  defined (__FreeBSD__)
+#	include <sys/endian.h>
+#elif  defined (__gnu_linux__)
+#	include <byteswap.h>
+#elif  defined (__Win64__)
+#	include <stdlib.h>
+#else
+#	error 'Unsupported OS'
+#endif
+
+#if    defined (STATIC_ENFORCE_UNSIGNED_INTEGRAL)
+#	error 'STATIC_ENFORCE_UNSIGNED_INTEGRAL Already Defined'
+#else
+#	define STATIC_ENFORCE_UNSIGNED_INTEGRAL(Type) \
+		static_assert ( \
+			(std::is_same<Type,u8_t>::value || \
+			 std::is_same<Type,u16_t>::value || \
+			 std::is_same<Type,u32_t>::value || \
+			 std::is_same<Type,u64_t>::value), \
+			"Only unsigned integral types allowed for this type." \
+		)
+#endif
 
 namespace ssc
 {
 	static_assert (CHAR_BIT == 8);
-	template <typename uint_t>
-	uint_t rotate_left (uint_t value, unsigned int count)
+	template <typename Uint_t>
+	Uint_t rotate_left (Uint_t value, unsigned int count)
 	{
-		_CTIME_CONST(uint_t) mask = (CHAR_BIT * sizeof(uint_t)) - 1;
+		STATIC_ENFORCE_UNSIGNED_INTEGRAL( Uint_t );
+
+		_CTIME_CONST(Uint_t) mask = (CHAR_BIT * sizeof(Uint_t)) - 1;
 		count &= mask;
 		return ( value << count ) | ( value >> (-count & mask));
-	} /* ~ uint_t rotate_left(uint_t,unsigned int) */
+	} /* ~ Uint_t rotate_left(Uint_t,unsigned int) */
 
-	template <typename uint_t>
-	uint_t rotate_right (uint_t value, unsigned int count)
+	template <typename Uint_t>
+	Uint_t rotate_right (Uint_t value, unsigned int count)
 	{
-		_CTIME_CONST(uint_t) mask = (CHAR_BIT * sizeof(uint_t)) - 1;
+		STATIC_ENFORCE_UNSIGNED_INTEGRAL( Uint_t );
+
+		_CTIME_CONST(Uint_t) mask = (CHAR_BIT * sizeof(Uint_t)) - 1;
 		count &= mask;
 		return ( value >> count ) | ( value << (-count & mask));
-	} /* ~ uint_t rotate_right(uint_t,unsigned int) */
+	} /* ~ Uint_t rotate_right(Uint_t,unsigned int) */
 
 	template <int Block_Bits>
 	void xor_block (void *__restrict block, void const *__restrict add)
 	{
 		static_assert (CHAR_BIT == 8);
 		static_assert ((Block_Bits % CHAR_BIT == 0), "Bits must be a multiple of bytes");
-		_CTIME_CONST(size_t) Block_Bytes = Block_Bits / CHAR_BIT;
+		_CTIME_CONST(int) Block_Bytes = Block_Bits / CHAR_BIT;
 		if constexpr(Block_Bits == 128) {
 			u64_t       *first_dword  = static_cast<u64_t *>(block);
 			u64_t const *second_dword = static_cast<u64_t const *>(add);
@@ -82,9 +114,10 @@ namespace ssc
 			first_dword[ 6 ] ^= second_dword[ 6 ];
 			first_dword[ 7 ] ^= second_dword[ 7 ];
 		} else if constexpr((Block_Bits > 512) && (Block_Bits % 64 == 0)) {
+			_CTIME_CONST(int) Number_Words = Block_Bits / 64;
 			u64_t       *first_dword  = static_cast<u64_t *>(block);
 			u64_t const *second_dword = static_cast<u64_t const *>(add);
-			for (int i = 0; i < (Block_Bits / 64); ++i)
+			for (int i = 0; i < Number_Words; ++i)
 				first_dword[ i ] ^= second_dword[ i ];
 		} else {
 			u8_t            *first_byte  = static_cast<u8_t *>(block);
@@ -95,24 +128,13 @@ namespace ssc
 	}/* ~ xor_block(void*,void*) */
 
 	
-	template <typename Integer_t>
-	int bit_hamming_weight (Integer_t x)
+	template <typename Uint_t>
+	int bit_hamming_weight (Uint_t x)
 	{
-		// Ensure that Integer_t is a valid, defined type for determining a bit hamming weight.
-		_CTIME_CONST(bool) Is_Valid_Type = [](){
-			if (std::is_same<Integer_t,u8_t>::value)
-				return true;
-			else if (std::is_same<Integer_t,u32_t>::value)
-				return true;
-			else if (std::is_same<Integer_t,u64_t>::value)
-				return true;
-			else
-				return false;
-		}();
-		static_assert (Is_Valid_Type, "Only u8_t, u32_t, and u64_t allowed as template parameters.");
-		// Number_Bytes represents the number of bytes in one Integer_t.
-		_CTIME_CONST(int)  Number_Bytes = sizeof(Integer_t);
-		static_assert (Number_Bytes >= 1);
+		STATIC_ENFORCE_UNSIGNED_INTEGRAL( Uint_t );
+
+		// Number_Bytes represents the number of bytes in one Uint_t.
+		_CTIME_CONST(int)  Number_Bytes = sizeof(Uint_t);
 		static_assert (CHAR_BIT == 8);
 		// Number_Bits represents the number of bits to check for 1's to determine the bit hamming weight.
 		_CTIME_CONST(int)  Number_Bits = Number_Bytes * CHAR_BIT;
@@ -146,7 +168,7 @@ namespace ssc
 			}
 		}
 		return hamming_weight;
-	}/* ~ bit_hamming_weight(Integer_t) */
+	}/* ~ bit_hamming_weight(Uint_t) */
 
 	inline void obtain_os_entropy (u8_t *buffer, size_t num_bytes)
 	{
@@ -188,5 +210,55 @@ namespace ssc
 #	error 'Unsupported OS'
 #endif
 	} /* ~ zero_sensitive(u8_t *,size_t) */
+
+	template <typename Uint_t>
+	Uint_t reverse_byte_order (Uint_t u)
+	{
+		STATIC_ENFORCE_UNSIGNED_INTEGRAL( Uint_t );
+
+		// Disallow Uint_t to be u8_t, since it cannot be reversed.
+		static_assert (!std::is_same<Uint_t,u8_t>::value, "u8_t is not byte reversible.");
+
+#if    defined (SWAP_F)
+#	error 'SWAP_F Already Defined'
+#else
+#	define SWAP_F(size,u)	SWAP_F__( size, u )
+#endif
+
+#if    defined (SWAP_F__)
+#	error 'SWAP_F__ Already Defined'
+#elif  defined (__OpenBSD__)
+#	define SWAP_F__(size,u)	swap##size( u )
+#elif  defined (__FreeBSD__)
+#	define SWAP_F__(size,u)	bswap##size( u )
+#elif  defined (__gnu_linux__)
+#	define SWAP_F__(size,u)	bswap_##size( u )
+#elif  defined (__Win64__)
+#	define SWAP_F__(size,u)	_byteswap_##size( u );
+#else
+#	error 'Unsupported OS'
+#endif
+
+#if    defined (SIZE)
+#	error 'SIZE Already Defined'
+#elif  defined (__UnixLike__)
+#	define SIZE(unixlike,win64) unixlike
+#elif  defined (__Win64__)
+#	define SIZE(unixlike,win64) win64
+#else
+#	error 'Unsupported OS'
+#endif
+		if constexpr(std::is_same<Uint_t,u16_t>::value) {
+			return SWAP_F( SIZE( 16, ushort ), u );
+		} else if constexpr(std::is_same<Uint_t,u32_t>::value) {
+			return SWAP_F( SIZE( 32, ulong ), u );
+		} else if constexpr(std::is_same<Uint_t,u64_t>::value) {
+			return SWAP_F( SIZE( 64, uint64 ), u );
+		}
+#undef SIZE
+#undef SWAP_F__
+#undef SWAP_F
+	}/* ~ Uint_t reverse_byte_order (Uint_t) */
 	
 }/* ~ namespace ssc */
+#undef STATIC_ENFORCE_UNSIGNED_INTEGRAL
