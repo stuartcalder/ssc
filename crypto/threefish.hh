@@ -13,12 +13,12 @@ See accompanying LICENSE file for licensing information.
 #include <ssc/general/macros.hh>
 
 #ifndef TEMPLATE_ARGS
-#	define TEMPLATE_ARGS template <int Key_Bits>
+#	define TEMPLATE_ARGS	template <int Key_Bits>
 #else
 #	error 'TEMPLATE_ARGS Already Defined'
 #endif
 #ifndef CLASS
-#	define CLASS Threefish<Key_Bits>
+#	define CLASS		Threefish<Key_Bits>
 #else
 #	error 'CLASS Already Defined'
 #endif
@@ -34,19 +34,19 @@ namespace ssc
 		static_assert ((CHAR_BIT == 8), "This implementation needs 8-bit chars");
 		/* Public Constants */
 		// Constant_240, defined in the Threefish specification.
-		_CTIME_CONST(u64_t) Constant_240 = 0x1b'd1'1b'da'a9'fc'1a'22;
+		_CTIME_CONST (u64_t) Constant_240 = 0x1b'd1'1b'da'a9'fc'1a'22;
 		// The number of bits in one block: i.e. 256,512, or 1024.
-		_CTIME_CONST(int) Block_Bits = Key_Bits;
+		_CTIME_CONST (int) Block_Bits = Key_Bits;
 		// The number of bytes in one block.
-		_CTIME_CONST(int) Block_Bytes = Block_Bits / CHAR_BIT;
+		_CTIME_CONST (int) Block_Bytes = Block_Bits / CHAR_BIT;
 		// The number of unsigned 64-bit little endian words in one block.
-		_CTIME_CONST(int) Number_Words = Key_Bits / 64;
+		_CTIME_CONST (int) Number_Words = Key_Bits / 64;
 		// The number of unsigned 64-bit little endian words in the tweak.
-		_CTIME_CONST(int) Tweak_Words = 2;
+		_CTIME_CONST (int) Tweak_Words = 2;
 		// The number of bytes in the tweak.
-		_CTIME_CONST(int) Tweak_Bytes = Tweak_Words * sizeof(u64_t);
+		_CTIME_CONST (int) Tweak_Bytes = Tweak_Words * sizeof(u64_t);
 		// The number of rounds, which is 80 or 72.
-		_CTIME_CONST(int) Number_Rounds = []() {
+		_CTIME_CONST (int) Number_Rounds = []() {
 							if constexpr(Key_Bits == 1024)
 								return 80;
 							return 72;

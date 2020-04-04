@@ -3,10 +3,6 @@ Copyright (c) 2019-2020 Stuart Steven Calder
 All rights reserved.
 See accompanying LICENSE file for licensing information.
 */
-
-/* operations.hh
- * No operating-system specific code here
- */
 #pragma once
 /* SSC General Headers */
 #include <ssc/general/integers.hh>
@@ -42,7 +38,10 @@ See accompanying LICENSE file for licensing information.
 #else
 #	error 'Unsupported OS'
 #endif
-
+/* Ensure that the template functions below that expect unsigned integral
+ * types can ONLY be used with unsigned integral types, to prevent any
+ * unexpectedly nasty behavior.
+ */
 #if    defined (STATIC_ENFORCE_UNSIGNED_INTEGRAL)
 #	error 'STATIC_ENFORCE_UNSIGNED_INTEGRAL Already Defined'
 #else
