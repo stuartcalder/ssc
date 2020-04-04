@@ -74,11 +74,11 @@ namespace ssc
 		/* PRIVATE PROCEDURES */
 		void process_config_block_ (u64_t const num_output_bits);
 
-		inline void process_key_block_ (u8_t const * const key_in, u64_t const key_size);
+		void process_key_block_ (u8_t const * const key_in, u64_t const key_size);
 
-		inline void process_nonce_block_ (u8_t const *nonce_in, u64_t const nonce_size);
+		void process_nonce_block_ (u8_t const *nonce_in, u64_t const nonce_size);
 
-		inline void process_message_block_ (u8_t const * const message_in, u64_t const message_size);
+		void process_message_block_ (u8_t const * const message_in, u64_t const message_size);
 
 		void output_transform_ (u8_t *out, u64_t const num_output_bytes);
 	}; /* ~ class Skein */
