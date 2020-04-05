@@ -46,6 +46,7 @@ endif
 
 inc_dir += '..'
 
+# Begin parsing options.
 if get_option('disable_memorylocking')
 	_flag = _Define_Flag_Prefix + '__SSC_DISABLE_MEMORYLOCKING'
 	cpp_flags += _flag
@@ -60,6 +61,10 @@ endif
 if get_option('enable_ctr_v1')
 	ssc_src += 'crypto/implementation/ctr_v1.cc'
 endif
+if get_option('enable_debugging_symbols') and cc.get_id() == 'gcc' or cc.get_id() == 'clang'
+	cpp_flags += '-g'
+endif
+# Stop parsing options.
 
 install_subdir('../ssc', install_dir: include_install, exclude_directories: ['builddir','.git'],
                                                        exclude_files: '.gitignore')
