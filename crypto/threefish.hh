@@ -8,6 +8,7 @@ See accompanying LICENSE file for licensing information.
 #include <climits>
 #include <cstdlib>
 #include <cstring>
+#include <type_traits>
 #include <ssc/crypto/operations.hh>
 #include <ssc/general/integers.hh>
 #include <ssc/general/macros.hh>
@@ -23,6 +24,8 @@ See accompanying LICENSE file for licensing information.
 #	error 'CLASS Already Defined'
 #endif
 
+#define THREEFISH_PERFORMANCE	true
+
 namespace ssc
 {
 	TEMPLATE_ARGS
@@ -33,50 +36,46 @@ namespace ssc
 		static_assert ((Key_Bits == 256 || Key_Bits == 512 || Key_Bits == 1024), "Invalid keysize");
 		static_assert ((CHAR_BIT == 8), "This implementation needs 8-bit chars");
 		/* Public Constants */
-		// Constant_240, defined in the Threefish specification.
-		_CTIME_CONST (u64_t) Constant_240 = 0x1b'd1'1b'da'a9'fc'1a'22;
-		// The number of bits in one block: i.e. 256,512, or 1024.
-		_CTIME_CONST (int) Block_Bits = Key_Bits;
-		// The number of bytes in one block.
-		_CTIME_CONST (int) Block_Bytes = Block_Bits / CHAR_BIT;
-		// The number of unsigned 64-bit little endian words in one block.
-		_CTIME_CONST (int) Number_Words = Key_Bits / 64;
-		// The number of unsigned 64-bit little endian words in the tweak.
-		_CTIME_CONST (int) Tweak_Words = 2;
-		// The number of bytes in the tweak.
-		_CTIME_CONST (int) Tweak_Bytes = Tweak_Words * sizeof(u64_t);
-		// The number of rounds, which is 80 or 72.
-		_CTIME_CONST (int) Number_Rounds = []() {
-							if constexpr(Key_Bits == 1024)
+		_CTIME_CONST (u64_t) Constant_240 = 0x1b'd1'1b'da'a9'fc'1a'22; // Constant_240, defined in the Threefish specification.
+		_CTIME_CONST (int) Block_Bits = Key_Bits; // The number of bits in one block: i.e. 256,512, or 1024.
+		_CTIME_CONST (int) Block_Bytes = Block_Bits / CHAR_BIT; // The number of bytes in one block.
+		_CTIME_CONST (int) Number_Words = Key_Bits / 64; // The number of unsigned 64-bit little endian words in one block.
+		_CTIME_CONST (int) Tweak_Words = 2; // The number of unsigned 64-bit little endian words in the tweak.
+		_CTIME_CONST (int) Tweak_Bytes = Tweak_Words * sizeof(u64_t); // The number of bytes in the tweak.
+		_CTIME_CONST (int) Number_Rounds = []() { // The number of rounds, which is 80 or 72.
+							if constexpr (Key_Bits == 1024)
 								return 80;
 							return 72;
 						  }();
-		// The number of subkeys in the key schedule.
-		_CTIME_CONST(int) Number_Subkeys = (Number_Rounds / 4) + 1;
+		_CTIME_CONST (int) Number_Subkeys = (Number_Rounds / 4) + 1; // The number of subkeys in the key schedule.
+		_CTIME_CONST (int) Buffer_Key_Schedule_Words = Number_Subkeys * Number_Words; // The number of 64-bit words in the key schedule buffer.
+		_CTIME_CONST (int) Buffer_Key_Schedule_Bytes = Buffer_Key_Schedule_Words * sizeof(u64_t); // The number of bytes in the key schedule buffer.
+#if   !defined (THREEFISH_PERFORMANCE) // The 'Key' and 'Tweak' buffers here only exist in the unoptimized version.
+		_CTIME_CONST (int) Buffer_Tweak_Words = Tweak_Words + 1; // The number of 64-bit words in the tweak buffer.
+		_CTIME_CONST (int) Buffer_Tweak_Bytes = Buffer_Tweak_Words * sizeof(u64_t); // The number of bytes in the tweak buffer.
+		_CTIME_CONST (int) Buffer_Key_Words = Number_Words + 1; // The number of 64-bit words in the key buffer.
+		_CTIME_CONST (int) Buffer_Key_Bytes = Buffer_Key_Words * sizeof(u64_t); // The number of bytes in the key buffer.
+#endif
 
-		// The number of 64-bit words in the key schedule buffer.
-		_CTIME_CONST(int) Buffer_Key_Schedule_Words = Number_Subkeys * Number_Words;
-		// The number of bytes in the key schedule buffer.
-		_CTIME_CONST(int) Buffer_Key_Schedule_Bytes = Buffer_Key_Schedule_Words * sizeof(u64_t);
-
-		// The number of 64-bit words in the tweak buffer.
-		_CTIME_CONST(int) Buffer_Tweak_Words = Tweak_Words + 1;
-		// The number of bytes in the tweak buffer.
-		_CTIME_CONST(int) Buffer_Tweak_Bytes = Buffer_Tweak_Words * sizeof(u64_t);
-
-		// The number of 64-bit words in the key buffer.
-		_CTIME_CONST(int) Buffer_Key_Words = Number_Words + 1;
-		// The number of bytes in the key buffer.
-		_CTIME_CONST(int) Buffer_Key_Bytes = Buffer_Key_Words * sizeof(u64_t);
-
+#if   !defined (THREEFISH_PERFORMANCE)
 		// The total number of 64-bit words pointed to by the buffer pointer passed in at runtime.
-		_CTIME_CONST(int) Buffer_Words = (Number_Words + Buffer_Key_Schedule_Words + Buffer_Tweak_Words + Buffer_Key_Words);
+		_CTIME_CONST (int) Buffer_Words = (Number_Words + Buffer_Key_Schedule_Words + Buffer_Tweak_Words + Buffer_Key_Words);
 		// The total number of bytes pointed to by the buffer pointer passed in at runtime.
-		_CTIME_CONST(int) Buffer_Bytes = (Block_Bytes + Buffer_Key_Schedule_Bytes + Buffer_Tweak_Bytes + Buffer_Key_Bytes);
+		_CTIME_CONST (int) Buffer_Bytes = (Block_Bytes + Buffer_Key_Schedule_Bytes + Buffer_Tweak_Bytes + Buffer_Key_Bytes);
+#else
+		_CTIME_CONST (int) Buffer_Words = (Number_Words + Buffer_Key_Schedule_Words);
+		_CTIME_CONST (int) Buffer_Bytes = (Block_Bytes + Buffer_Key_Schedule_Bytes);
+#endif
 		static_assert (Buffer_Bytes == (Buffer_Words * sizeof(u64_t)));
+#if    defined (THREEFISH_PERFORMANCE) /* New Impl */
+		_CTIME_CONST (int) External_Key_Buffer_Words = Number_Words + 1; // The number of words of buffer, leaving room for the parity word.
+		_CTIME_CONST (int) External_Key_Buffer_Bytes = External_Key_Buffer_Words * sizeof(u64_t);
+		_CTIME_CONST (int) External_Tweak_Buffer_Words = Tweak_Words + 1;
+		_CTIME_CONST (int) External_Tweak_Buffer_Bytes = External_Tweak_Buffer_Words * sizeof(u64_t);
+#endif
 		/* Constructors / Destructors */
 		Threefish (void) = delete;
-
+#if   !defined (THREEFISH_PERFORMANCE) /* Old Impl */
 		Threefish (u64_t *buffer)
 			: state{ buffer },
 			  key_schedule{ buffer + Number_Words },
@@ -93,17 +92,37 @@ namespace ssc
 		{
 			expand_key_( k, tw );
 		} /* ~ Threefish(u64_t*,u8_t*,u8_t*) */
+#else /* New Impl */
+		Threefish (u64_t *buffer)
+			: state{ buffer },
+			  key_schedule{ buffer + Number_Words }
+		{
+		}
+		Threefish (u64_t *__restrict buffer, u8_t *__restrict key, u8_t *__restrict tweak)
+			: state{ buffer },
+			  key_schedule{ buffer + Number_Words }
+		{
+			expand_key_( key, tweak );
+		}
+			  
+#endif /* ~ #if !defined (THREEFISH_PERFORMANCE) */
 		/* Public Functions */
 		void cipher (u8_t *out, u8_t const *in);
 
 		void inverse_cipher (u8_t *out, u8_t const *in);
 
 		void rekey (u8_t const *__restrict new_key, u8_t const *__restrict new_tweak = nullptr);
+#if    defined (THREEFISH_PERFORMANCE)
+		static inline void process_external_keying_material_ (u64_t *key_mat);
+		static inline void process_external_tweak_material_ (u64_t *tw_mat);
+#endif
 	private:
 		u64_t * const state;
 		u64_t * const key_schedule;
+#if   !defined (THREEFISH_PERFORMANCE)
 		u64_t * const key;
 		u64_t * const tweak;
+#endif
 		/* Private Functions */
 		static void mix_ (u64_t *__restrict x0, u64_t *__restrict x1, int const round, int const index);
 
@@ -194,9 +213,54 @@ namespace ssc
 		}
 	}/* ~ get_rotate_constant_(int,int) */
 
+#if    defined (THREEFISH_PERFORMANCE)
 	TEMPLATE_ARGS
-	void CLASS::expand_key_ (u8_t const *__restrict k, u8_t const *__restrict tw)
+	void CLASS::process_external_keying_material_ (u64_t *key_mat)
 	{
+#	if     defined (XOR_FOUR)
+#		error 'XOR_FOUR Already Defined'
+#	else
+#		define XOR_FOUR(start)		key_mat[ start ] ^ key_mat[ (start + 1) ] ^ key_mat[ (start + 2) ] ^ key_mat[ (start + 3) ]
+#	endif
+#	if     defined (XOR_EIGHT)
+#		error 'XOR_EIGHT Already Defined'
+#	else
+#		define XOR_EIGHT(start)		XOR_FOUR (start) ^ XOR_FOUR ((start + 4))
+#	endif
+#	if     defined (XOR_SIXTEEN)
+#		error 'XOR_SIXTEEN Already Defined'
+#	else
+#		define XOR_SIXTEEN(start)	XOR_EIGHT (start) ^ XOR_EIGHT ((start + 8))
+#	endif
+		key_mat[ Number_Words ] = Constant_240;
+		static_assert (Number_Words == 32 || Number_Words == 64 || Number_Words == 128);
+		if constexpr (Number_Words == 32) {
+			key_mat[ 32 ] ^= XOR_SIXTEEN (0) ^ XOR_SIXTEEN (16);
+		} else if constexpr (Number_Words == 64) {
+			key_mat[ 64 ] ^= XOR_SIXTEEN (0) ^ XOR_SIXTEEN (16) ^ XOR_SIXTEEN (32) ^ XOR_SIXTEEN (48);
+		} else if constexpr (Number_Words = 128) {
+			key_mat[ 128 ] ^= XOR_SIXTEEN (0)  ^ XOR_SIXTEEN (16) ^ XOR_SIXTEEN (32) ^ XOR_SIXTEEN (48)
+				        ^ XOR_SIXTEEN (64) ^ XOR_SIXTEEN (80) ^ XOR_SIXTEEN (96) ^ XOR_SIXTEEN (112);
+		}
+#	undef XOR_SIXTEEN
+#	undef XOR_EIGHT
+#	undef XOR_FOUR
+	}
+	TEMPLATE_ARGS
+	void CLASS::process_external_tweak_material_ (u64_t *tweak_mat)
+	{
+		tweak_mat[ 2 ] = tweak_mat[ 0 ] ^ tweak_mat[ 1 ];
+	}
+#endif
+
+	TEMPLATE_ARGS
+#if   !defined (THREEFISH_PERFORMANCE)
+	void CLASS::expand_key_ (u8_t const *__restrict k, u8_t const *__restrict tw)
+#else
+	void CLASS::expand_key_ (u8_t const *__restrict keying_buf, u8_t const *__restrict tweaking_buf)
+#endif
+	{
+#if   !defined (THREEFISH_PERFORMANCE)
 		using std::memcpy, std::memset;
 		memcpy( key, k, Block_Bytes );
 		key[ Number_Words ] = Constant_240;
@@ -217,6 +281,81 @@ namespace ssc
 			key_schedule[ subkey_index + (Number_Words - 2) ] =  key[ (subkey + (Number_Words - 2)) % (Number_Words + 1) ] + tweak[ (subkey + 1) % 3 ];
 			key_schedule[ subkey_index + (Number_Words - 1) ] =  key[ (subkey + (Number_Words - 1)) % (Number_Words + 1) ] + static_cast<u64_t>(subkey);
 		}
+#else
+#	if    defined (MAKE_WORD) || defined (MAKE_FOUR_WORDS) || defined (MAKE_EIGHT_WORDS) || defined (MAKE_SIXTEEN_WORDS) \
+		|| defined (MAKE_THIRTYTWO_WORDS) || defined (MAKE_SIXTYFOUR_WORDS) || defined (MAKE_SUBKEY)
+#		error 'A macro name we need was already defined'
+#	endif
+#	define MAKE_WORD(index) \
+		static_assert (std::is_same<decltype(index),int>::value); \
+		key_schedule[ Subkey_Offset + index ] = keying_buf[ (Subkey_Index + index) % (Number_Words + 1) ]
+#	define MAKE_FOUR_WORDS(start_index) \
+		MAKE_WORD (start_index); MAKE_WORD ((start_index + 1)); MAKE_WORD ((start_index + 2)); MAKE_WORD ((start_index + 3))
+#	define MAKE_EIGHT_WORDS(start_index) \
+		MAKE_FOUR_WORDS (start_index); MAKE_FOUR_WORDS ((start_index + 4))
+#	define MAKE_SIXTEEN_WORDS(start_index) \
+		MAKE_EIGHT_WORDS (start_index); MAKE_EIGHT_WORDS ((start_index + 8))
+#	define MAKE_THIRTYTWO_WORDS(start_index) \
+		MAKE_SIXTEEN_WORDS (start_index); MAKE_SIXTEEN_WORDS ((start_index + 16))
+#	define MAKE_SIXTYFOUR_WORDS(start_index) \
+		MAKE_THIRTYTWO_WORDS (start_index); MAKE_THIRTYTWO_WORDS ((start_index + 32))
+#	define MAKE_SUBKEY(index) \
+		_MACRO_SHIELD \
+			static_assert (std::is_same<decltype(index),int>::value); \
+			_CTIME_CONST (int) Subkey_Index = index; \
+			_CTIME_CONST (int) Subkey_Offset = index * Number_Words; \
+			if constexpr (Number_Words == 32) { \
+				MAKE_SIXTEEN_WORDS (0); /*  0-15 */ \
+				MAKE_EIGHT_WORDS   (16);/* 16-23 */ \
+				MAKE_FOUR_WORDS    (24);/* 24-27 */ \
+				MAKE_WORD          (28);/* 28    */ \
+				MAKE_WORD (29) + tweaking_buf[ Subkey_Index % 3 ]; \
+				MAKE_WORD (30) + tweaking_buf[ (Subkey_Index + 1) % 3 ]; \
+				MAKE_WORD (31) + Subkey_Index; \
+			} else if constexpr (Number_Words == 64) { \
+				MAKE_THIRTYTWO_WORDS (0);/*  0 - 31 */ \
+				MAKE_SIXTEEN_WORDS  (32);/* 32-47 */ \
+				MAKE_EIGHT_WORDS    (48);/* 48-55 */ \
+				MAKE_FOUR_WORDS     (56);/* 56-59 */ \
+				MAKE_WORD           (60);/* 60    */ \
+				MAKE_WORD (61) + tweaking_buf[ Subkey_Index % 3 ]; \
+				MAKE_WORD (62) + tweaking_buf[ (Subkey_Index + 1) % 3 ]; \
+				MAKE_WORD (63) + Subkey_Index; \
+			} else if constexpr (Number_Words == 128) { \
+				MAKE_SIXTYFOUR_WORDS ( 0); /* 0 - 63 */ \
+				MAKE_THIRTYTWO_WORDS (64); /*64 - 95 */ \
+				MAKE_SIXTEEN_WORDS   (96); /*96 - 111*/ \
+				MAKE_EIGHT_WORDS    (112); /*112-119 */ \
+				MAKE_FOUR_WORDS     (120); /*120-123 */ \
+				MAKE_WORD           (124); /*124*/ \
+				MAKE_WORD (125) + tweaking_buf[ Subkey_Index % 3 ]; \
+				MAKE_WORD (126) + tweaking_buf[ (Subkey_Index + 1) % 3 ]; \
+				MAKE_WORD (127) + Subkey_Index; \
+			} \
+		_MACRO_SHIELD_EXIT
+		using std::memcpy, std::memset;
+		process_external_keying_material_( keying_buf );
+		process_external_tweak_material_( tweaking_buf );
+		static_assert (Number_Subkeys == 19 || Number_Subkeys == 21);
+		MAKE_SUBKEY  (0); MAKE_SUBKEY  (1); MAKE_SUBKEY  (2);
+		MAKE_SUBKEY  (3); MAKE_SUBKEY  (4); MAKE_SUBKEY  (5);
+		MAKE_SUBKEY  (6); MAKE_SUBKEY  (7); MAKE_SUBKEY  (8);
+		MAKE_SUBKEY  (9); MAKE_SUBKEY (10); MAKE_SUBKEY (11);
+		MAKE_SUBKEY (12); MAKE_SUBKEY (13); MAKE_SUBKEY (14);
+		MAKE_SUBKEY (15); MAKE_SUBKEY (16); MAKE_SUBKEY (17);
+		MAKE_SUBKEY (18);
+		if constexpr (Number_Subkeys == 21) {
+			MAKE_SUBKEY (19); MAKE_SUBKEY (20);
+		}
+
+#	undef MAKE_SUBKEY
+#	undef MAKE_SIXTYFOUR_WORDS
+#	undef MAKE_THIRTYTWO_WORDS
+#	undef MAKE_SIXTEEN_WORDS
+#	undef MAKE_EIGHT_WORDS
+#	undef MAKE_FOUR_WORDS
+#	undef MAKE_WORD
+#endif /* ~ #if !defined(THREEFISH_PERFORMANCE) */
 	} /* ~ expand_key_(u8_t*,u8_t*) */
 
 	TEMPLATE_ARGS
@@ -241,6 +380,7 @@ namespace ssc
 		using std::memcpy;
 
 		memcpy( state, in, Block_Bytes );
+#if   !defined (THREEFISH_PERFORMANCE)
 		for (int round = 0; round < Number_Rounds; ++round) {
 			if (round % 4 == 0)
 				add_subkey_( round );
@@ -248,6 +388,77 @@ namespace ssc
 				mix_( (state + (j*2)), (state + (j*2) + 1), round, j );
 			permute_state_();
 		}
+#else
+#	define MIX_(func,round,index) \
+		static_assert (std::is_same<decltype(round),int>::value && round >= 0 && round < Number_Rounds); \
+		static_assert (std::is_same<decltype(index),int>::value && index >= 0 && index < (Number_Words / 2)); \
+		func( (state + (index * 2)), (state + ((index * 2) + 1)), round, index )
+#	define MIX_8(func,round,start) \
+		MIX_ (func,round,(start + 0)); \
+		MIX_ (func,round,(start + 1)); \
+		MIX_ (func,round,(start + 2)); \
+		MIX_ (func,round,(start + 3)); \
+		MIX_ (func,round,(start + 4)); \
+		MIX_ (func,round,(start + 5)); \
+		MIX_ (func,round,(start + 6)); \
+		MIX_ (func,round,(start + 7))
+#	define MIX_32(func,round,start) \
+		MIX_8 (func,round,(start + 0)); \
+		MIX_8 (func,round,(start + 8)); \
+		MIX_8 (func,round,(start + 16)); \
+		MIX_8 (func,round,(start + 24))
+	static_assert (Number_Rounds == 72 || Number_Rounds == 80); \
+	static_assert (std::is_same<decltype(round),int>::value); \
+#	define ENC_ROUND(round) \
+		if constexpr (round % 4 == 0) \
+			add_subkey_( round ); \
+		if constexpr (Number_Rounds == 72) { \
+			static_assert (Number_Words == 32 || Number_Words == 64); \
+			if constexpr (Number_Words == 32) { \
+				MIX_8 (mix_,round,0); \
+				MIX_8 (mix_,round,8); \
+			} else if constexpr (Number_Words == 64) { \
+				MIX_32 (mix_,round,0); \
+			} \
+		} else if constexpr (Number_Rounds == 80) { \
+			static_assert (Number_Words == 128); \
+			MIX_32 (mix_,round,0); \
+			MIX_32 (mix_,round,32); \
+		} \
+		permute_state_()
+#	define DEC_ROUND(round) \
+		inverse_permute_state_(); \
+		if constexpr (Number_Rounds == 72) { \
+			if constexpr (Number_Words == 32) { \
+				MIX_8 (inverse_mix_,round,0); \
+				MIX_8 (inverse_mix_,round,8); \
+			} else if constexpr (Number_Words == 64) { \
+				MIX_32 (inverse_mix_,round,0); \
+			} \
+		} else if constexpr (Number_Rounds == 80) { \
+			static_assert (Number_Words == 128); \
+			MIX_32 (inverse_mix_,round,0); \
+			MIX_32 (inverse_mix_,round,32); \
+		} \
+		if constexpr (round % 4 == 0) \
+			subtract_subkey_( round )
+#	define EIGHT_ENC_ROUNDS(start)	ENC_ROUND (start); ENC_ROUND ((start + 1)); ENC_ROUND ((start + 2)); ENC_ROUND ((start + 3)); \
+		                        ENC_ROUND ((start + 4)); ENC_ROUND ((start + 5)); ENC_ROUND ((start + 6)); ENC_ROUND ((start + 7))
+#	define EIGHT_DEC_ROUNDS(start)	DEC_ROUND (start); DEC_ROUND ((start - 1)); DEC_ROUND ((start - 2)); DEC_ROUND ((start - 3)); \
+					DEC_ROUND ((start - 4)); DEC_ROUND ((start - 5)); DEC_ROUND ((start - 6)); DEC_ROUND ((start - 7))
+		EIGHT_ENC_ROUNDS (0); //  0 - 7
+		EIGHT_ENC_ROUNDS (8); //  8 - 15
+		EIGHT_ENC_ROUNDS (16);// 16 - 23
+		EIGHT_ENC_ROUNDS (24);// 24 - 31
+		EIGHT_ENC_ROUNDS (32);// 32 - 39
+		EIGHT_ENC_ROUNDS (40);// 40 - 47
+		EIGHT_ENC_ROUNDS (48);// 48 - 55
+		EIGHT_ENC_ROUNDS (56);// 56 - 63
+		EIGHT_ENC_ROUNDS (64);// 64 - 71
+		if constexpr (Number_Rounds == 80) {
+			EIGHT_ENC_ROUNDS (72); //72 - 79
+		}
+#endif
 		add_subkey_( Number_Rounds );
 		memcpy( out, state, Block_Bytes );
 	} /* ~ cipher(u8_t*,u8_t*) */
@@ -259,6 +470,7 @@ namespace ssc
 		
 		memcpy( state, in, Block_Bytes );
 		subtract_subkey_( Number_Rounds );
+#if   !defined (THREEFISH_PERFORMANCE)
 		for (int round = Number_Rounds - 1; round >= 0; --round) {
 			inverse_permute_state_();
 			for (int j = 0; j <= ((Number_Words / 2) - 1); ++j)
@@ -266,6 +478,28 @@ namespace ssc
 			if (round % 4 == 0)
 				subtract_subkey_( round );
 		}
+#else
+		if constexpr (Number_Rounds == 80) {
+			EIGHT_DEC_ROUNDS (79); // 79 - 72
+		}
+		EIGHT_DEC_ROUNDS (71); // 71 - 64
+		EIGHT_DEC_ROUNDS (63); // 63 - 56
+		EIGHT_DEC_ROUNDS (55); // 55 - //TODO
+		EIGHT_DEC_ROUNDS (47); // 47 - //TODO
+		EIGHT_DEC_ROUNDS (39); // 39 - //TODO
+		EIGHT_DEC_ROUNDS (31); // 31 - //TODO
+		EIGHT_DEC_ROUNDS (23); // 23 - //TODO
+		EIGHT_DEC_ROUNDS (15); // 15 - //TODO
+		EIGHT_DEC_ROUNDS (7);  // 6 - //TODO
+#	undef EIGHT_DEC_ROUNDS
+#	undef EIGHT_ENC_ROUNDS
+#	undef DEC_ROUND
+#	undef ENC_ROUND
+#	undef MIX_32
+#	undef MIX_8
+#	undef MIX_
+
+#endif
 		memcpy( out, state, Block_Bytes );
 	} /* ~ inverse_cipher(u8_t*,u8_t*) */
 

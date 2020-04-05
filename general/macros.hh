@@ -97,3 +97,11 @@
 #else
 #	define _OPENBSD_UNVEIL // Define as nothing on Non-OpenBSD systems.
 #endif /* ~ #ifdef __OpenBSD__ */
+
+/* Simplification Macros */
+#if    defined (_MACRO_SHIELD) || defined (_MACRO_SHIELD_EXIT)
+#	error '_MACRO_SHIELD or _MACRO_SHIELD_EXIT Already Defined'
+#else
+#	define _MACRO_SHIELD		do {
+#	define _MACRO_SHIELD_EXIT	} while(0)
+#endif
