@@ -26,7 +26,8 @@ namespace ssc::crypto_impl::cbc_v2 {
 	_CTIME_CONST(auto&) CBC_V2_ID = "3CRYPT_CBC_V2";
 	using CBC_t = Cipher_Block_Chaining<Threefish_t, Block_Bits>;
 
-	struct _PUBLIC CBC_V2_Header {
+	struct _PUBLIC CBC_V2_Header
+	{
 		char			id		[sizeof(CBC_V2_ID)];
 		u64_t			total_size;
 		u8_t			tweak		[Tweak_Bytes];

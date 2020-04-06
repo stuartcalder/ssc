@@ -235,11 +235,11 @@ namespace ssc
 		key_mat[ Number_Words ] = Constant_240;
 		static_assert (Number_Words == 32 || Number_Words == 64 || Number_Words == 128);
 		if constexpr (Number_Words == 32) {
-			key_mat[ 32 ] ^= XOR_SIXTEEN (0) ^ XOR_SIXTEEN (16);
+			key_mat[ Number_Words ] ^= XOR_SIXTEEN (0) ^ XOR_SIXTEEN (16);
 		} else if constexpr (Number_Words == 64) {
-			key_mat[ 64 ] ^= XOR_SIXTEEN (0) ^ XOR_SIXTEEN (16) ^ XOR_SIXTEEN (32) ^ XOR_SIXTEEN (48);
+			key_mat[ Number_Words ] ^= XOR_SIXTEEN (0) ^ XOR_SIXTEEN (16) ^ XOR_SIXTEEN (32) ^ XOR_SIXTEEN (48);
 		} else if constexpr (Number_Words = 128) {
-			key_mat[ 128 ] ^= XOR_SIXTEEN (0)  ^ XOR_SIXTEEN (16) ^ XOR_SIXTEEN (32) ^ XOR_SIXTEEN (48)
+			key_mat[ Number_Words ] ^= XOR_SIXTEEN (0)  ^ XOR_SIXTEEN (16) ^ XOR_SIXTEEN (32) ^ XOR_SIXTEEN (48)
 				        ^ XOR_SIXTEEN (64) ^ XOR_SIXTEEN (80) ^ XOR_SIXTEEN (96) ^ XOR_SIXTEEN (112);
 		}
 #	undef XOR_SIXTEEN
