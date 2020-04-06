@@ -7,19 +7,22 @@ See accompanying LICENSE file for licensing information.
 #include <cstdio>
 #include <cstdlib>
 #include <ssc/crypto/operations.hh>
+#include <ssc/crypto/threefish.hh>
 #include <ssc/general/integers.hh>
 #include <ssc/general/macros.hh>
 
 #ifndef TEMPLATE_ARGS
-#	define TEMPLATE_ARGS template <typename Tweakable_Block_Cipher_t, int State_Bits>
+#	define TEMPLATE_ARGS template <int State_Bits>
 #else
 #	error 'TEMPLATE_ARGS Already Defined'
 #endif
 #ifndef CLASS
-#	define CLASS Unique_Block_Iteration<Tweakable_Block_Cipher_t,State_Bits>
+#	define CLASS Unique_Block_Iteration<State_Bits>
 #else
 #	error 'CLASS Already Defined'
 #endif
+
+#define	CHANGE true
 
 namespace ssc
 {
@@ -30,12 +33,15 @@ namespace ssc
 	/* Compile-Time checks, Constants, and Aliases */
 		static_assert (CHAR_BIT == 8);
 		static_assert (State_Bits  % CHAR_BIT == 0);
-		_CTIME_CONST(int) State_Bytes = State_Bits / CHAR_BIT;
-		_CTIME_CONST(int) Msg_Bytes = State_Bytes;
+		using Threefish_t = Threefish<State_Bits>;
+
+		_CTIME_CONST (int) State_Bytes = State_Bits / CHAR_BIT;
+		_CTIME_CONST (int) Msg_Bytes = State_Bytes;
 		static_assert (State_Bytes % CHAR_BIT == 0);
-		_CTIME_CONST(int) Tweak_Bits = 128;
-		_CTIME_CONST(int) Tweak_Bytes = Tweak_Bits / CHAR_BIT;
-		_CTIME_CONST(int) Buffer_Bytes = (Tweak_Bytes + State_Bytes + Msg_Bytes);
+		_CTIME_CONST (int) Tweak_Bits = 128;
+		_CTIME_CONST (int) Tweak_Bytes = Tweak_Bits / CHAR_BIT;
+		_CTIME_CONST (int) Buffer_Bytes = (Tweak_Bytes + State_Bytes + Msg_Bytes);
+		_CTIME_CONST (int) Buffer_Bytes = (Msg_Bytes + Threefish_t::External_Key_Buffer_Bytes + Threefish_t::External_Tweak_Buffer_Bytes);
 		enum class Type_Mask_E : u8_t {
 			T_key = 0,
 			T_cfg = 4,
@@ -47,6 +53,16 @@ namespace ssc
 			T_out = 63
 		};
 	/* Constructors / Destructors */
+#ifdef CHANGE
+		Unique_Block_Iteration (void) = delete;
+		Unique_Block_Iteration (Threefish_t *tf, u8_t *buffer)
+			: threefish  { tf },
+			  key_state  { buffer },
+			  msg_state  { buffer + Threefish_t::External_Key_Buffer_Bytes },
+			  tweak_state{ buffer + (Threefish_t::External_Tweak_Buffer_Bytes + State_Bytes) }
+		{
+		}
+#else
 		Unique_Block_Iteration (void) = delete;
 		Unique_Block_Iteration (Tweakable_Block_Cipher_t *tbc, u8_t *buffer)
 			: twk_blk_cipher{ tbc },
@@ -55,6 +71,7 @@ namespace ssc
 			  msg_state  { buffer + (Tweak_Bytes + State_Bytes) }
 		{
 		}
+#endif
 	/* Public Interface */
 		void          chain (Type_Mask_E const type_mask, u8_t const * const message, u64_t const message_size);
 		inline u8_t * get_key_state (void);
@@ -62,10 +79,14 @@ namespace ssc
 	private:
 	/* Private Compile-Time constants */
 	/* Private Data */
+#ifdef CHANGE
+		Threefish_t		 * const threefish;
+#else
 		Tweakable_Block_Cipher_t * const twk_blk_cipher;
-		u8_t			 * const tweak_state;
+#endif
 		u8_t			 * const key_state;
 		u8_t			 * const msg_state;
+		u8_t			 * const tweak_state;
 	/* Private Interface */
 		inline void set_tweak_first_ (void);
 
@@ -101,9 +122,17 @@ namespace ssc
 		u64_t	* const position = reinterpret_cast<u64_t *>(tweak_state);
 		(*position) = bytes_just_read;
 		// First block setup
+#ifdef CHANGE
+		threefish->rekey( key_state, tweak_state );
+#else
 		twk_blk_cipher->rekey( key_state, tweak_state );
+#endif
 		// First block
+#ifdef CHANGE
+		threefish->cipher( key_state, msg_state );
+#else
 		twk_blk_cipher->cipher( key_state, msg_state );
+#endif
 		xor_block<State_Bits>( key_state, msg_state );
 		clear_tweak_first_();
 		// Intermediate blocks (assuming first block wasn't also the last block)
@@ -112,16 +141,26 @@ namespace ssc
 			message_offset      += bytes_just_read;
 			message_bytes_left -= bytes_just_read;
 			(*position)         += bytes_just_read;
+#ifdef CHANGE
+			threefish->rekey( key_state, tweak_state );
+			threefish->cipher( key_state, msg_state );
+#else
 			twk_blk_cipher->rekey( key_state, tweak_state );
 			twk_blk_cipher->cipher( key_state, msg_state );
+#endif
 			xor_block<State_Bits>( key_state, msg_state );
 		}
 		// Last block (assuming first block wasn't also the last block)
 		if (message_bytes_left > 0) {
 			set_tweak_last_();
 			(*position) += read_msg_block_( message_offset, message_bytes_left );
+#ifdef CHANGE
+			threefish->rekey( key_state, tweak_state );
+			threefish->cipher( key_state, msg_state );
+#else
 			twk_blk_cipher->rekey( key_state, tweak_state );
 			twk_blk_cipher->cipher( key_state, msg_state );
+#endif
 			xor_block<State_Bits>( key_state, msg_state );
 		}
 	} /* ~ chain */
