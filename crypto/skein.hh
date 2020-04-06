@@ -87,7 +87,7 @@ namespace ssc
 	void CLASS::process_config_block_ (u64_t const num_output_bits)
 	{
 		// Setup configuration string.
-		u8_t config [32] = {
+		alignas(sizeof(u64_t)) u8_t config [32] = {
 			// First 4 bytes
 			0x53, 0x48, 0x41, 0x33, // Schema identifier "SHA3"
 			// Next 2 bytes
@@ -103,7 +103,10 @@ namespace ssc
 			0x00, 0x00, 0x00, 0x00,
 			0x00, 0x00, 0x00, 0x00
 		};
+#if 0
 		std::memcpy( config + 8, &num_output_bits, sizeof(num_output_bits) );
+#endif
+		*(reinterpret_cast<u64_t*>(config + 8)) = num_output_bits;
 		ubi->chain( Type_Mask_E::T_cfg, config, sizeof(config) );
 	}/* ~ void process_config_block_(u64_t) */
     
@@ -153,10 +156,6 @@ namespace ssc
 			  u64_t const		num_bytes_in,
 			  u64_t const		num_bytes_out)
 	{
-#if 0
-		if (num_bytes_out == 0)
-			return;
-#endif
 		ubi->clear_key_state();
 		static_assert (CHAR_BIT == 8);
 		process_config_block_( num_bytes_out * CHAR_BIT );
@@ -172,10 +171,6 @@ namespace ssc
 					 u64_t const        num_key_bytes_in,
 					 u64_t const        num_bytes_out)
 	{
-#if 0
-		if (num_bytes_out == 0)
-			return;
-#endif
 		ubi->clear_key_state();
 		process_key_block_( key_in, num_key_bytes_in );
 		static_assert (CHAR_BIT == 8);
@@ -192,10 +187,6 @@ namespace ssc
 				u64_t const num_nonce_bytes_in,
 				u64_t const num_bytes_out)
 	{
-#if 0
-		if (num_bytes_out == 0)
-			return;
-#endif
 		ubi->clear_key_state();
 		process_nonce_block_( nonce_in, num_nonce_bytes_in );
 		static_assert (CHAR_BIT == 8);
