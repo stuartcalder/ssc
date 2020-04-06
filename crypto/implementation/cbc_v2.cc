@@ -71,7 +71,7 @@ namespace ssc::crypto_impl::cbc_v2
 		map_file( output_map, false );
 
 		// We're going to need raw Threefish, Threefish in UBI mode for Skein, and Threefish in CBC mode for encryption.
-		_CTIME_CONST(int) CSPRNG_CBC_Shared_Size = Return_Largest( CSPRNG_t::Buffer_Bytes, CBC_t::Buffer_Bytes );
+		_CTIME_CONST(int) CSPRNG_CBC_Shared_Size = Return_Largest (CSPRNG_t::Buffer_Bytes, CBC_t::Buffer_Bytes);
 		_CTIME_CONST(int) Locked_Buffer_Size = []() -> int {
 			int size = 0;
 			size += (Password_Buffer_Bytes * 2); // Two password buffers
@@ -167,8 +167,8 @@ namespace ssc::crypto_impl::cbc_v2
 			// Fix key and tweak to work with performance enhanced version of Threefish.
 			{
 				u64_t temp_tweak [Threefish_t::External_Tweak_Buffer_Words];
-				memcpy( temp_tweak, header.tweak, sizeof(header.tweak) );
-				threefish.rekey( derived_key, temp_tweak );
+				std::memcpy( temp_tweak, header.tweak, sizeof(header.tweak) );
+				threefish.rekey( derived_key, reinterpret_cast<u8_t *>(temp_tweak) );
 			}
 			CBC_t	cbc{ &threefish, cbc_data };
 			out += cbc.encrypt( out, input_map.ptr, input_map.size, header.cbc_iv );
@@ -336,7 +336,7 @@ namespace ssc::crypto_impl::cbc_v2
 			{
 				u64_t temp_tweak [Threefish_t::External_Tweak_Buffer_Words];
 				std::memcpy( temp_tweak, header.tweak, sizeof(header.tweak) );
-				threefish.rekey( derived_key, temp_tweak );
+				threefish.rekey( derived_key, reinterpret_cast<u8_t *>(temp_tweak) );
 			}
 			CBC_t cbc{ &threefish, cbc_data };
 			_CTIME_CONST(int) File_Metadata_Size = CBC_V2_Header::Total_Size + MAC_Bytes;

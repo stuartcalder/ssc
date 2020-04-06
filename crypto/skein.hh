@@ -32,7 +32,7 @@ namespace ssc
 		static_assert	(State_Bits == 256 || State_Bits == 512 || State_Bits == 1024);
 
 		using Threefish_t = Threefish<State_Bits>;
-		using UBI_t	  = Unique_Block_Iteration<Threefish_t, State_Bits>;
+		using UBI_t       = Unique_Block_Iteration<State_Bits>;
 		using Type_Mask_E = typename UBI_t::Type_Mask_E;
 
 		_CTIME_CONST(size_t)	State_Bytes = State_Bits / CHAR_BIT;

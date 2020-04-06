@@ -40,7 +40,6 @@ namespace ssc
 		static_assert (State_Bytes % CHAR_BIT == 0);
 		_CTIME_CONST (int) Tweak_Bits = 128;
 		_CTIME_CONST (int) Tweak_Bytes = Tweak_Bits / CHAR_BIT;
-		_CTIME_CONST (int) Buffer_Bytes = (Tweak_Bytes + State_Bytes + Msg_Bytes);
 		_CTIME_CONST (int) Buffer_Bytes = (Msg_Bytes + Threefish_t::External_Key_Buffer_Bytes + Threefish_t::External_Tweak_Buffer_Bytes);
 		enum class Type_Mask_E : u8_t {
 			T_key = 0,
