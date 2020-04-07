@@ -58,7 +58,7 @@ namespace ssc
 			: threefish  { tf },
 			  key_state  { buffer },
 			  msg_state  { buffer + Threefish_t::External_Key_Buffer_Bytes },
-			  tweak_state{ buffer + (Threefish_t::External_Tweak_Buffer_Bytes + State_Bytes) }
+			  tweak_state{ buffer + (Threefish_t::External_Key_Buffer_Bytes + State_Bytes) }
 		{
 		}
 #else
