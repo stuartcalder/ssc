@@ -16,35 +16,24 @@
 #include <cstdlib>
 #include <cstring>
 
-#if   !defined (TEMPLATE_ARGS)
-#	define TEMPLATE_ARGS	template <int Bits,int Key_Schedule_Gen = 0>
-#else
-#	error 'TEMPLATE_ARGS Already Defined'
+#if    defined (DEFAULT_ARGS) || defined (TEMPLATE_ARGS) || defined (CLASS)
+#	error 'One of DEFAULT_ARGS, TEMPLATE_ARGS, CLASS was already defined'
 #endif
-
-#if   !defined (CLASS)
-#	define CLASS Threefish_F<Bits,Key_Schedule_Gen>
-#else
-#	error 'CLASS Already Defined'
-#endif
+#define DEFAULT_ARGS	template <int Bits,int Key_Schedule_Gen = 0>
+#define TEMPLATE_ARGS	template <int Bits,int Key_Schedule_Gen>	
+#define CLASS Threefish_F<Bits,Key_Schedule_Gen>
 
 static_assert (CHAR_BIT == 8);
-#if   !defined (BITS_TO_BYTES)
-#	define BITS_TO_BYTES(bits) (bits / CHAR_BIT)
-#else
-#	error 'BITS_TO_BYTES Already Defined'
+#if    defined (BITS_TO_BYTES || defined (BYTES_TO_WORDS)
+#	error 'BITS_TO_BYTES or BYTES_TO_WORDS defined'
 #endif
-
-#if   !defined (BYTES_TO_WORDS)
-#	define BYTES_TO_WORDS(bytes) (bytes / sizeof(u64_t)
-#else
-#	error 'BYTES_TO_WORDS Already Defined'
-#endif
+#define BITS_TO_BYTES(bits)	(bits / CHAR_BIT)
+#define BYTES_TO_WORDS(bytes)	(bytes / sizeof(u64_t)
 
 namespace ssc
 {
 
-	TEMPLATE_ARGS
+	DEFAULT_ARGS
 	class Threefish_F
 	{
 	public:
@@ -86,12 +75,12 @@ namespace ssc
 		static_assert (std::is_same<Data_t,Precomputed_Data>::value || std::is_same<Data_t,Runtime_Data>::value);
 
 		static void rekey          (Data_t *__restrict data, u64_t *__restrict key, u64_t *__restrict tweak);
-		static void cipher         (Data_t *__restrict data, u64_t *ctext, u64_t const *ptext);//TODO
-		static void inverse_cipher (Data_t *__restrict data, u64_t *ptext, u64_t const *ctext);//TODO
+		static void cipher         (Data_t *__restrict data, u8_t *ctext, u8_t const *ptext);
+		static void inverse_cipher (Data_t *__restrict data, u8_t *ptext, u8_t const *ctext);
 	private:
 		template <int round,int index>
-		static constexpr int rotate_const_ (void);//TODO
-	};/* ~ struct Threefish_F */
+		static constexpr int rotate_const_ (void);
+	};/* ~ class Threefish_F */
 
 	TEMPLATE_ARGS
 	void CLASS::rekey (Data_t *__restrict data, u64_t *__restrict key, u64_t *__restrict tweak);
@@ -188,7 +177,7 @@ namespace ssc
 	}/* ~ void rekey (...) */
 
 	TEMPLATE_ARGS
-	void CLASS::cipher (Data_t *__restrict data, u64_t *ctext, u64_t const *ptext)
+	void CLASS::cipher (Data_t *__restrict data, u8_t *ctext, u8_t const *ptext)
 	{
 #if    defined (MIX) || defined (CALL_MIX) || defined (INVERSE_MIX) || defined (CALL_INVERSE_MIX) || \
        defined (USE_SUBKEY) || || defined (PERMUTE) || defined (INVERSE_PERMUTE) || defined (ENC_ROUND) || \
@@ -380,16 +369,33 @@ namespace ssc
 #	define DEC_ROUND(round) \
 	INVERSE_PERMUTE ; \
 	if constexpr (Block_Words == 4) { \
-		/*TODO*/ \
+		CALL_INVERSE_MIX (round,0); \
+		CALL_INVERSE_MIX (round,1); \
 	else if constexpr (Block_Words == 8) { \
-		/*TODO*/ \
+		CALL_INVERSE_MIX (round,0); \
+		CALL_INVERSE_MIX (round,1); \
+		CALL_INVERSE_MIX (round,2); \
+		CALL_INVERSE_MIX (round,3); \
 	else if constexpr (Block_Words == 16) { \
-		/*TODO*/ \
-	}
+		CALL_INVERSE_MIX (round,0); \
+		CALL_INVERSE_MIX (round,1); \
+		CALL_INVERSE_MIX (round,2); \
+		CALL_INVERSE_MIX (round,3); \
+		CALL_INVERSE_MIX (round,4); \
+		CALL_INVERSE_MIX (round,5); \
+		CALL_INVERSE_MIX (round,6); \
+		CALL_INVERSE_MIX (round,7); \
+	} \
+	if constexpr (round % 4 == 0) \
+		USE_SUBKEY (-=,round)
 
 #	define EIGHT_ENC_ROUNDS(start) \
 	ENC_ROUND (start)      ; ENC_ROUND ((start + 1)); ENC_ROUND ((start + 2)); ENC_ROUND ((start + 3)); \
 	ENC_ROUND ((start + 4)); ENC_ROUND ((start + 5)): ENC_ROUND ((start + 6)); ENC_ROUND ((start + 7))
+
+#	define EIGHT_DEC_ROUNDS(start) \
+	DEC_ROUND (start)      ; DEC_ROUND ((start - 1)); DEC_ROUND ((start - 2)); DEC_ROUND ((start - 3)); \
+	DEC_ROUND ((start - 4)); DEC_ROUND ((start - 5)); DEC_ROUND ((start - 6)); DEC_ROUND ((start - 7))
 
 		std::memcpy( data->state, ptext, sizeof(data->state) );
 		EIGHT_ENC_ROUNDS (0);
@@ -410,8 +416,23 @@ namespace ssc
 	}/* ~ void cipher (...) */
 
 	TEMPLATE_ARGS
-	void CLASS::inverse_cipher (/*TODO*/)
+	void CLASS::inverse_cipher (Data_t *__restrict data, u8_t *ptext, u8_t const *ctext)
 	{
+		std::memcpy( data->state, ctext, sizeof(data->state) );
+		USE_SUBKEY (-=,Number_Rounds);
+		if constexpr (Number_Rounds == 80) {
+			EIGHT_DEC_ROUNDS (79);
+		}
+		EIGHT_DEC_ROUNDS (71);
+		EIGHT_DEC_ROUNDS (63);
+		EIGHT_DEC_ROUNDS (55);
+		EIGHT_DEC_ROUNDS (47);
+		EIGHT_DEC_ROUNDS (39);
+		EIGHT_DEC_ROUNDS (31);
+		EIGHT_DEC_ROUNDS (23);
+		EIGHT_DEC_ROUNDS (15);
+		EIGHT_DEC_ROUNDS (7);
+		std::memcpy( ptext, data->state, sizeof(data->state) );
 	}/* ~ void inverse_cipher (...) */
 
 	TEMPLATE_ARGS template <int round,int index>
@@ -421,7 +442,7 @@ namespace ssc
 		if constexpr (Block_Bits == 256) {
 			static_assert (round >= 0 && round <= 18);
 			static_assert (index == 0 || index == 1);
-			_CTIME_CONST (int) rc [8][2] = {
+			constexpr int rc [8][2] = {
 				{ 14, 16 }, //d = 0
 				{ 52, 57 }, //d = 1
 				{ 23, 40 }, //d = 2
@@ -435,7 +456,7 @@ namespace ssc
 		} else if constexpr (Block_Bits == 512) {
 			static_assert (round >= 0 && round <= 18);
 			static_assert (index >= 0 && index <= 3);
-			_CTIME_CONST (int) rc [8][4] = {
+			constexpr int rc [8][4] = {
 				{ 46, 36, 19, 37 },
 				{ 33, 27, 14, 42 },
 				{ 17, 49, 36, 39 },
@@ -449,7 +470,7 @@ namespace ssc
 		} else if constexpr (Block_Bits == 1024) {
 			static_assert (round >= 0 && round <= 20);
 			static_assert (index >= 0 && index <= 7);
-			_CTIME_CONST (int) rc [8][8] = {
+			constexpr int rc [8][8] = {
 				{ 24, 13,  8, 47,  8, 17, 22, 37 },
 				{ 38, 19, 10, 55, 49, 18, 23, 52 },
 				{ 33,  4, 51, 13, 34, 41, 59, 17 },
@@ -461,9 +482,21 @@ namespace ssc
 			};
 			return rc[ round % 8 ][ index ];
 		}
-	}
+	}/* ~ constexpr int rotate_const_ (...) */
+#undef MIX
+#undef CALL_MIX
+#undef INVERSE_MIX
+#undef CALL_INVERSE_MIX
+#undef USE_SUBKEY
+#undef PERMUTE
+#undef INVERSE_PERMUTE
+#undef ENC_ROUND
+#undef DEC_ROUND
+#undef EIGHT_ENC_ROUNDS
+#undef EIGHT_DEC_ROUNDS
 }/* ~ namespace ssc */
 #undef BYTES_TO_WORDS
 #undef BITS_TO_BYTES
 #undef CLASS
 #undef TEMPLATE_ARGS
+#undef DEFAULT_ARGS
