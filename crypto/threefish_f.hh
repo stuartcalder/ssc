@@ -11,6 +11,7 @@
 #include <ssc/general/macros.hh>
 /* SSC Crypto Headers */
 #include <ssc/crypto/operations.hh>
+#include <ssc/crypto/constants.hh>
 /* C Standard Headers */
 #include <climits>
 #include <cstdlib>
@@ -19,16 +20,18 @@
 #if    defined (DEFAULT_ARGS) || defined (TEMPLATE_ARGS) || defined (CLASS)
 #	error 'One of DEFAULT_ARGS, TEMPLATE_ARGS, CLASS was already defined'
 #endif
-#define DEFAULT_ARGS	template <int Bits,int Key_Schedule_Gen = 0>
-#define TEMPLATE_ARGS	template <int Bits,int Key_Schedule_Gen>	
+#define DEFAULT_ARGS	template <int Bits,Key_Schedule_E Key_Schedule_Gen = Key_Schedule_E::Pre_Compute>
+#define TEMPLATE_ARGS	template <int Bits,Key_Schedule_E Key_Schedule_Gen>
 #define CLASS Threefish_F<Bits,Key_Schedule_Gen>
 
 static_assert (CHAR_BIT == 8);
-#if    defined (BITS_TO_BYTES || defined (BYTES_TO_WORDS)
+#if    defined (BITS_TO_BYTES) || defined (BYTES_TO_WORDS)
 #	error 'BITS_TO_BYTES or BYTES_TO_WORDS defined'
 #endif
-#define BITS_TO_BYTES(bits)	(bits / CHAR_BIT)
-#define BYTES_TO_WORDS(bytes)	(bytes / sizeof(u64_t)
+#define BITS_TO_BYTES(bits) \
+	(bits / CHAR_BIT)
+#define BYTES_TO_WORDS(bytes) \
+	(bytes / sizeof(u64_t))
 
 namespace ssc
 {
@@ -37,12 +40,10 @@ namespace ssc
 	class Threefish_F
 	{
 	public:
-		static_assert (Key_Schedule_Gen == 0, "Only support precomputed key-schedules at this time.");
 		static_assert (Bits == 256 || Bits == 512 || Bits == 1024);
 	/* Key Schedule Control Constants */
-		_CTIME_CONST (int) Precomputed_Key_Schedule = 0;
-		_CTIME_CONST (int) Runtime_Key_Schedule = 1;
-		static_assert (Key_Schedule_Gen == Precomputed_Key_Schedule || Key_Schedule_Gen == Runtime_Key_Schedule);
+		static_assert (Key_Schedule_Gen == Key_Schedule_E::Pre_Compute ||
+			       Key_Schedule_Gen == Key_Schedule_E::Runtime_Compute);
 	/* Constants */
 		_CTIME_CONST (int) Block_Bits = Bits;
 		_CTIME_CONST (int) Block_Bytes = BITS_TO_BYTES (Block_Bits);
@@ -66,12 +67,12 @@ namespace ssc
 			u64_t state        [Block_Words];
 		};/* ~ struct Precomputed_Data */
 		struct Runtime_Data {
-			u64_t stored_key   [External_Key_Words];
 			u64_t state        [Block_Words];
-			u64_t stored_tweak [External_Tweak_Words];
+			u64_t *stored_key;  // -> [External_Key_Words]
+			u64_t *stored_tweak;// -> [External_Tweak_Words]
 		};/* ~ struct Runtime_Data */
 
-		using Data_t = std::conditional<(Key_Schedule_Gen == Precomputed_Key_Schedule),Precomputed_Data,Runtime_Data>::type;
+		using Data_t = typename std::conditional<(Key_Schedule_Gen == Key_Schedule_E::Pre_Compute),Precomputed_Data,Runtime_Data>::type;
 		static_assert (std::is_same<Data_t,Precomputed_Data>::value || std::is_same<Data_t,Runtime_Data>::value);
 
 		static void rekey          (Data_t *__restrict data, u64_t *__restrict key, u64_t *__restrict tweak);
@@ -83,45 +84,48 @@ namespace ssc
 	};/* ~ class Threefish_F */
 
 	TEMPLATE_ARGS
-	void CLASS::rekey (Data_t *__restrict data, u64_t *__restrict key, u64_t *__restrict tweak);
+	void CLASS::rekey (Data_t *__restrict data, u64_t *__restrict key, u64_t *__restrict tweak)
 	{
-#if    defined (MAKE_WORD) || defined (MAKE_FOUR_WORDS) || defined (MAKE_EIGHT_WORDS) || defined (MAKE_SUBKEY)
+#if    defined (MAKE_WORD) || defined (SET_WORDS) || defined (SET_FOUR_WORDS) || defined (SET_EIGHT_WORDS) || defined (MAKE_SUBKEY)
 #	error 'A macro name we need was already defined'
 #endif
-#define MAKE_WORD(subkey,i) \
+#define MAKE_WORD(key_var,subkey,i) \
+	key_var[ (subkey + i) % (Block_Words + 1) ]
+
+#define SET_WORD(subkey,i) \
 	static_assert (std::is_same<decltype(subkey),int>::value && subkey >= 0 && subkey < Number_Subkeys); \
 	static_assert (std::is_same<decltype(i),int>::value && i >= 0 && i < Block_Words); \
-	static_assert (Key_Schedule_Gen == Precomputed_Key_Schedule || Key_Schedule_Gen == Runtime_Key_Schedule); \
-	data->key_schedule[ (subkey * Block_Words) + i ] = key[ (subkey + i) % (Block_Words + 1) ]
+	static_assert (Key_Schedule_Gen == Key_Schedule_E::Pre_Compute || Key_Schedule_Gen == Key_Schedule_E::Runtime_Compute); \
+	data->key_schedule[ (subkey * Block_Words) + i ] = MAKE_WORD (key,subkey,i)
 
-#define MAKE_FOUR_WORDS(subkey,start_i) \
-	MAKE_WORD (subkey,start_i); MAKE_WORD (subkey,(start_i + 1)); \
-	MAKE_WORD (subkey,(start_i + 2)); MAKE_WORD (subkey,(start_i + 3))
+#define SET_FOUR_WORDS(subkey,start_i) \
+	SET_WORD (subkey,start_i); SET_WORD (subkey,(start_i + 1)); \
+	SET_WORD (subkey,(start_i + 2)); SET_WORD (subkey,(start_i + 3))
 
-#define MAKE_EIGHT_WORDS(subkey,start_i) \
-	MAKE_FOUR_WORDS (subkey,start_i); MAKE_FOUR_WORDS (subkey,(start_i + 4))
+#define SET_EIGHT_WORDS(subkey,start_i) \
+	SET_FOUR_WORDS (subkey,start_i); SET_FOUR_WORDS (subkey,(start_i + 4))
 
 #define MAKE_SUBKEY(subkey) \
 	_MACRO_SHIELD \
 		static_assert (std::is_same<decltype(subkey),int>::value && subkey >= 0 && subkey < Number_Subkeys); \
 		if constexpr (Block_Words == 4) { \
-			MAKE_WORD (subkey,0); /* 0 */ \
-			MAKE_WORD (subkey,1) + tweak[ subkey % 3 ]; \
-			MAKE_WORD (subkey,2) + tweak[ (subkey + 1) % 3 ]; \
-			MAKE_WORD (subkey,3) + subkey; \
+			SET_WORD (subkey,0); /* 0 */ \
+			SET_WORD (subkey,1) + tweak[ subkey % 3 ]; \
+			SET_WORD (subkey,2) + tweak[ (subkey + 1) % 3 ]; \
+			SET_WORD (subkey,3) + subkey; \
 		} else if constexpr (Block_Words == 8) { \
-			MAKE_FOUR_WORDS (subkey,0); /* 0 - 3 */ \
-			MAKE_WORD (subkey,4); /* 4 */ \
-			MAKE_WORD (subkey,5) + tweak[ subkey % 3 ]; /* 5 */ \
-			MAKE_WORD (subkey,6) + tweak[ (subkey + 1) % 3 ]; \
-			MAKE_WORD (subkey,7) + subkey; \
+			SET_FOUR_WORDS (subkey,0); /* 0 - 3 */ \
+			SET_WORD (subkey,4); /* 4 */ \
+			SET_WORD (subkey,5) + tweak[ subkey % 3 ]; /* 5 */ \
+			SET_WORD (subkey,6) + tweak[ (subkey + 1) % 3 ]; \
+			SET_WORD (subkey,7) + subkey; \
 		} else if constexpr (Block_Words== 16) { \
-			MAKE_EIGHT_WORDS (subkey,0); /* 0 - 7 */ \
-			MAKE_FOUR_WORDS  (subkey,8); /* 8 - 11*/ \
-			MAKE_WORD       (subkey,12); /* 12 */ \
-			MAKE_WORD       (subkey,13) + tweak[ subkey % 3 ]; /* 13 */ \
-			MAKE_WORD       (subkey,14) + tweak[ (subkey + 1) % 3 ]; /* 14 */ \
-			MAKE_WORD       (subkey,15) + subkey; \
+			SET_EIGHT_WORDS (subkey,0); /* 0 - 7 */ \
+			SET_FOUR_WORDS  (subkey,8); /* 8 - 11*/ \
+			SET_WORD       (subkey,12); /* 12 */ \
+			SET_WORD       (subkey,13) + tweak[ subkey % 3 ]; /* 13 */ \
+			SET_WORD       (subkey,14) + tweak[ (subkey + 1) % 3 ]; /* 14 */ \
+			SET_WORD       (subkey,15) + subkey; \
 		} \
 	_MACRO_SHIELD_EXIT
 	// Setup the key.
@@ -140,7 +144,7 @@ namespace ssc
 		}
 	// Setup the tweak.
 		tweak[ 2 ] = tweak[ 0 ] ^ tweak[ 1 ];
-		if constexpr (Key_Schedule_Gen == Precomputed_Key_Schedule) {
+		if constexpr (Key_Schedule_Gen == Key_Schedule_E::Pre_Compute) {
 	// Generate the keyschedule.
 			static_assert (Number_Subkeys == 19 || Number_Subkeys == 21);
 			MAKE_SUBKEY  (0);
@@ -166,21 +170,17 @@ namespace ssc
 				MAKE_SUBKEY (19);
 				MAKE_SUBKEY (20);
 			}
-		} else if constexpr (Key_Schedule_Gen == Runtime_Key_Schedule) {
-			std::memcpy( data->stored_key  , key  , sizeof(data->stored_key)   );
-			std::memcpy( data->stored_tweak, tweak, sizeof(data->stored_tweak) );
+		} else if constexpr (Key_Schedule_Gen == Key_Schedule_E::Runtime_Compute) {
+			data->stored_key = key;
+			data->stored_tweak = tweak;
 		}
-#undef MAKE_SUBKEY
-#undef MAKE_EIGHT_WORDS
-#undef MAKE_FOUR_WORDS
-#undef MAKE_WORD
 	}/* ~ void rekey (...) */
 
 	TEMPLATE_ARGS
 	void CLASS::cipher (Data_t *__restrict data, u8_t *ctext, u8_t const *ptext)
 	{
 #if    defined (MIX) || defined (CALL_MIX) || defined (INVERSE_MIX) || defined (CALL_INVERSE_MIX) || \
-       defined (USE_SUBKEY) || || defined (PERMUTE) || defined (INVERSE_PERMUTE) || defined (ENC_ROUND) || \
+       defined (USE_SUBKEY) || defined (PERMUTE) || defined (INVERSE_PERMUTE) || defined (ENC_ROUND) || \
        defined (DEC_ROUND) ||  defined (EIGHT_ENC_ROUNDS) || defined (EIGHT_DEC_ROUNDS)
 #	error 'One Of MIX, CALL_MIX, INVERSE_MIX, CALL_INVERSE_MIX, USE_SUBKEY, \
 	       PERMUTE, INVERSE_PERMUTE, ENC_ROUND, DEC_ROUND, EIGHT_ENC_ROUNDS, EIGHT_DEC_ROUNDS Already Defined'
@@ -201,52 +201,85 @@ namespace ssc
 
 #	define INVERSE_MIX(word_0,word_1,round,index) \
 	word_1 ^= word_0; \
-	word_0 -= ctime_rotate_right< \
-			rotate_const<round,index>(), \
+	word_1 = ctime_rotate_right< \
+			rotate_const_<round,index>(), \
 			u64_t \
-		> (word_1)
+		> (word_1); \
+	word_0 -= word_1
 
 #	define CALL_INVERSE_MIX(round,index) \
 	INVERSE_MIX (data->state[ index * 2 ],data->state[ (index * 2) + 1 ],round,index)
 
 #	define USE_SUBKEY(operation,round) \
 	_MACRO_SHIELD \
-		if constexpr (Key_Schedule_Gen == Precomputed_Key_Schedule) { \
-			_CTIME_CONST (int) Offset = round * (Block_Words / 4); \
+		_CTIME_CONST (int) Subkey_Index = round / 4; \
+		_CTIME_CONST (int) Subkey_Offset = Subkey_Index * Block_Words; \
+		if constexpr (Key_Schedule_Gen == Key_Schedule_E::Pre_Compute) { \
 			if constexpr (Block_Words == 4) { \
-				data->state[ 0 ] operation data->key_schedule[ Offset     ]; \
-				data->state[ 1 ] operation data->key_schedule[ Offset + 1 ]; \
-				data->state[ 2 ] operation data->key_schedule[ Offset + 2 ]; \
-				data->state[ 3 ] operation data->key_schedule[ Offset + 3 ]; \
+				data->state[ 0 ] operation data->key_schedule[ Subkey_Offset + 0 ]; \
+				data->state[ 1 ] operation data->key_schedule[ Subkey_Offset + 1 ]; \
+				data->state[ 2 ] operation data->key_schedule[ Subkey_Offset + 2 ]; \
+				data->state[ 3 ] operation data->key_schedule[ Subkey_Offset + 3 ]; \
 			} else if constexpr (Block_Words == 8) { \
-				data->state[ 0 ] operation data->key_schedule[ Offset     ]; \
-				data->state[ 1 ] operation data->key_schedule[ Offset + 1 ]; \
-				data->state[ 2 ] operation data->key_schedule[ Offset + 2 ]; \
-				data->state[ 3 ] operation data->key_schedule[ Offset + 3 ]; \
-				data->state[ 4 ] operation data->key_schedule[ Offset + 4 ]; \
-				data->state[ 5 ] operation data->key_schedule[ Offset + 5 ]; \
-				data->state[ 6 ] operation data->key_schedule[ Offset + 6 ]; \
-				data->state[ 7 ] operation data->key_schedule[ Offset + 7 ]; \
+				data->state[ 0 ] operation data->key_schedule[ Subkey_Offset + 0 ]; \
+				data->state[ 1 ] operation data->key_schedule[ Subkey_Offset + 1 ]; \
+				data->state[ 2 ] operation data->key_schedule[ Subkey_Offset + 2 ]; \
+				data->state[ 3 ] operation data->key_schedule[ Subkey_Offset + 3 ]; \
+				data->state[ 4 ] operation data->key_schedule[ Subkey_Offset + 4 ]; \
+				data->state[ 5 ] operation data->key_schedule[ Subkey_Offset + 5 ]; \
+				data->state[ 6 ] operation data->key_schedule[ Subkey_Offset + 6 ]; \
+				data->state[ 7 ] operation data->key_schedule[ Subkey_Offset + 7 ]; \
 			} else if constexpr (Block_Words == 16) { \
-				data->state[  0 ] operation data->key_schedule[ Offset      ]; \
-				data->state[  1 ] operation data->key_schedule[ Offset +  1 ]; \
-				data->state[  2 ] operation data->key_schedule[ Offset +  2 ]; \
-				data->state[  3 ] operation data->key_schedule[ Offset +  3 ]; \
-				data->state[  4 ] operation data->key_schedule[ Offset +  4 ]; \
-				data->state[  5 ] operation data->key_schedule[ Offset +  5 ]; \
-				data->state[  6 ] operation data->key_schedule[ Offset +  6 ]; \
-				data->state[  7 ] operation data->key_schedule[ Offset +  7 ]; \
-				data->state[  8 ] operation data->key_schedule[ Offset +  8 ]; \
-				data->state[  9 ] operation data->key_schedule[ Offset +  9 ]; \
-				data->state[ 10 ] operation data->key_schedule[ Offset + 10 ]; \
-				data->state[ 11 ] operation data->key_schedule[ Offset + 11 ]; \
-				data->state[ 12 ] operation data->key_schedule[ Offset + 12 ]; \
-				data->state[ 13 ] operation data->key_schedule[ Offset + 13 ]; \
-				data->state[ 14 ] operation data->key_schedule[ Offset + 14 ]; \
-				data->state[ 15 ] operation data->key_schedule[ Offset + 15 ]; \
+				data->state[  0 ] operation data->key_schedule[ Subkey_Offset +  0 ]; \
+				data->state[  1 ] operation data->key_schedule[ Subkey_Offset +  1 ]; \
+				data->state[  2 ] operation data->key_schedule[ Subkey_Offset +  2 ]; \
+				data->state[  3 ] operation data->key_schedule[ Subkey_Offset +  3 ]; \
+				data->state[  4 ] operation data->key_schedule[ Subkey_Offset +  4 ]; \
+				data->state[  5 ] operation data->key_schedule[ Subkey_Offset +  5 ]; \
+				data->state[  6 ] operation data->key_schedule[ Subkey_Offset +  6 ]; \
+				data->state[  7 ] operation data->key_schedule[ Subkey_Offset +  7 ]; \
+				data->state[  8 ] operation data->key_schedule[ Subkey_Offset +  8 ]; \
+				data->state[  9 ] operation data->key_schedule[ Subkey_Offset +  9 ]; \
+				data->state[ 10 ] operation data->key_schedule[ Subkey_Offset + 10 ]; \
+				data->state[ 11 ] operation data->key_schedule[ Subkey_Offset + 11 ]; \
+				data->state[ 12 ] operation data->key_schedule[ Subkey_Offset + 12 ]; \
+				data->state[ 13 ] operation data->key_schedule[ Subkey_Offset + 13 ]; \
+				data->state[ 14 ] operation data->key_schedule[ Subkey_Offset + 14 ]; \
+				data->state[ 15 ] operation data->key_schedule[ Subkey_Offset + 15 ]; \
 			} \
-		} else if constexpr (Key_Schedule_Gen == Runtime_Key_Schedule) { \
-			/*TODO*/ \
+		} else if constexpr (Key_Schedule_Gen == Key_Schedule_E::Runtime_Compute) { \
+			if constexpr (Block_Words == 4) { \
+				data->state[ 0 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,0)); \
+				data->state[ 1 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,1) + data->stored_tweak[ Subkey_Index% 3 ]); \
+				data->state[ 2 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,2) + data->stored_tweak[ (Subkey_Index+ 1) % 3 ]); \
+				data->state[ 3 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,3) + Subkey_Index); \
+			} else if constexpr (Block_Words == 8) { \
+				data->state[ 0 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,0)); \
+				data->state[ 1 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,1)); \
+				data->state[ 2 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,2)); \
+				data->state[ 3 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,3)); \
+				data->state[ 4 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,4)); \
+				data->state[ 5 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,5) + data->stored_tweak[ Subkey_Index% 3 ]); \
+				data->state[ 6 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,6) + data->stored_tweak[ (Subkey_Index+ 1) % 3 ]); \
+				data->state[ 7 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,7) + Subkey_Index); \
+			} else if constexpr (Block_Words == 16) { \
+				data->state[  0 ] operation (MAKE_WORD (data->stored_key,Subkey_Index, 0)); \
+				data->state[  1 ] operation (MAKE_WORD (data->stored_key,Subkey_Index, 1)); \
+				data->state[  2 ] operation (MAKE_WORD (data->stored_key,Subkey_Index, 2)); \
+				data->state[  3 ] operation (MAKE_WORD (data->stored_key,Subkey_Index, 3)); \
+				data->state[  4 ] operation (MAKE_WORD (data->stored_key,Subkey_Index, 4)); \
+				data->state[  5 ] operation (MAKE_WORD (data->stored_key,Subkey_Index, 5)); \
+				data->state[  6 ] operation (MAKE_WORD (data->stored_key,Subkey_Index, 6)); \
+				data->state[  7 ] operation (MAKE_WORD (data->stored_key,Subkey_Index, 7)); \
+				data->state[  8 ] operation (MAKE_WORD (data->stored_key,Subkey_Index, 8)); \
+				data->state[  9 ] operation (MAKE_WORD (data->stored_key,Subkey_Index, 9)); \
+				data->state[ 10 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,10)); \
+				data->state[ 11 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,11)); \
+				data->state[ 12 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,12)); \
+				data->state[ 13 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,13) + data->stored_tweak[ Subkey_Index% 3 ]); \
+				data->state[ 14 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,14) + data->stored_tweak[ (Subkey_Index+ 1) % 3 ]); \
+				data->state[ 15 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,15) + Subkey_Index); \
+			} \
 		} \
 	_MACRO_SHIELD_EXIT
 
@@ -303,42 +336,42 @@ namespace ssc
 				PERMUTE ; \
 			} else if constexpr (Block_Bits == 512) { \
 				u64_t w0, w1; \
-				w0 = state[ 2 ]; \
-				state[ 2 ] = state[ 0 ]; \
-				w1 = state[ 4 ]; \
-				state[ 4 ] = w0; \
-				w0 = state[ 6 ]; \
-				state[ 6 ] = w1; \
-				state[ 0 ] = w0; \
-				w0 = state[ 3 ]; \
-				state[ 3 ] = state[ 7 ]; \
-				state[ 7 ] = w0; \
+				w0 = data->state[ 2 ]; \
+				data->state[ 2 ] = data->state[ 0 ]; \
+				w1 = data->state[ 4 ]; \
+				data->state[ 4 ] = w0; \
+				w0 = data->state[ 6 ]; \
+				data->state[ 6 ] = w1; \
+				data->state[ 0 ] = w0; \
+				w0 = data->state[ 3 ]; \
+				data->state[ 3 ] = data->state[ 7 ]; \
+				data->state[ 7 ] = w0; \
 			} else if constexpr (Block_Bits == 1024) { \
 				u64_t w0, w1; \
-				w0 = state[ 9 ]; \
-				state[ 9 ] = state[ 1 ]; \
-				w1 = state[ 7 ]; \
-				state[ 7 ] = w0; \
-				w0 = state[ 15 ]; \
-				state[ 15 ] = w1; \
-				state[ 1 ] = w0; \
-				w0 = state[ 13 ]; \
-				state[ 13 ] = state[ 3 ]; \
-				w1 = state[ 5 ]; \
-				state[ 5 ] = w0; \
-				w0 = state[ 11 ]; \
-				state[ 11 ] = w1; \
-				state[ 3 ] = w0; \
-				w0 = state[ 4 ]; \
-				state[ 4 ] = state[ 6 ]; \
-				state[ 6 ] = w0; \
-				w0 = state[ 10 ]; \
-				state[ 10 ] = state[ 8 ]; \
-				w1 = state[ 12 ]; \
-				state[ 12 ] = w0; \
-				w0 = state[ 14 ]; \
-				state[ 14 ] = w1; \
-				state[ 8 ] = w0; \
+				w0 = data->state[ 9 ]; \
+				data->state[ 9 ] = data->state[ 1 ]; \
+				w1 = data->state[ 7 ]; \
+				data->state[ 7 ] = w0; \
+				w0 = data->state[ 15 ]; \
+				data->state[ 15 ] = w1; \
+				data->state[ 1 ] = w0; \
+				w0 = data->state[ 13 ]; \
+				data->state[ 13 ] = data->state[ 3 ]; \
+				w1 = data->state[ 5 ]; \
+				data->state[ 5 ] = w0; \
+				w0 = data->state[ 11 ]; \
+				data->state[ 11 ] = w1; \
+				data->state[ 3 ] = w0; \
+				w0 = data->state[ 4 ]; \
+				data->state[ 4 ] = data->state[ 6 ]; \
+				data->state[ 6 ] = w0; \
+				w0 = data->state[ 10 ]; \
+				data->state[ 10 ] = data->state[ 8 ]; \
+				w1 = data->state[ 12 ]; \
+				data->state[ 12 ] = w0; \
+				w0 = data->state[ 14 ]; \
+				data->state[ 14 ] = w1; \
+				data->state[ 8 ] = w0; \
 			} \
 		_MACRO_SHIELD_EXIT
 
@@ -371,12 +404,12 @@ namespace ssc
 	if constexpr (Block_Words == 4) { \
 		CALL_INVERSE_MIX (round,0); \
 		CALL_INVERSE_MIX (round,1); \
-	else if constexpr (Block_Words == 8) { \
+	} else if constexpr (Block_Words == 8) { \
 		CALL_INVERSE_MIX (round,0); \
 		CALL_INVERSE_MIX (round,1); \
 		CALL_INVERSE_MIX (round,2); \
 		CALL_INVERSE_MIX (round,3); \
-	else if constexpr (Block_Words == 16) { \
+	} else if constexpr (Block_Words == 16) { \
 		CALL_INVERSE_MIX (round,0); \
 		CALL_INVERSE_MIX (round,1); \
 		CALL_INVERSE_MIX (round,2); \
@@ -390,11 +423,11 @@ namespace ssc
 		USE_SUBKEY (-=,round)
 
 #	define EIGHT_ENC_ROUNDS(start) \
-	ENC_ROUND (start)      ; ENC_ROUND ((start + 1)); ENC_ROUND ((start + 2)); ENC_ROUND ((start + 3)); \
-	ENC_ROUND ((start + 4)); ENC_ROUND ((start + 5)): ENC_ROUND ((start + 6)); ENC_ROUND ((start + 7))
+	ENC_ROUND (start      ); ENC_ROUND ((start + 1)); ENC_ROUND ((start + 2)); ENC_ROUND ((start + 3)); \
+	ENC_ROUND ((start + 4)); ENC_ROUND ((start + 5)); ENC_ROUND ((start + 6)); ENC_ROUND ((start + 7))
 
 #	define EIGHT_DEC_ROUNDS(start) \
-	DEC_ROUND (start)      ; DEC_ROUND ((start - 1)); DEC_ROUND ((start - 2)); DEC_ROUND ((start - 3)); \
+	DEC_ROUND (start      ); DEC_ROUND ((start - 1)); DEC_ROUND ((start - 2)); DEC_ROUND ((start - 3)); \
 	DEC_ROUND ((start - 4)); DEC_ROUND ((start - 5)); DEC_ROUND ((start - 6)); DEC_ROUND ((start - 7))
 
 		std::memcpy( data->state, ptext, sizeof(data->state) );
@@ -440,7 +473,6 @@ namespace ssc
 	{
 		static_assert (Block_Bits == 256 || Block_Bits == 512 || Block_Bits == 1024);
 		if constexpr (Block_Bits == 256) {
-			static_assert (round >= 0 && round <= 18);
 			static_assert (index == 0 || index == 1);
 			constexpr int rc [8][2] = {
 				{ 14, 16 }, //d = 0
@@ -454,7 +486,6 @@ namespace ssc
 			};
 			return rc[ round % 8 ][ index ];
 		} else if constexpr (Block_Bits == 512) {
-			static_assert (round >= 0 && round <= 18);
 			static_assert (index >= 0 && index <= 3);
 			constexpr int rc [8][4] = {
 				{ 46, 36, 19, 37 },
@@ -468,7 +499,6 @@ namespace ssc
 			};
 			return rc[ round % 8 ][ index ];
 		} else if constexpr (Block_Bits == 1024) {
-			static_assert (round >= 0 && round <= 20);
 			static_assert (index >= 0 && index <= 7);
 			constexpr int rc [8][8] = {
 				{ 24, 13,  8, 47,  8, 17, 22, 37 },
@@ -483,18 +513,23 @@ namespace ssc
 			return rc[ round % 8 ][ index ];
 		}
 	}/* ~ constexpr int rotate_const_ (...) */
-#undef MIX
-#undef CALL_MIX
-#undef INVERSE_MIX
-#undef CALL_INVERSE_MIX
-#undef USE_SUBKEY
-#undef PERMUTE
-#undef INVERSE_PERMUTE
-#undef ENC_ROUND
-#undef DEC_ROUND
-#undef EIGHT_ENC_ROUNDS
-#undef EIGHT_DEC_ROUNDS
 }/* ~ namespace ssc */
+#undef EIGHT_DEC_ROUNDS
+#undef EIGHT_ENC_ROUNDS
+#undef DEC_ROUND
+#undef ENC_ROUND
+#undef INVERSE_PERMUTE
+#undef PERMUTE
+#undef USE_SUBKEY
+#undef CALL_INVERSE_MIX
+#undef INVERSE_MIX
+#undef CALL_MIX
+#undef MIX
+#undef MAKE_SUBKEY
+#undef SET_EIGHT_WORDS
+#undef SET_FOUR_WORDS
+#undef SET_WORD
+#undef MAKE_WORD
 #undef BYTES_TO_WORDS
 #undef BITS_TO_BYTES
 #undef CLASS
