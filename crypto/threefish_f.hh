@@ -44,6 +44,7 @@ namespace ssc
 	/* Key Schedule Control Constants */
 		static_assert (Key_Schedule_Gen == Key_Schedule_E::Pre_Compute ||
 			       Key_Schedule_Gen == Key_Schedule_E::Runtime_Compute);
+		Threefish_F (void) = delete;
 	/* Constants */
 		_CTIME_CONST (int) Block_Bits = Bits;
 		_CTIME_CONST (int) Block_Bytes = BITS_TO_BYTES (Block_Bits);
