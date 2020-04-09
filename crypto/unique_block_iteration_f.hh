@@ -22,7 +22,7 @@
 
 #define REKEY_CIPHER_XOR(dat_ptr) \
 	Threefish_f::rekey( &(dat_ptr->threefish_data), dat_ptr->key_state, dat_ptr->tweak_state ); \
-	Threefish_f::cipher( &(dat_ptr->threefish_data), dat_ptr->key_state, dat_ptr->msg_state ); \
+	Threefish_f::cipher( &(dat_ptr->threefish_data), reinterpret_cast<u8_t*>(dat_ptr->key_state), dat_ptr->msg_state ); \
 	xor_block<State_Bits>( dat_ptr->key_state, dat_ptr->msg_state )
 
 #define MODIFY_TWEAK_FLAGS(dat_ptr,operation,value) \
@@ -33,7 +33,7 @@
 
 #define INIT_TWEAK(dat_ptr,init_bitwise_or) \
 	std::memset( dat_ptr->tweak_state, 0, Tweak_Bytes ); \
-	MODIFY_TWEAK_FLAGS (|=,(Tweak_First_Bit|init_bitwise_or))
+	MODIFY_TWEAK_FLAGS (dat_ptr,|=,(Tweak_First_Bit|init_bitwise_or))
 
 namespace ssc
 {
@@ -70,19 +70,19 @@ namespace ssc
 
 		static_assert (State_Bytes == Threefish_f::Block_Bytes);
 		struct Data {
-			Threefish_f::Data_t threefish_data;
-			u64_t               key_state   [Threefish_f::External_Key_Words];
-			alignas(u64_t) u8_t msg_state   [State_Bytes];
-			u64_t               tweak_state [Threefish_f::External_Tweak_Words];
+			typename Threefish_f::Data_t threefish_data;
+			u64_t                        key_state   [Threefish_f::External_Key_Words];
+			alignas(u64_t) u8_t          msg_state   [State_Bytes];
+			u64_t                        tweak_state [Threefish_f::External_Tweak_Words];
 		};
 
-		static void chain_config (Data *data, u64_t const num_out_bits);
+		static void chain_config        (Data            *data, u64_t const num_out_bits);
 		static void chain_native_output (Data *__restrict data, u8_t *__restrict output);
-		static void chain_message (Data *__restrict data, u8_t const *__restrict input, u64_t num_in_bytes);
-		static void chain_output (Data *__restrict data, u8_t *__restrict output, u64_t num_out_bytes);
+		static void chain_message       (Data *__restrict data, u8_t const *__restrict input, u64_t num_in_bytes);
+		static void chain_output        (Data *__restrict data, u8_t *__restrict output, u64_t num_out_bytes);
 
 		template <Type_Mask_E Type,int Input_Bytes>
-		static void chain_type (Data *__restrict data, u8_t *__restrict input);
+		static void chain_type (Data *__restrict data, u8_t const *__restrict input);
 	/* Constructors / Destructors */
 	};/* ~ class Unique_Block_Iteration_F */
 
@@ -119,7 +119,7 @@ namespace ssc
 		// Only copy in the first 5 bytes of the config string since the rest are zeroes.
 		std::memcpy( data->msg_state, first_5_config_bytes, sizeof(first_5_config_bytes) );
 		// Manually zero over the rest of the config string.
-		std::memset( (data->msg_state + 5), 0, (sizeof(msg->msg_state) - 5) );
+		std::memset( (data->msg_state + 5), 0, (sizeof(data->msg_state) - 5) );
 		// Set the "output length" portion of the config string.
 		*(reinterpret_cast<u64_t*>(data->msg_state + 8)) = num_out_bits;
 		REKEY_CIPHER_XOR (data);
@@ -131,7 +131,10 @@ namespace ssc
 		// Set the tweak first bit, last bit, and the type to Out.
 		INIT_TWEAK            (data,(Tweak_Last_Bit | static_cast<u8_t>(Type_Mask_E::Out)));
 		// Set the tweak position to State_Bytes.
+#if 0
 		MODIFY_TWEAK_POSITION (data,=,State_Bytes);
+#endif
+		MODIFY_TWEAK_POSITION (data,=,sizeof(u64_t));
 		// Zero over the message state.
 		std::memset( data->msg_state, 0, sizeof(data->msg_state) );
 		REKEY_CIPHER_XOR (data);
@@ -192,14 +195,19 @@ namespace ssc
 	{
 		INIT_TWEAK (data,static_cast<u8_t>(Type_Mask_E::Out));
 		std::memset( data->msg_state, 0, sizeof(data->msg_state) );
+		MODIFY_TWEAK_POSITION (data,=,sizeof(u64_t));
 		if( num_out_bytes <= State_Bytes ) {
 			MODIFY_TWEAK_FLAGS    (data,|=,Tweak_Last_Bit);
+#if 0
 			MODIFY_TWEAK_POSITION (data,=,num_out_bytes);
+#endif
 			REKEY_CIPHER_XOR      (data);
 			std::memcpy( output, data->key_state, num_out_bytes );
 			return;
 		} else {
+#if 0
 			MODIFY_TWEAK_POSITION (data,=,State_Bytes);
+#endif
 			REKEY_CIPHER_XOR      (data);
 			MODIFY_TWEAK_FLAGS    (data,&=,Tweak_First_Mask);
 			std::memcpy( output, data->key_state, State_Bytes );
@@ -208,7 +216,10 @@ namespace ssc
 			output        += State_Bytes;
 
 			while( num_out_bytes > State_Bytes ) {
+#if 0
 				MODIFY_TWEAK_POSITION (data,+=,State_Bytes);
+#endif
+				MODIFY_TWEAK_POSITION (data,+=,sizeof(u64_t));
 				REKEY_CIPHER_XOR (data);
 				std::memcpy( output, data->key_state, State_Bytes );
 				*(reinterpret_cast<u64_t*>(data->msg_state)) += 1;
@@ -216,29 +227,32 @@ namespace ssc
 				output        += State_Bytes;
 			}
 			MODIFY_TWEAK_FLAGS (data,|=,Tweak_Last_Bit);
+#if 0
 			MODIFY_TWEAK_POSITION (data,+=,num_out_bytes);
+#endif
+			MODIFY_TWEAK_POSITION (data,+=,sizeof(u64_t));
 			REKEY_CIPHER_XOR (data);
 			std::memcpy( output, data->key_state, num_out_bytes );
 		}
 	}
-	TEMPLATE_ARGS template <Type_Mask_E Type,int Input_Bytes>
-	void CLASS::chain_type (Data *__restrict data, u8_t *__restrict input)
+	TEMPLATE_ARGS template <typename CLASS::Type_Mask_E Type,int Input_Bytes>
+	void CLASS::chain_type (Data *__restrict data, u8_t const *__restrict input)
 	{
 		static_assert (Type == Type_Mask_E::Key ||
 			       Type == Type_Mask_E::Prs ||
 			       Type == Type_Mask_E::Pk  ||
-			       Type == Type-Mask_E::Kdf ||
+			       Type == Type_Mask_E::Kdf ||
 			       Type == Type_Mask_E::Non,
 			       "Do not use 'chain_type' for types described elsewhere.");
 		static_assert (Input_Bytes >= 1);
 
 		std::memset( data->tweak_state, 0, Tweak_Bytes );
-		INIT_TWEAK (static_cast<u8_t>(Type));
+		INIT_TWEAK (data,static_cast<u8_t>(Type));
 		if constexpr (Input_Bytes <= State_Bytes) {
 			MODIFY_TWEAK_FLAGS    (data,|=,Tweak_Last_Bit);
 			MODIFY_TWEAK_POSITION (data,=,Input_Bytes);
 			std::memcpy( data->msg_state, input, Input_Bytes );
-			if constexpr (Input_Bytes < State_Bytes)
+			if constexpr (Input_Bytes != State_Bytes)
 				std::memset( (data->msg_state + Input_Bytes), 0, (State_Bytes - Input_Bytes) );
 			REKEY_CIPHER_XOR (data);
 			return;
@@ -259,7 +273,7 @@ namespace ssc
 			MODIFY_TWEAK_FLAGS    (data,|=,Tweak_Last_Bit);
 			MODIFY_TWEAK_POSITION (data,+=,bytes_left);
 			std::memcpy( data->msg_state, input, bytes_left );
-			if constexpr (State_Bytes % Input_Bytes != 0)
+			if constexpr (Input_Bytes % State_Bytes != 0)
 				std::memset( (data->msg_state + bytes_left), 0, (State_Bytes - bytes_left) );
 			REKEY_CIPHER_XOR (data);
 		}

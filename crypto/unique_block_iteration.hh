@@ -10,6 +10,7 @@ See accompanying LICENSE file for licensing information.
 #include <ssc/crypto/threefish.hh>
 #include <ssc/general/integers.hh>
 #include <ssc/general/macros.hh>
+#define	CHANGE true
 
 #ifndef TEMPLATE_ARGS
 #	define TEMPLATE_ARGS template <int State_Bits>
@@ -21,8 +22,6 @@ See accompanying LICENSE file for licensing information.
 #else
 #	error 'CLASS Already Defined'
 #endif
-
-#define	CHANGE true
 
 namespace ssc
 {

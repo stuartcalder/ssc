@@ -17,6 +17,7 @@ namespace ssc
 	{
 	public:
 		using UBI_f = Unique_Block_Iteration_F<Bits,Tf_Key_Sch>;
+		using Data_t = typename UBI_f::Data;
 
 		static_assert (CHAR_BIT == 8);
 		_CTIME_CONST (int) State_Bits = Bits;
@@ -24,18 +25,18 @@ namespace ssc
 
 		Skein_F (void) = delete;
 
-		static void hash (UBI_f::Data *ubi_data,
+		static void hash (Data_t      *ubi_data,
 				  u8_t        *bytes_out,
 				  u8_t  const *bytes_in,
 				  u64_t const num_bytes_in,
 				  u64_t const num_bytes_out);
 		
-		static void hash_native (UBI_f::Data *ubi_data,
+		static void hash_native (Data_t      *ubi_data,
 				         u8_t        *bytes_out,
 					 u8_t const  *bytes_in,
 					 u64_t const num_bytes_in);
 
-		static void mac (UBI_f::Data *ubi_data,
+		static void mac (Data_t      *ubi_data,
 				 u8_t        *bytes_out,
 				 u8_t const  *bytes_in,
 				 u8_t const  *key_in,
@@ -45,7 +46,7 @@ namespace ssc
 	};
 
 	TEMPLATE_ARGS
-	void CLASS::hash (UBI_f::Data *ubi_data,
+	void CLASS::hash (Data_t      *ubi_data,
 	 	          u8_t        *bytes_out,
 		          u8_t  const *bytes_in,
 		          u64_t const num_bytes_in,
@@ -57,7 +58,7 @@ namespace ssc
 		UBI_f::chain_output( ubi_data, bytes_out, num_bytes_out );
 	}
 	TEMPLATE_ARGS
-	void CLASS::hash_native (UBI_f::Data *ubi_data,
+	void CLASS::hash_native (Data_t      *ubi_data,
                                  u8_t        *bytes_out,
                                  u8_t const  *bytes_in,
                                  u64_t const num_bytes_in)
@@ -109,7 +110,7 @@ namespace ssc
 	}
 
 	TEMPLATE_ARGS
-	void CLASS::mac (UBI_f::Data *ubi_data,
+	void CLASS::mac (Data_t      *ubi_data,
 			 u8_t        *bytes_out,
 			 u8_t const  *bytes_in,
 			 u8_t const  *key_in,
@@ -119,8 +120,8 @@ namespace ssc
 		using T_Mask_e = typename UBI_f::Type_Mask_E;
 
 		std::memset( ubi_data->key_state, 0, State_Bytes );
-		UBI_f::chain_type<T_Mask_e::Key,State_Bytes>( ubi_data, key_in );
-		UBI_f::chain_config( ubi_data, num_bytes_out );
+		UBI_f::template chain_type<T_Mask_e::Key,State_Bytes>( ubi_data, key_in );
+		UBI_f::chain_config( ubi_data, (num_bytes_out * CHAR_BIT) );
 		UBI_f::chain_message( ubi_data, bytes_in, num_bytes_in );
 		UBI_f::chain_output( ubi_data, bytes_out, num_bytes_out );
 	}

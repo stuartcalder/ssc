@@ -51,6 +51,7 @@ namespace ssc
 		_CTIME_CONST (int) Block_Words = BYTES_TO_WORDS (Block_Bytes);
 		_CTIME_CONST (int) Tweak_Words = 2;
 		_CTIME_CONST (int) Tweak_Bytes = Tweak_Words * sizeof(u64_t);
+		_CTIME_CONST (int) Tweak_Bits  = Tweak_Bytes * CHAR_BIT;
 		_CTIME_CONST (int) Number_Rounds = []() {
 			if constexpr (Block_Bits == 1024)
 				return 80;

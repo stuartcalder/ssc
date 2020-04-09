@@ -61,7 +61,7 @@ namespace ssc
 	template <typename Uint_t>
 	Uint_t rotate_left (Uint_t value, unsigned int count)
 	{
-		STATIC_ENFORCE_UNSIGNED_INTEGRAL( Uint_t );
+		STATIC_ENFORCE_UNSIGNED_INTEGRAL (Uint_t);
 
 		_CTIME_CONST(Uint_t) mask = (CHAR_BIT * sizeof(Uint_t)) - 1;
 		count &= mask;
@@ -81,7 +81,7 @@ namespace ssc
 	template <typename Uint_t>
 	Uint_t rotate_right (Uint_t value, unsigned int count)
 	{
-		STATIC_ENFORCE_UNSIGNED_INTEGRAL( Uint_t );
+		STATIC_ENFORCE_UNSIGNED_INTEGRAL(Uint_t);
 
 		_CTIME_CONST (Uint_t) mask = (CHAR_BIT * sizeof(Uint_t)) - 1;
 		count &= mask;
@@ -150,7 +150,7 @@ namespace ssc
 	template <typename Uint_t>
 	int bit_hamming_weight (Uint_t x)
 	{
-		STATIC_ENFORCE_UNSIGNED_INTEGRAL( Uint_t );
+		STATIC_ENFORCE_UNSIGNED_INTEGRAL(Uint_t);
 
 		// Number_Bytes represents the number of bytes in one Uint_t.
 		_CTIME_CONST(int)  Number_Bytes = sizeof(Uint_t);
@@ -194,24 +194,24 @@ namespace ssc
                 using namespace std;
 #if    defined (__UnixLike__)
 		_CTIME_CONST(int) Max_Bytes = 256;
-                while (num_bytes >= Max_Bytes) {
-                        if (getentropy( buffer, Max_Bytes ) != 0)
+                while( num_bytes >= Max_Bytes ) {
+                        if( getentropy( buffer, Max_Bytes ) != 0 )
 				errx( "Error: Failed to getentropy()\n" );
 			num_bytes -= Max_Bytes;
 			buffer    += Max_Bytes;
 		}
-		if (getentropy( buffer, num_bytes ) != 0)
+		if( getentropy( buffer, num_bytes ) != 0 )
 			errx( "Error: Failed to getentropy()\n" );
 #elif  defined (__Win64__)
 		BCRYPT_ALG_HANDLE cng_provider_handle;
 		// Open algorithm provider.
-		if (BCryptOpenAlgorithmProvider( &cng_provider_handle, L"RNG", nullptr, 0 ) != STATUS_SUCCESS)
+		if( BCryptOpenAlgorithmProvider( &cng_provider_handle, L"RNG", nullptr, 0 ) != STATUS_SUCCESS )
 			errx( "Error: BCryptOpenAlgorithmProvider() failed\n" );
 		// Generate randomness.
-		if (BCryptGenRandom( cng_provider_handle, buffer, num_bytes, 0 ) != STATUS_SUCCESS)
+		if( BCryptGenRandom( cng_provider_handle, buffer, num_bytes, 0 ) != STATUS_SUCCESS )
 			errx( "Error: BCryptGenRandom() failed\n" );
 		// Close algorithm provider.
-		if (BCryptCloseAlgorithmProvider( cng_provider_handle, 0 ) != STATUS_SUCCESS)
+		if( BCryptCloseAlgorithmProvider( cng_provider_handle, 0 ) != STATUS_SUCCESS )
 			errx( "Error: BCryptCloseAlgorithmProvider() failed\n" );
 #else
 #	error 'Unsupported OS'
@@ -233,7 +233,7 @@ namespace ssc
 	template <typename Uint_t>
 	Uint_t reverse_byte_order (Uint_t u)
 	{
-		STATIC_ENFORCE_UNSIGNED_INTEGRAL( Uint_t );
+		STATIC_ENFORCE_UNSIGNED_INTEGRAL (Uint_t);
 
 		// Disallow Uint_t to be u8_t, since it cannot be reversed.
 		static_assert (!std::is_same<Uint_t,u8_t>::value, "u8_t is not byte reversible.");
@@ -268,11 +268,11 @@ namespace ssc
 #	error 'Unsupported OS'
 #endif
 		if constexpr(std::is_same<Uint_t,u16_t>::value) {
-			return SWAP_F( SIZE( 16, ushort ), u );
+			return SWAP_F (SIZE (16,ushort),u);
 		} else if constexpr(std::is_same<Uint_t,u32_t>::value) {
-			return SWAP_F( SIZE( 32, ulong ), u );
+			return SWAP_F (SIZE (32,ulong),u);
 		} else if constexpr(std::is_same<Uint_t,u64_t>::value) {
-			return SWAP_F( SIZE( 64, uint64 ), u );
+			return SWAP_F (SIZE (64,uint64),u);
 		}
 #undef SIZE
 #undef SWAP_F__
