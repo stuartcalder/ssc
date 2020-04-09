@@ -13,9 +13,13 @@
        defined (INIT_TWEAK)
 #	error 'Some MACRO we need was already defined'
 #endif
+
 #define DEFAULT_ARGS	template <int Bits, Key_Schedule_E Key_Sch = Key_Schedule_E::Runtime_Compute>
+
 #define TEMPLATE_ARGS	template <int Bits, Key_Schedule_E Key_Sch>
+
 #define CLASS		Unique_Block_Iteration_F<Bits,Key_Sch>
+
 #define REKEY_CIPHER_XOR(dat_ptr) \
 	Threefish_f::rekey( &(dat_ptr->threefish_data), dat_ptr->key_state, dat_ptr->tweak_state ); \
 	Threefish_f::cipher( &(dat_ptr->threefish_data), dat_ptr->key_state, dat_ptr->msg_state ); \
@@ -47,6 +51,8 @@ namespace ssc
 		_CTIME_CONST (int) Tweak_Bits = Threefish_f::Tweak_Bits;
 		_CTIME_CONST (int) Tweak_Bytes = Tweak_Bits / CHAR_BIT;
 		_CTIME_CONST (Key_Schedule_E) Threefish_KS = Key_Sch;
+
+		Unique_Block_Iteration_F (void) = delete;
 
 		enum class Type_Mask_E : u8_t {
 			Key =  0,
@@ -122,42 +128,62 @@ namespace ssc
 	TEMPLATE_ARGS
 	void CLASS::chain_native_output (Data *__restrict data, u8_t *__restrict output)
 	{
+		// Set the tweak first bit, last bit, and the type to Out.
 		INIT_TWEAK            (data,(Tweak_Last_Bit | static_cast<u8_t>(Type_Mask_E::Out)));
+		// Set the tweak position to State_Bytes.
 		MODIFY_TWEAK_POSITION (data,=,State_Bytes);
+		// Zero over the message state.
 		std::memset( data->msg_state, 0, sizeof(data->msg_state) );
 		REKEY_CIPHER_XOR (data);
+		// Copy the key state into the output buffer.
 		std::memcpy( output, data->key_state, State_Bytes );
 	}
 
 	TEMPLATE_ARGS
 	void CLASS::chain_message (Data *__restrict data, u8_t const *__restrict input, u64_t num_in_bytes)
 	{
+		// Set the tweak first bit and the type to Msg.
 		INIT_TWEAK (data,static_cast<u8_t>(Type_Mask_E::Msg));
-		if( num_in_bytes <= State_Bytes ) {
+		if( num_in_bytes <= State_Bytes ) { // If there is one or less blocks worth of input...
+			// Set the tweak last bit.
 			MODIFY_TWEAK_FLAGS    (data,|=,Tweak_Last_Bit);
+			// Set the tweak position to the number of input bytes.
 			MODIFY_TWEAK_POSITION (data,=,num_in_bytes);
+			// Copy the whole input into the message state.
 			std::memcpy( data->msg_state, input, num_in_bytes );
+			// If the input was not an entire block, zero over the rest of the message state.
 			std::memset( (data->msg_state + num_in_bytes), 0, (sizeof(data->msg_state) - num_in_bytes) );
 			REKEY_CIPHER_XOR (data);
 			return;
-		} else {
+		} else { // If there is more than one block worth of input to begin with...
+			// Set the tweak position to the number of state bytes.
 			MODIFY_TWEAK_POSITION (data,=,State_Bytes);
+			// Copy a block worth of input into the message state.
 			std::memcpy( data->msg_state, input, State_Bytes );
 			REKEY_CIPHER_XOR   (data);
+			// Clear the tweak first bit.
 			MODIFY_TWEAK_FLAGS (data,&=,Tweak_First_Mask);
+			// Decrement bytes left, increment input pointer.
 			num_in_bytes -= State_Bytes;
 			input        += State_Bytes;
 		}
-		while( num_in_bytes > State_Bytes ) {
+		while( num_in_bytes > State_Bytes ) { // While there is more than one block of input left to process...
+			// Increment the tweak position by State_Bytes.
 			MODIFY_TWEAK_POSITION (data,+=,State_Bytes);
+			// Copy a block worth of input into the message state.
 			std::memcpy( data->msg_state, input, State_Bytes );
 			REKEY_CIPHER_XOR (data);
+			// Decrement bytes left, increment input pointer.
 			num_in_bytes -= State_Bytes;
 			input        += State_Bytes;
 		}
+		// Set the tweak last bit.
 		MODIFY_TWEAK_FLAGS    (data,|=,Tweak_Last_Bit);
+		// Increment the tweak position by the number of bytes left, for the last block.
 		MODIFY_TWEAK_POSITION (data,+=,num_in_bytes);
+		// Copy the remaining input bytes into the message state.
 		std::memcpy( data->msg_state, input, num_in_bytes );
+		// If less than 1 block of input was left, zero over the remaining bytes of the message state.
 		std::memset( (data->msg_state + num_in_bytes), 0, (sizeof(data->msg_state) - num_in_bytes) );
 		REKEY_CIPHER_XOR (data);
 	}
