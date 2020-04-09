@@ -2,7 +2,7 @@
 
 namespace ssc
 {
-	enum class KeySchedule_E
+	enum class Key_Schedule_E
 	{
 		Pre_Compute,
 		Runtime_Compute
