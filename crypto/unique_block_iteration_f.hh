@@ -131,9 +131,6 @@ namespace ssc
 		// Set the tweak first bit, last bit, and the type to Out.
 		INIT_TWEAK            (data,(Tweak_Last_Bit | static_cast<u8_t>(Type_Mask_E::Out)));
 		// Set the tweak position to State_Bytes.
-#if 0
-		MODIFY_TWEAK_POSITION (data,=,State_Bytes);
-#endif
 		MODIFY_TWEAK_POSITION (data,=,sizeof(u64_t));
 		// Zero over the message state.
 		std::memset( data->msg_state, 0, sizeof(data->msg_state) );
@@ -198,16 +195,10 @@ namespace ssc
 		MODIFY_TWEAK_POSITION (data,=,sizeof(u64_t));
 		if( num_out_bytes <= State_Bytes ) {
 			MODIFY_TWEAK_FLAGS    (data,|=,Tweak_Last_Bit);
-#if 0
-			MODIFY_TWEAK_POSITION (data,=,num_out_bytes);
-#endif
 			REKEY_CIPHER_XOR      (data);
 			std::memcpy( output, data->key_state, num_out_bytes );
 			return;
 		} else {
-#if 0
-			MODIFY_TWEAK_POSITION (data,=,State_Bytes);
-#endif
 			REKEY_CIPHER_XOR      (data);
 			MODIFY_TWEAK_FLAGS    (data,&=,Tweak_First_Mask);
 			std::memcpy( output, data->key_state, State_Bytes );
@@ -216,9 +207,6 @@ namespace ssc
 			output        += State_Bytes;
 
 			while( num_out_bytes > State_Bytes ) {
-#if 0
-				MODIFY_TWEAK_POSITION (data,+=,State_Bytes);
-#endif
 				MODIFY_TWEAK_POSITION (data,+=,sizeof(u64_t));
 				REKEY_CIPHER_XOR (data);
 				std::memcpy( output, data->key_state, State_Bytes );
@@ -227,9 +215,6 @@ namespace ssc
 				output        += State_Bytes;
 			}
 			MODIFY_TWEAK_FLAGS (data,|=,Tweak_Last_Bit);
-#if 0
-			MODIFY_TWEAK_POSITION (data,+=,num_out_bytes);
-#endif
 			MODIFY_TWEAK_POSITION (data,+=,sizeof(u64_t));
 			REKEY_CIPHER_XOR (data);
 			std::memcpy( output, data->key_state, num_out_bytes );

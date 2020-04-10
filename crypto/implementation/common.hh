@@ -42,38 +42,51 @@ See accompanying LICENSE file for licensing information.
 #	error 'OS_PROMPT Already Defined'
 #endif
 
-namespace ssc::crypto_impl {
+namespace ssc::crypto_impl
+{
 	static_assert (CHAR_BIT == 8);
-	_CTIME_CONST(int)	Block_Bits  = 512;
-	_CTIME_CONST(int)	Block_Bytes = Block_Bits / CHAR_BIT;
-	_CTIME_CONST(int)	MAC_Bytes   = Block_Bytes;
+	_CTIME_CONST (int)	Block_Bits  = 512;
+	_CTIME_CONST (int)	Block_Bytes = Block_Bits / CHAR_BIT;
+	_CTIME_CONST (int)	MAC_Bytes   = Block_Bytes;
 
-	_CTIME_CONST(int)	Salt_Bits   = 128;
-	_CTIME_CONST(int)	Salt_Bytes  = Salt_Bits / CHAR_BIT;
-	_CTIME_CONST(int)	Tweak_Bits  = 128;
-	_CTIME_CONST(int)	Tweak_Bytes = Tweak_Bits / CHAR_BIT;
+	_CTIME_CONST (int)	Salt_Bits   = 128;
+	_CTIME_CONST (int)	Salt_Bytes  = Salt_Bits / CHAR_BIT;
+	_CTIME_CONST (int)	Tweak_Bits  = 128;
+	_CTIME_CONST (int)	Tweak_Bytes = Tweak_Bits / CHAR_BIT;
 
-	_CTIME_CONST(int)	Max_Password_Chars = 120;
-	_CTIME_CONST(int)	Max_Entropy_Chars  = 120;
-	_CTIME_CONST(int)	Password_Buffer_Bytes   = Max_Password_Chars + 1;
-	_CTIME_CONST(auto&)	Password_Prompt	        = "Please input a password (max length 120 characters)." OS_PROMPT;
-	_CTIME_CONST(auto&)	Password_Reentry_Prompt = "Please input the same password again (max length 120 characters)." OS_PROMPT;
-	_CTIME_CONST(auto&)	Entropy_Prompt		= "Please input up to 120 random characters." OS_PROMPT;
+	_CTIME_CONST (int)	Max_Password_Chars = 120;
+	_CTIME_CONST (int)	Max_Entropy_Chars  = 120;
+	_CTIME_CONST (int)	Password_Buffer_Bytes   = Max_Password_Chars + 1;
+	_CTIME_CONST (auto&)	Password_Prompt	        = "Please input a password (max length 120 characters)." OS_PROMPT;
+	_CTIME_CONST (auto&)	Password_Reentry_Prompt = "Please input the same password again (max length 120 characters)." OS_PROMPT;
+	_CTIME_CONST (auto&)	Entropy_Prompt		= "Please input up to 120 random characters." OS_PROMPT;
 
+#if 0
 	using Threefish_t = Threefish<Block_Bits>;
 	using UBI_t       = Unique_Block_Iteration<Block_Bits>;
 	using Skein_t     = Skein<Block_Bits>;
 	using CSPRNG_t    = Skein_CSPRNG<Block_Bits>;
-	struct _PUBLIC Input {
-		std::string	input_filename;
-		std::string	output_filename;
-		u32_t		number_sspkdf_iterations;
-		u32_t		number_sspkdf_concatenations;
-		bool		supplement_os_entropy;
+#endif
+	/*TODO Check in and make sure these aliases make sense*/
+	using Threefish_f    = Threefish_F<Block_Bits>;
+	using UBI_f          = Unique_Block_Iteration_F<Block_Bits>;
+	using Skein_f        = Skein_F<Block_Bits>;
+	using Skein_CSPRNG_f = Skein_CSPRNG_F<Block_Bits>;
+	struct _PUBLIC SSPKDF_Input {
+		OS_Map      input_map;
+		OS_Map      output_map;
+		u32_t	    number_sspkdf_iterations;
+		u32_t	    number_sspkdf_concatenations;
+		bool	    supplement_os_entropy;
+	};
+	enum class Input_Type_E {
+		SSPKDF_Input;
 	};
 
 	_CTIME_CONST(int) Supplement_Entropy_Buffer_Bytes = Block_Bytes + Max_Entropy_Chars + 1;
 
+	/*TODO replace this supplement_entropy */
+#if 0
 	inline void supplement_entropy (CSPRNG_t &csprng, Skein_t &skein, u8_t *buffer)
 	{
 		using namespace std;
@@ -89,6 +102,7 @@ namespace ssc::crypto_impl {
 		static_assert (CSPRNG_t::State_Bytes == Hash_Size);
 		csprng.reseed( hash );
 	} /* supplement_entropy(csprng,skein,buffer) */
+#endif
 
 }/*namespace ssc::crypto_impl*/
 #undef OS_PROMPT
