@@ -1,4 +1,5 @@
 #pragma once
+#include <ssc/general/macros.hh>
 #include <ssc/crypto/threefish_f.hh>
 
 #if    defined (TEMPLATE_ARGS) || defined (CLASS)
@@ -31,19 +32,19 @@ namespace ssc
 		};
 
 		static inline size_t padded_ciphertext_size (size_t const unpadded_plaintext_size);
-		static int           count_iso_iec_7816_padding_bytes (u8_t const *__restrict last_block);
+		static int           count_iso_iec_7816_padding_bytes (_RESTRICT (u8_t const *) last_block);
 
-		static size_t encrypt (Data *__restrict       data,
-				       u8_t *__restrict       out_bytes,
-				       u8_t const *__restrict in_bytes,
-				       u8_t const *__restrict init_vec,
-				       size_t                 num_bytes_in);
+		static size_t encrypt (_RESTRICT (Data *)       data,
+				       _RESTRICT (u8_t *)       out_bytes,
+				       _RESTRICT (u8_t const *) in_bytes,
+				       _RESTRICT (u8_t const *) init_vec,
+				       size_t                   num_bytes_in);
 
-		static size_t decrypt (Data *__restrict       data,
-				       u8_t *__restrict       out_bytes,
-				       u8_t const *__restrict in_bytes,
-				       u8_t const *__restrict init_vec,
-				       size_t const           num_bytes_in);
+		static size_t decrypt (_RESTRICT (Data *)       data,
+				       _RESTRICT (u8_t *)       out_bytes,
+				       _RESTRICT (u8_t const *) in_bytes,
+				       _RESTRICT (u8_t const *) init_vec,
+				       size_t const             num_bytes_in);
 	};
 
 	TEMPLATE_ARGS
@@ -53,7 +54,7 @@ namespace ssc
 	} 
 
 	TEMPLATE_ARGS
-	int CLASS::count_iso_iec_7816_padding_bytes (u8_t const *__restrict last_block)
+	int CLASS::count_iso_iec_7816_padding_bytes (_RESTRICT (u8_t const *) last_block)
 	{
 		int count = 1;
 		u8_t mask = 0x00;
@@ -66,11 +67,11 @@ namespace ssc
 	}
 
 	TEMPLATE_ARGS
-	size_t CLASS::encrypt (Data *__restrict data,
-		               u8_t *__restrict out_bytes,
-			       u8_t const *__restrict in_bytes,
-			       u8_t const *__restrict init_vec,
-			       size_t num_bytes_in)
+	size_t CLASS::encrypt (_RESTRICT (Data *)       data,
+		               _RESTRICT (u8_t *)       out_bytes,
+			       _RESTRICT (u8_t const *) in_bytes,
+			       _RESTRICT (u8_t const *) init_vec,
+			       size_t                   num_bytes_in)
 	{
 		using std::memcpy;
 		memcpy( data->state, init_vec, Block_Bytes );
@@ -92,11 +93,11 @@ namespace ssc
 	}
 
 	TEMPLATE_ARGS
-	size_t CLASS::decrypt (Data *__restrict data,
-			       u8_t *__restrict out_bytes,
-			       u8_t const *__restrict in_bytes,
-			       u8_t const *__restrict init_vec,
-			       size_t const num_bytes_in)
+	size_t CLASS::decrypt (_RESTRICT (Data *)       data,
+		               _RESTRICT (u8_t *)       out_bytes,
+			       _RESTRICT (u8_t const *) in_bytes,
+			       _RESTRICT (u8_t const *) init_vec,
+			       size_t                   num_bytes_in)
 	{
 		using std::memcpy;
 		memcpy( data->state, init_vec, Block_Bytes );

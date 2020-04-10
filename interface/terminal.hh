@@ -28,6 +28,7 @@ namespace ssc
 	class _PUBLIC Terminal
 	{
 		public:
+			using Char_t = u8_t;
 			Terminal()
 			{
 #if    defined (__UnixLike__)
@@ -51,8 +52,8 @@ namespace ssc
 #endif
 			} /* ~Terminal() */
 			template <int Buffer_Size>
-			int get_sensitive_string (char	     *buffer,
-					          char const *prompt);
+			int get_sensitive_string (_RESTRICT (Char_t *)     buffer,
+					          _RESTRICT (char const *) prompt);
 			inline void notify (char const *notice);
 		private:
 #ifdef __UnixLike__
@@ -68,8 +69,8 @@ namespace ssc
 	 * 	The size of the string (minus the null terminator) is returned as an int.
 	 */
 	template <int Buffer_Size>
-	int Terminal::get_sensitive_string (char       *buffer,
-					    char const *prompt)
+	int Terminal::get_sensitive_string (_RESTRICT (Char_t *)     buffer,
+					    _RESTRICT (char const *) prompt)
 	{
 		using namespace std;
 		static_assert (Buffer_Size >= 2);
@@ -104,7 +105,7 @@ namespace ssc
 							wdelch( w ); // Delete the character at the current cursor position.
 							wmove( w, y, x - 1 ); // Move the cursor back one column by 1.
 							wrefresh( w ); // Update the visuals of the terminal.
-							buffer[ --index ] = '\0'; // Move the index back 1, and null the character at that position.
+							buffer[ --index ] = static_cast<Char_t>('\0'); // Move the index back 1, and null the character at that position.
 							// `index` always points to an "unoccupied" space.
 						}
 						break;
@@ -119,19 +120,17 @@ namespace ssc
 						if (index < Max_Password_Size) {
 							waddch( w, '*' ); // Add an asterisk at the current cursor position and advance the cursor.
 							wrefresh( w ); // Update the visuals of the terminal.
-							buffer[ index++ ] = static_cast<char>(ch); // Set the current indexed position to the input character and advance the index.
+							buffer[ index++ ] = static_cast<Char_t>(ch); // Set the current indexed position to the input character and advance the index.
 						}
 				} /* switch (ch) */
 			} /* while (inner) */
 			outer = false; // Kill the outer loop.
 		} /* while (outer) */
 		// The buffer should now contain a null-terminated C-string.
-		int const password_size = strlen( buffer ); // Get the size of the null-terminated C-string in the buffer.
+		int const password_size = strlen( reinterpret_cast<char*>(buffer) ); // Get the size of the null-terminated C-string in the buffer.
 		delwin( w ); // Delete the window `w`.
 		return password_size; // Return the number of non-null characters of the C-string in the buffer.
 #elif  defined (__Win64__)
-		/* TODO: This code has not yet been tested.
-		 */
 		int index = 0;
 		bool repeat_ui, repeat_input;
 		repeat_ui = true;
@@ -149,7 +148,7 @@ namespace ssc
 						if ((index < Buffer_Size) && (ch >= 32) && (ch <= 126)) {
 							if (_putch( '*' ) == EOF)
 								errx( "Error: Failed to _putch()\n" );
-							buffer[ index++ ] = static_cast<char>(ch);
+							buffer[ index++ ] = static_cast<Char_t>(ch);
 						}
 						break;
 					// Backspace was pushed.
@@ -157,7 +156,7 @@ namespace ssc
 						if (index > 0) {
 							if (_cputs( "\b \b" ) != 0)
 								errx( "Error: Failed to _cputs()\n" );
-							buffer[ --index ] = '\0';
+							buffer[ --index ] = static_cast<Char_t>('\0');
 						}
 						break;
 					// Enter was pushed.
@@ -168,7 +167,7 @@ namespace ssc
 			} /* while (repeat_input) */
 			repeat_ui = false;
 		} /* while (repeat_ui) */
-		int const password_size = strlen( buffer );
+		int const password_size = strlen( reinterpret_cast<Char_t*>(buffer) );
 		system( "cls" );
 		return password_size;
 #else
@@ -205,10 +204,10 @@ namespace ssc
 #	error 'Unsupported OS'
 #endif
 	template <int Buffer_Size>
-	int obtain_password (char *password_buffer,
-			     char const *entry_prompt,
-			     int const min_pw_size = 1,
-			     int const max_pw_size = Buffer_Size - 1)
+	int obtain_password (_RESTRICT (u8_t *)       password_buffer,
+			     _RESTRICT (char const *) entry_prompt,
+			     int const                min_pw_size = 1,
+			     int const                max_pw_size = Buffer_Size - 1)
 	{
 		int size;
 		while (true) {
@@ -225,12 +224,12 @@ namespace ssc
 		return size;
 	}
 	template <int Buffer_Size>
-	int obtain_password (char *password_buffer,
-			     char *check_buffer,
-			     char const *entry_prompt,
-			     char const *reentry_prompt,
-			     int const min_pw_size = 1,
-			     int const max_pw_size = Buffer_Size - 1)
+	int obtain_password (_RESTRICT (u8_t *)       password_buffer,
+			     _RESTRICT (u8_t *)       check_buffer,
+			     _RESTRICT (char const *) entry_prompt,
+			     _RESTRICT (char const *) reentry_prompt,
+			     int const                min_pw_size = 1,
+			     int const                max_pw_size = Buffer_Size - 1)
 	{
 		using namespace std;
 		int size;

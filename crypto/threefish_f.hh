@@ -77,16 +77,25 @@ namespace ssc
 		using Data_t = typename std::conditional<(Key_Schedule_Gen == Key_Schedule_E::Pre_Compute),Precomputed_Data,Runtime_Data>::type;
 		static_assert (std::is_same<Data_t,Precomputed_Data>::value || std::is_same<Data_t,Runtime_Data>::value);
 
-		static void rekey          (Data_t *__restrict data, u64_t *__restrict key, u64_t *__restrict tweak);
-		static void cipher         (Data_t *__restrict data, u8_t *ctext, u8_t const *ptext);
-		static void inverse_cipher (Data_t *__restrict data, u8_t *ptext, u8_t const *ctext);
+		static void rekey          (_RESTRICT (Data *) data,
+				            _RESTRICT (u64_t *) key,
+					    _RESTRICT (u64_t *) tweak);
+
+		static void cipher         (_RESTRICT (Data *)       data,
+				            _RESTRICT (u8_t *)       ctext,
+					    _RESTRICT (u8_t const *) ptext);
+		static void inverse_cipher (_RESTRICT (Data *)       data,
+				            _RESTRICT (u8_t *)       ptext,
+					    _RESTRICT (u8_t const *) ctext);
 	private:
 		template <int round,int index>
 		static constexpr int rotate_const_ (void);
 	};/* ~ class Threefish_F */
 
 	TEMPLATE_ARGS
-	void CLASS::rekey (Data_t *__restrict data, u64_t *__restrict key, u64_t *__restrict tweak)
+	void CLASS::rekey (_RESTRICT (Data *) data,
+                           _RESTRICT (u64_t *) key,
+                           _RESTRICT (u64_t *) tweak)
 	{
 #if    defined (MAKE_WORD) || defined (SET_WORDS) || defined (SET_FOUR_WORDS) || defined (SET_EIGHT_WORDS) || defined (MAKE_SUBKEY)
 #	error 'A macro name we need was already defined'
@@ -179,7 +188,9 @@ namespace ssc
 	}/* ~ void rekey (...) */
 
 	TEMPLATE_ARGS
-	void CLASS::cipher (Data_t *__restrict data, u8_t *ctext, u8_t const *ptext)
+	void CLASS::cipher (_RESTRICT (Data *)       data,
+                            _RESTRICT (u8_t *)       ctext,
+                            _RESTRICT (u8_t const *) ptext)
 	{
 #if    defined (MIX) || defined (CALL_MIX) || defined (INVERSE_MIX) || defined (CALL_INVERSE_MIX) || \
        defined (USE_SUBKEY) || defined (PERMUTE) || defined (INVERSE_PERMUTE) || defined (ENC_ROUND) || \
@@ -451,7 +462,9 @@ namespace ssc
 	}/* ~ void cipher (...) */
 
 	TEMPLATE_ARGS
-	void CLASS::inverse_cipher (Data_t *__restrict data, u8_t *ptext, u8_t const *ctext)
+	void CLASS::inverse_cipher (_RESTRICT (Data *)       data,
+			            _RESTRICT (u8_t *)       ptext,
+				    _RESTRICT (u8_t const *) ctext)
 	{
 		std::memcpy( data->state, ctext, sizeof(data->state) );
 		USE_SUBKEY (-=,Number_Rounds);

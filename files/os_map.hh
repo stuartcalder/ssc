@@ -100,4 +100,14 @@ namespace ssc
 #endif
 	}/* ~ void sync_map (OS_Map const &) */
 
+	inline void nullify_map (OS_Map &os_map)
+	{
+		os_map.ptr = nullptr;
+		os_map.size = 0;
+		os_map.os_file = Null_OS_File;
+#ifdef __Win64__
+		os_map.win64_filemapping = Null_OS_File;
+#endif
+	}
+
 }/* ~ namespace ssc */

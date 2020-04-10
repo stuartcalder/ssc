@@ -10,10 +10,13 @@ See accompanying LICENSE file for licensing information.
 #include <ssc/general/integers.hh>
 /* SSC Crypto Headers */
 #include <ssc/crypto/operations.hh>
-#include <ssc/crypto/threefish.hh>
-#include <ssc/crypto/unique_block_iteration.hh>
-#include <ssc/crypto/skein.hh>
-#include <ssc/crypto/skein_csprng.hh>
+#include <ssc/crypto/threefish_f.hh>
+#include <ssc/crypto/unique_block_iteration_f.hh>
+#include <ssc/crypto/cipher_block_chaining_f.hh>
+#include <ssc/crypto/skein_f.hh>
+#include <ssc/crypto/skein_csprng_f.hh>
+/* SSC File Headers */
+#include <ssc/files/os_map.hh>
 /* SSC Memory I/O Headers */
 #include <ssc/memory/os_memory_locking.hh>
 /* SSC Interface Headers */
@@ -49,61 +52,39 @@ namespace ssc::crypto_impl
 	_CTIME_CONST (int)	Block_Bytes = Block_Bits / CHAR_BIT;
 	_CTIME_CONST (int)	MAC_Bytes   = Block_Bytes;
 
-	_CTIME_CONST (int)	Salt_Bits   = 128;
-	_CTIME_CONST (int)	Salt_Bytes  = Salt_Bits / CHAR_BIT;
 	_CTIME_CONST (int)	Tweak_Bits  = 128;
 	_CTIME_CONST (int)	Tweak_Bytes = Tweak_Bits / CHAR_BIT;
 
 	_CTIME_CONST (int)	Max_Password_Chars = 120;
 	_CTIME_CONST (int)	Max_Entropy_Chars  = 120;
 	_CTIME_CONST (int)	Password_Buffer_Bytes   = Max_Password_Chars + 1;
-	_CTIME_CONST (auto&)	Password_Prompt	        = "Please input a password (max length 120 characters)." OS_PROMPT;
-	_CTIME_CONST (auto&)	Password_Reentry_Prompt = "Please input the same password again (max length 120 characters)." OS_PROMPT;
-	_CTIME_CONST (auto&)	Entropy_Prompt		= "Please input up to 120 random characters." OS_PROMPT;
+	_CTIME_CONST (int)      Supplement_Entropy_Buffer_Bytes = Max_Entropy_Chars + Block_Bytes + 1;
+	_CTIME_CONST (auto&)	Password_Prompt	        = "Please input a password (max length 120 characters)." OS_PROMPT ;
+	_CTIME_CONST (auto&)	Password_Reentry_Prompt = "Please input the same password again (max length 120 characters)." OS_PROMPT ;
+	_CTIME_CONST (auto&)	Entropy_Prompt		= "Please input up to 120 random characters." OS_PROMPT ;
+	using Threefish_f = Threefish_F<Block_Bits>; // Precomputed-keyschedule Threefish.
+	using UBI_f       = Unique_Block_Iteration_F<Block_Bits>; // UBI for Skein hashing.
+	using Skein_f     = Skein_F<Block_Bits>; // Interface to UBI.
+	using CSPRNG_f    = Skein_CSPRNG_F<Block_Bits>; // UBI-based PRNG.
 
-#if 0
-	using Threefish_t = Threefish<Block_Bits>;
-	using UBI_t       = Unique_Block_Iteration<Block_Bits>;
-	using Skein_t     = Skein<Block_Bits>;
-	using CSPRNG_t    = Skein_CSPRNG<Block_Bits>;
-#endif
-	/*TODO Check in and make sure these aliases make sense*/
-	using Threefish_f    = Threefish_F<Block_Bits>;
-	using UBI_f          = Unique_Block_Iteration_F<Block_Bits>;
-	using Skein_f        = Skein_F<Block_Bits>;
-	using Skein_CSPRNG_f = Skein_CSPRNG_F<Block_Bits>;
 	struct _PUBLIC SSPKDF_Input {
-		OS_Map      input_map;
-		OS_Map      output_map;
-		u32_t	    number_sspkdf_iterations;
-		u32_t	    number_sspkdf_concatenations;
-		bool	    supplement_os_entropy;
+		OS_Map      input_map;  // Assumed all parameters valid when input to a consuming procedure.
+		OS_Map      output_map; // Assumed os_file is set, and all other parameters unspecified when input to consuming procedure.
+		u32_t	    number_sspkdf_iterations; // Number of times to iterate SSPKDF.
+		u32_t	    number_sspkdf_concatenations; // Number of times to concatenate password together in SSPKDF.
+		bool	    supplement_os_entropy; // Whether to supplement entropy in consuming procedure.
 	};
+
 	enum class Input_Type_E {
-		SSPKDF_Input;
+		Simple_Skein_PKDF;
 	};
 
-	_CTIME_CONST(int) Supplement_Entropy_Buffer_Bytes = Block_Bytes + Max_Entropy_Chars + 1;
-
-	/*TODO replace this supplement_entropy */
-#if 0
-	inline void supplement_entropy (CSPRNG_t &csprng, Skein_t &skein, u8_t *buffer)
+	inline void supplement_entropy (typename CSPRNG_f::Data *__restrict data, u8_t *__restrict hash, u8_t *__restrict input)
 	{
-		using namespace std;
-		_CTIME_CONST(int) Hash_Size = Block_Bytes;
-		_CTIME_CONST(int) Input_Size = Max_Entropy_Chars + 1;
-
-		static_assert (sizeof(u8_t) == sizeof(char));
-		u8_t *hash  = buffer;
-		char *input = reinterpret_cast<char*>(buffer + Hash_Size);
+		_CTIME_CONST (int) Input_Size = Max_Entropy_Chars + 1;
 		int num_input_chars = obtain_password<Input_Size>( input, Entropy_Prompt );
-		static_assert (Skein_t::State_Bytes == Hash_Size);
-		skein.hash_native( hash, reinterpret_cast<u8_t*>(input), num_input_chars );
-		static_assert (CSPRNG_t::State_Bytes == Hash_Size);
-		csprng.reseed( hash );
-	} /* supplement_entropy(csprng,skein,buffer) */
-#endif
-
-}/*namespace ssc::crypto_impl*/
+		Skein_f::hash_native( &(data->skein_data), hash, input, num_input_bytes );
+		CSPRNG_f::reseed( data, hash );
+	}
 #undef OS_PROMPT
 #undef NEW_LINE

@@ -78,11 +78,11 @@
 #endif /* ~ #ifndef __Windows__ */
 
 /* Compile-Time-Constant short-hand macros. */
-#ifndef	_CTIME_CONST
-#	define _CTIME_CONST(type) static constexpr const type
-#else
-#	error '_CTIME_CONST Already Defined'
-#endif /* ~ #ifndef _CTIME_CONST */
+#if    defined (_CTIME_CONST) || defined (_RESTRICT)
+#	error '_CTIME_CONST or _RESTRICT Already Defined'
+#endif
+#define _CTIME_CONST(type) static constexpr const type
+#define _RESTRICT(pointer) pointer __restrict
 
 /* OpenBSD-specific mitigations */
 #ifdef	__OpenBSD__

@@ -6,6 +6,10 @@
 #	error '__SSC_CBC_V2__ Already Defined'
 #endif
 
+#if    defined (OS_PROMPT) || defined (NEW_LINE)
+#	error 'Some MACRO we need was already defined'
+#endif
+
 #include <ssc/general/macros.hh>
 #include <ssc/general/integers.hh>
 #include <ssc/files/os_map.hh>
@@ -13,11 +17,22 @@
 
 #include "common.hh"
 
-namespace ssc::crypto_impl
+namespace ssc::crypto_impl::cbc_v2
 {
+	using CBC_f = Cipher_Block_Chaining_F<Block_Bits>;
 	_CTIME_CONST (auto&) CBC_V2_ID = "3CRYPT_CBC_V2";
-	using CBC_f = Cipher_Block_Chaining_F<512>;
+	_CTIME_CONST (int) Salt_Bits = 128;
+	_CTIME_CONST (int) Salt_Bytes = Salt_Bits / CHAR_BIT;
+	_CTIME_CONST (int) Header_Bytes = sizeof(CBC_V2_ID) + sizeof(u64_t) + Tweak_Bytes
+		                        + Salt_Bytes        + Block_Bytes   + sizeof(u32_t)
+				        + sizeof(u32_t);
+	_CTIME_CONST (int) Metadata_Bytes = Header_Bytes + MAC_Bytes;
 
-	void _PUBLIC
-	encrypt (/*TODO*/
+
+	void _PUBLIC encrypt (SSPKDF_Input *input);
+	void _PUBLIC decrypt (OS_Map *input_map,
+			      OS_Map *output_map);//TODO
+	void _PUBLIC dump_header (OS_Map *input_map);//TODO
 }/* ~ namespace ssc::crypto_impl */
+#undef OS_PROMPT
+#undef NEW_LINE

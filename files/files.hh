@@ -33,22 +33,26 @@ namespace ssc
 
 #if    defined (__UnixLike__)
 	using OS_File_t = int;
-	_CTIME_CONST(OS_File_t) Null_OS_File = -1;
+	_CTIME_CONST (OS_File_t) Null_OS_File = -1;
 #elif  defined (__Win64__)
 	using OS_File_t = HANDLE;
-	_CTIME_CONST(OS_File_t) Null_OS_File = INVALID_HANDLE_VALUE;
+	_CTIME_CONST (OS_File_t) Null_OS_File = INVALID_HANDLE_VALUE;
 #else
 #	error 'Unsupported OS'
 #endif
 
 	/* Prototype all the inline functions defined in this header.
 	 */
-	inline size_t	 get_file_size (OS_File_t const);
-	inline size_t	 get_file_size (char const *);
-	inline size_t	 get_file_size (std::FILE *);
-	inline bool	 file_exists   (char const *);
-	inline void	 check_file_name_sanity (std::string const &, size_t const);
-	inline void	 enforce_file_existence (char const *__restrict, bool const, char const *__restrict = nullptr);
+	inline size_t	get_file_size (OS_File_t const);
+	inline size_t	get_file_size (char const *);
+	inline size_t	get_file_size (std::FILE *);
+	inline bool	file_exists   (char const *);
+	inline void	check_file_name_sanity (std::string const &, size_t const);
+
+	inline void	enforce_file_existence (_RESTRICT (char const *),
+			                        bool const,
+						_RESTRICT (char const *) = nullptr);
+
 	inline OS_File_t open_existing_os_file  (char const *, bool const);
 	inline OS_File_t create_os_file         (char const *);
 	inline void	 close_os_file		(OS_File_t const);
@@ -132,7 +136,9 @@ namespace ssc
 			errx( "Error: Filename %s must have at least %zu character(s)\n", str.c_str(), min_size );
 	} /* ~ check_file_name_sanity(std::string const&,size_t const) */
 
-	void enforce_file_existence (char const *__restrict filename, bool const force_to_exist, char const *__restrict opt_error_msg)
+	void enforce_file_existence (_RESTRICT (char const *) filename,
+			             bool const force_to_exist,
+				     _RESTRICT (char const *) opt_error_msg)
 	{
 		using namespace std;
 

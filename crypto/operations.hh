@@ -99,7 +99,8 @@ namespace ssc
 	}
 
 	template <int Block_Bits>
-	void xor_block (void *__restrict block, void const *__restrict add)
+	void xor_block (_RESTRICT (void *)       block,
+			_RESTRICT (void const *) add)
 	{
 		static_assert (CHAR_BIT == 8);
 		static_assert ((Block_Bits % CHAR_BIT == 0), "Bits must be a multiple of bytes");
@@ -238,15 +239,13 @@ namespace ssc
 		// Disallow Uint_t to be u8_t, since it cannot be reversed.
 		static_assert (!std::is_same<Uint_t,u8_t>::value, "u8_t is not byte reversible.");
 
-#if    defined (SWAP_F)
-#	error 'SWAP_F Already Defined'
-#else
-#	define SWAP_F(size,u)	SWAP_F__( size, u )
+#if    defined (SWAP_F) || defined (SWAP_F__) || defined (SIZE)
+#	error 'SWAP_F, SWAP_F__, or SIZE macro already defined'
 #endif
 
-#if    defined (SWAP_F__)
-#	error 'SWAP_F__ Already Defined'
-#elif  defined (__OpenBSD__)
+#define SWAP_F(size,u)	SWAP_F__ (size,u)
+
+#if    defined (__OpenBSD__)
 #	define SWAP_F__(size,u)	swap##size( u )
 #elif  defined (__FreeBSD__)
 #	define SWAP_F__(size,u)	bswap##size( u )
@@ -258,9 +257,7 @@ namespace ssc
 #	error 'Unsupported OS'
 #endif
 
-#if    defined (SIZE)
-#	error 'SIZE Already Defined'
-#elif  defined (__UnixLike__)
+#if    defined (__UnixLike__)
 #	define SIZE(unixlike,win64) unixlike
 #elif  defined (__Win64__)
 #	define SIZE(unixlike,win64) win64

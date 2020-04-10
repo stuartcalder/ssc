@@ -76,13 +76,22 @@ namespace ssc
 			u64_t                        tweak_state [Threefish_f::External_Tweak_Words];
 		};
 
-		static void chain_config        (Data            *data, u64_t const num_out_bits);
-		static void chain_native_output (Data *__restrict data, u8_t *__restrict output);
-		static void chain_message       (Data *__restrict data, u8_t const *__restrict input, u64_t num_in_bytes);
-		static void chain_output        (Data *__restrict data, u8_t *__restrict output, u64_t num_out_bytes);
+		static void chain_config        (Data *data, u64_t const num_out_bits);
+
+		static void chain_native_output (_RESTRICT (Data *) data,
+				                 _RESTRICT (u8_t *) output);
+
+		static void chain_message       (_RESTRICT (Data *)       data,
+				                 _RESTRICT (u8_t const *) input,
+						 u64_t                    num_in_bytes);
+
+		static void chain_output        (_RESTRICT (Data *) data,
+				                 _RESTRICT (u8_t *) output,
+						 u64_t              num_out_bytes);
 
 		template <Type_Mask_E Type,int Input_Bytes>
-		static void chain_type (Data *__restrict data, u8_t const *__restrict input);
+		static void chain_type (_RESTRICT (Data *)       data,
+				        _RESTRICT (u8_t const *) input);
 	/* Constructors / Destructors */
 	};/* ~ class Unique_Block_Iteration_F */
 
@@ -126,7 +135,8 @@ namespace ssc
 	}
 
 	TEMPLATE_ARGS
-	void CLASS::chain_native_output (Data *__restrict data, u8_t *__restrict output)
+	void CLASS::chain_native_output (_RESTRICT (Data *) data,
+			                 _RESTRICT (u8_t *) output)
 	{
 		// Set the tweak first bit, last bit, and the type to Out.
 		INIT_TWEAK            (data,(Tweak_Last_Bit | static_cast<u8_t>(Type_Mask_E::Out)));
@@ -140,7 +150,9 @@ namespace ssc
 	}
 
 	TEMPLATE_ARGS
-	void CLASS::chain_message (Data *__restrict data, u8_t const *__restrict input, u64_t num_in_bytes)
+	void CLASS::chain_message (_RESTRICT (Data *)       data,
+			           _RESTRICT (u8_t const *) input,
+				   u64_t                    num_in_bytes)
 	{
 		// Set the tweak first bit and the type to Msg.
 		INIT_TWEAK (data,static_cast<u8_t>(Type_Mask_E::Msg));
@@ -188,7 +200,9 @@ namespace ssc
 		REKEY_CIPHER_XOR (data);
 	}
 	TEMPLATE_ARGS
-	void CLASS::chain_output (Data *__restrict data, u8_t *__restrict output, u64_t num_out_bytes)
+	void CLASS::chain_output (_RESTRICT (Data *) data,
+			          _RESTRICT (u8_t *) output,
+				  u64_t              num_out_bytes)
 	{
 		INIT_TWEAK (data,static_cast<u8_t>(Type_Mask_E::Out));
 		std::memset( data->msg_state, 0, sizeof(data->msg_state) );
@@ -221,7 +235,8 @@ namespace ssc
 		}
 	}
 	TEMPLATE_ARGS template <typename CLASS::Type_Mask_E Type,int Input_Bytes>
-	void CLASS::chain_type (Data *__restrict data, u8_t const *__restrict input)
+	void CLASS::chain_type (_RESTRICT (Data *)       data,
+			        _RESTRICT (u8_t const *) input)
 	{
 		static_assert (Type == Type_Mask_E::Key ||
 			       Type == Type_Mask_E::Prs ||

@@ -28,9 +28,15 @@ namespace ssc
 		};
 
 		static inline void initialize_seed (Data *data);
-		static void        reseed          (Data *__restrict data, u8_t const *__restrict seed);
+
+		static void        reseed          (_RESTRICT (Data *)       data,
+				                    _RESTRICT (u8_t const *) seed);
+
 		static void        os_reseed       (Data *data);
-		static void        get             (Data *__restrict data, u8_t const *__restrict output, u64_t requested_bytes);
+
+		static void        get             (_RESTRICT (Data *)       data,
+				                    _RESTRICT (u8_t const *) output,
+						    u64_t                    requested_bytes);
 	};
 
 	TEMPLATE_ARGS
@@ -39,7 +45,8 @@ namespace ssc
 		obtain_os_entropy( data->seed, sizeof(data->seed) );
 	}
 	TEMPLATE_ARGS
-	void CLASS::reseed (Data *__restrict data, u8_t const *__restrict seed)
+	void CLASS::reseed (_RESTRICT (Data *)       data,
+			    _RESTRICT (u8_t const *) seed)
 	{
 		std::memcpy( data->buffer              , data->seed, State_Bytes );
 		std::memcpy( data->buffer + State_Bytes, seed      , State_Bytes );
@@ -56,7 +63,9 @@ namespace ssc
 		zero_sensitive( data->buffer, sizeof(data->buffer) );
 	}
 	TEMPLATE_ARGS
-	void CLASS::get (Data *__restrict data, u8_t const *__restrict output, u64_t requested_bytes)
+	void CLASS::get (_RESTRICT (Data *)       data,
+			 _RESTRICT (u8_t const *) output,
+			 u64_t                    requested_bytes)
 	{
 		while( requested_bytes > State_Bytes ) {
 			Skein_f::hash( &(data->skein_data), data->buffer, data->seed, sizeof(data->seed), sizeof(data->buffer) );
