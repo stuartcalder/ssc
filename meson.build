@@ -20,7 +20,8 @@ ssc_src = [
 	'general/parse_string.cc',
 	# `Crypto` Files
 	'crypto/implementation/sspkdf.cc',
-	'crypto/implementation/cbc_v2.cc',
+	#####'crypto/implementation/cbc_v2.cc',
+	'crypto/implementation/cbc_v2_f.cc'
 	]
 lib_deps  = []
 cpp_flags = []

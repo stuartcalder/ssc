@@ -77,14 +77,14 @@ namespace ssc
 		using Data_t = typename std::conditional<(Key_Schedule_Gen == Key_Schedule_E::Pre_Compute),Precomputed_Data,Runtime_Data>::type;
 		static_assert (std::is_same<Data_t,Precomputed_Data>::value || std::is_same<Data_t,Runtime_Data>::value);
 
-		static void rekey          (_RESTRICT (Data *) data,
+		static void rekey          (_RESTRICT (Data_t *) data,
 				            _RESTRICT (u64_t *) key,
 					    _RESTRICT (u64_t *) tweak);
 
-		static void cipher         (_RESTRICT (Data *)       data,
+		static void cipher         (_RESTRICT (Data_t *)       data,
 				            _RESTRICT (u8_t *)       ctext,
 					    _RESTRICT (u8_t const *) ptext);
-		static void inverse_cipher (_RESTRICT (Data *)       data,
+		static void inverse_cipher (_RESTRICT (Data_t *)       data,
 				            _RESTRICT (u8_t *)       ptext,
 					    _RESTRICT (u8_t const *) ctext);
 	private:
@@ -93,7 +93,7 @@ namespace ssc
 	};/* ~ class Threefish_F */
 
 	TEMPLATE_ARGS
-	void CLASS::rekey (_RESTRICT (Data *) data,
+	void CLASS::rekey (_RESTRICT (Data_t *) data,
                            _RESTRICT (u64_t *) key,
                            _RESTRICT (u64_t *) tweak)
 	{
@@ -188,7 +188,7 @@ namespace ssc
 	}/* ~ void rekey (...) */
 
 	TEMPLATE_ARGS
-	void CLASS::cipher (_RESTRICT (Data *)       data,
+	void CLASS::cipher (_RESTRICT (Data_t *)       data,
                             _RESTRICT (u8_t *)       ctext,
                             _RESTRICT (u8_t const *) ptext)
 	{
@@ -462,7 +462,7 @@ namespace ssc
 	}/* ~ void cipher (...) */
 
 	TEMPLATE_ARGS
-	void CLASS::inverse_cipher (_RESTRICT (Data *)       data,
+	void CLASS::inverse_cipher (_RESTRICT (Data_t *)       data,
 			            _RESTRICT (u8_t *)       ptext,
 				    _RESTRICT (u8_t const *) ctext)
 	{
