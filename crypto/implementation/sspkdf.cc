@@ -27,15 +27,15 @@ namespace ssc::crypto_impl {
 		_CTIME_CONST (int) Salt_Bits   = 128;
 		_CTIME_CONST (int) Salt_Bytes  = Salt_Bits / CHAR_BIT;
 
-		u64_t const concat_size = (static_cast<u64_t>(password_length) + Salt_Bytes + sizeof(u32_t)) * static_cast<u64_t>(num_concat);
+		u64_t const concat_size = (static_cast<u64_t>(password_size) + Salt_Bytes + sizeof(u32_t)) * static_cast<u64_t>(num_concat);
 		auto concat_buffer = std::make_unique<u8_t[]>( concat_size );
 		{
 			u32_t index = 0;
 			u8_t *buf_ptr = concat_buffer.get();
 			u8_t * const buf_end = buf_ptr + concat_size;
 			while( buf_ptr < buf_end ) {
-				std::memcpy( buf_ptr, password, password_length );
-				buf_ptr += password_length;
+				std::memcpy( buf_ptr, password, password_size);
+				buf_ptr += password_size;
 				std::memcpy( buf_ptr, salt, Salt_Bytes );
 				buf_ptr += Salt_Bytes;
 				*(reinterpret_cast<u32_t*>(buf_ptr)) = index;

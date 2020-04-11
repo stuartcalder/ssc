@@ -57,7 +57,8 @@ if get_option('disable_runtime_checks')
 	cpp_flags += _flag
 endif
 if get_option('enable_cbc_v2')
-	ssc_src += 'crypto/implementation/cbc_v2.cc'
+	###ssc_src += 'crypto/implementation/cbc_v2.cc'
+	ssc_src += 'crypto/implementation/cbc_v2_f.cc'
 endif
 if get_option('enable_ctr_v1')
 	ssc_src += 'crypto/implementation/ctr_v1.cc'

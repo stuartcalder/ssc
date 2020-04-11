@@ -34,9 +34,9 @@ namespace ssc
 
 		static void        os_reseed       (Data *data);
 
-		static void        get             (_RESTRICT (Data *)       data,
-				                    _RESTRICT (u8_t const *) output,
-						    u64_t                    requested_bytes);
+		static void        get             (_RESTRICT (Data *) data,
+				                    _RESTRICT (u8_t *) output,
+						    u64_t              requested_bytes);
 	};
 
 	TEMPLATE_ARGS
@@ -64,7 +64,7 @@ namespace ssc
 	}
 	TEMPLATE_ARGS
 	void CLASS::get (_RESTRICT (Data *)       data,
-			 _RESTRICT (u8_t const *) output,
+			 _RESTRICT (u8_t *)       output,
 			 u64_t                    requested_bytes)
 	{
 		while( requested_bytes > State_Bytes ) {

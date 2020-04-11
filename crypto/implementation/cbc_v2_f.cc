@@ -1,4 +1,5 @@
 #include "cbc_v2_f.hh"
+#include "sspkdf.hh"
 
 using namespace std;
 
@@ -41,7 +42,7 @@ namespace ssc::crypto_impl::cbc_v2
 
 		struct {
 			typename CBC_f::Data    cbc_data;
-			u64_t                   key_buffer [Threefish_f::External_Key_Buffer_Words];
+			u64_t                   key_buffer [Threefish_f::External_Key_Words];
 			typename UBI_f::Data    ubi_data;
 			typename CSPRNG_f::Data csprng_data;
 			u8_t                    first_password  [Password_Buffer_Bytes];
@@ -69,13 +70,19 @@ namespace ssc::crypto_impl::cbc_v2
 		if( sspkdf_input.supplement_os_entropy ) {
 			supplement_entropy( &crypto_object.csprng_data,
 					    crypto_object.entropy_data,
-					    crypto_object.entropy_data + State_Bytes );
+					    crypto_object.entropy_data + Block_Bytes );
 			zero_sensitive( crypto_object.entropy_data, Supplement_Entropy_Buffer_Bytes );
 		}
 		{
-			CSPRNG_f::get( &crypto_object.csprng_data, public_object.tweak      , Tweak_Bytes                  );
-			CSPRNG_f::get( &crypto_object.csprng_data, public_object.cbc_iv     , sizeof(public_object.cbc_iv) );
-			CSPRNG_f::get( &crypto_object.csprng_data, public_object.sspkdf_salt, sizeof(public_object.sspkdf_salt) );
+			CSPRNG_f::get( &crypto_object.csprng_data,
+				       reinterpret_cast<u8_t*>(public_object.tweak),
+				       Tweak_Bytes );
+			CSPRNG_f::get( &crypto_object.csprng_data,
+					public_object.cbc_iv,
+					sizeof(public_object.cbc_iv) );
+			CSPRNG_f::get( &crypto_object.csprng_data,
+				       public_object.sspkdf_salt,
+				       sizeof(public_object.sspkdf_salt) );
 		}
 		{
 			memcpy( out, CBC_V2_ID, sizeof(CBC_V2_ID) ); // Header ID.
