@@ -12,6 +12,7 @@
 
 #include <ssc/general/macros.hh>
 #include <ssc/general/integers.hh>
+#include <ssc/general/print.hh>
 #include <ssc/files/os_map.hh>
 #include <ssc/crypto/cipher_block_chaining_f.hh>
 

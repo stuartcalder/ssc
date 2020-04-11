@@ -310,7 +310,7 @@ namespace ssc::crypto_impl::cbc_v2
 		fputs  (           "Threefish Tweak            : ", stdout );
 		print_integral_buffer<u8_t>( header.tweak, sizeof(header.tweak) );
 		fputs  (         "\nSSPKDF Salt                : ", stdout );
-		print_integral_buffer<u8_t>( header.sspkdf_salt, sizeof(header.sspkdf_salt) );
+		print_integral_buffer<u8_t>( header.salt, sizeof(header.salt) );
 		fputs  (         "\nCBC Initialization Vector  : ", stdout );
 		print_integral_buffer<u8_t>( header.cbc_iv, sizeof(header.cbc_iv) );
 		fprintf( stdout, "\nNumber Iterations          : %u\n", header.num_iter );
