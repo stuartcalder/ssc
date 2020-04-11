@@ -40,7 +40,7 @@ namespace ssc
 	};
 
 	TEMPLATE_ARGS
-	void CLASS:initialize_seed (Data *data)
+	void CLASS::initialize_seed (Data *data)
 	{
 		obtain_os_entropy( data->seed, sizeof(data->seed) );
 	}

@@ -80,7 +80,7 @@ namespace ssc::crypto_impl
 	{
 		_CTIME_CONST (int) Input_Size = Max_Entropy_Chars + 1;
 		int num_input_chars = obtain_password<Input_Size>( input, Entropy_Prompt );
-		Skein_f::hash_native( &(data->skein_data), hash, input, num_input_bytes );
+		Skein_f::hash_native( &(data->skein_data), hash, input, num_input_chars );
 		CSPRNG_f::reseed( data, hash );
 	}
 #undef OS_PROMPT
