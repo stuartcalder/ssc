@@ -27,8 +27,8 @@ namespace ssc::crypto_impl
 #endif
 		Terminating_Enum
 	};/*enum class Crypto_Method_E*/
-	static_assert (Crypto_Method_E::Terminating_Enum > 1);
-	_CTIME_CONST (int) Number_Crypto_Methods = Crypto_Method_E::Terminating_Enum - 1;
+	static_assert (static_cast<int>(Crypto_Method_E::Terminating_Enum) > 1);
+	_CTIME_CONST (int) Number_Crypto_Methods = static_cast<int>(Crypto_Method_E::Terminating_Enum) - 1;
 
 	// Compile-Time constants
 	_CTIME_CONST (int) Biggest_ID_String_Size = []() {

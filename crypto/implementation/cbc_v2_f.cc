@@ -166,7 +166,7 @@ namespace ssc::crypto_impl::cbc_v2
 		{
 			memcpy( data.header_id, in, sizeof(data.header_id) );
 			in += sizeof(data.header_id);
-			data.header_size = *(reinterpret_cast<u64_t*>(in));
+			data.header_size = *(reinterpret_cast<u64_t const*>(in));
 			in += sizeof(u64_t);
 			memcpy( data.tweak, in, Tweak_Bytes );
 			in += Tweak_Bytes;
@@ -174,9 +174,9 @@ namespace ssc::crypto_impl::cbc_v2
 			in += sizeof(data.sspkdf_salt);
 			memcpy( data.cbc_iv, in, sizeof(data.cbc_iv) );
 			in += sizeof(data.cbc_iv);
-			data.num_iter = *(reinterpret_cast<u32_t*>(in));
+			data.num_iter = *(reinterpret_cast<u32_t const*>(in));
 			in += sizeof(u32_t);
-			data.num_concat = *(reinterpret_cast<u32_t*>(in));
+			data.num_concat = *(reinterpret_cast<u32_t const*>(in));
 			in += sizeof(u32_t);
 		}
 		if( memcmp( data.header_id, CBC_V2_ID, sizeof(CBC_V2_ID) ) != 0 ) {
@@ -190,7 +190,7 @@ namespace ssc::crypto_impl::cbc_v2
 		}
 		struct {
 			typename CBC_f::Data    cbc_data;
-			u64_t                   key_buffer [Threefish_f::External_Key_Buffer_Words];
+			u64_t                   key_buffer [Threefish_f::External_Key_Words];
 			typename UBI_f::Data    ubi_data;
 			u8_t                    password   [Password_Buffer_Bytes];
 		} crypto;
