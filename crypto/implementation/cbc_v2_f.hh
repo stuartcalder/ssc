@@ -29,10 +29,14 @@ namespace ssc::crypto_impl::cbc_v2
 	_CTIME_CONST (int) Metadata_Bytes = Header_Bytes + MAC_Bytes;
 
 
-	void _PUBLIC encrypt (SSPKDF_Input *input);
-	void _PUBLIC decrypt (OS_Map *input_map,
-			      OS_Map *output_map);//TODO
-	void _PUBLIC dump_header (OS_Map *input_map);//TODO
+	void _PUBLIC encrypt (SSPKDF_Input &sspkdf_input
+			      OS_Map &input_map,
+			      OS_Map &output_map);
+	void _PUBLIC decrypt (OS_Map     &input_map,
+			      OS_Map     &output_map,
+			      char const *output_filename);
+	void _PUBLIC dump_header (OS_Map &input_map,
+			          char const *filename);
 }/* ~ namespace ssc::crypto_impl */
 #undef OS_PROMPT
 #undef NEW_LINE

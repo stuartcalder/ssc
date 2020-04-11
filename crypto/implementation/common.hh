@@ -54,6 +54,7 @@ namespace ssc::crypto_impl
 
 	_CTIME_CONST (int)	Tweak_Bits  = 128;
 	_CTIME_CONST (int)	Tweak_Bytes = Tweak_Bits / CHAR_BIT;
+	_CTIME_CONST (int)      Tweak_Words = Tweak_Bytes / sizeof(u64_t);
 
 	_CTIME_CONST (int)	Max_Password_Chars = 120;
 	_CTIME_CONST (int)	Max_Entropy_Chars  = 120;
@@ -68,18 +69,14 @@ namespace ssc::crypto_impl
 	using CSPRNG_f    = Skein_CSPRNG_F<Block_Bits>; // UBI-based PRNG.
 
 	struct _PUBLIC SSPKDF_Input {
-		OS_Map      input_map;  // Assumed all parameters valid when input to a consuming procedure.
-		OS_Map      output_map; // Assumed os_file is set, and all other parameters unspecified when input to consuming procedure.
-		u32_t	    number_sspkdf_iterations; // Number of times to iterate SSPKDF.
-		u32_t	    number_sspkdf_concatenations; // Number of times to concatenate password together in SSPKDF.
 		bool	    supplement_os_entropy; // Whether to supplement entropy in consuming procedure.
+		u32_t	    number_iterations; // Number of times to iterate SSPKDF.
+		u32_t	    number_concatenations; // Number of times to concatenate password together in SSPKDF.
 	};
 
-	enum class Input_Type_E {
-		Simple_Skein_PKDF;
-	};
-
-	inline void supplement_entropy (typename CSPRNG_f::Data *__restrict data, u8_t *__restrict hash, u8_t *__restrict input)
+	inline void supplement_entropy (_RESTRICT (typename CSPRNG_f::Data *) data,
+			                _RESTRICT (u8_t *)                    hash,
+					_RESTRICT (u8_t *)                    input)
 	{
 		_CTIME_CONST (int) Input_Size = Max_Entropy_Chars + 1;
 		int num_input_chars = obtain_password<Input_Size>( input, Entropy_Prompt );
