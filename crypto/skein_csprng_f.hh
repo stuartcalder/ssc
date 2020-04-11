@@ -6,7 +6,7 @@
 #endif
 
 #define TEMPLATE_ARGS	template <int Bits>
-#define CLASS		Skein_CSPRNG_F<Bits,Max_Bits>
+#define CLASS		Skein_CSPRNG_F<Bits>
 
 namespace ssc
 {

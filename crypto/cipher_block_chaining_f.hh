@@ -60,7 +60,7 @@ namespace ssc
 		u8_t mask = 0x00;
 		static_assert (CHAR_BIT == 8);
 		for( int i = Block_Bytes - 1; i >= 0; --i ) {
-			mask |= static_cast<u8_t>(static_cast<i8_t>(bytes[ i ]) >> (CHAR_BIT - 1));
+			mask |= static_cast<u8_t>(static_cast<i8_t>(last_block[ i ]) >> (CHAR_BIT - 1));
 			count += (mask & 0b0000'0001);
 		}
 		return count;
@@ -71,17 +71,18 @@ namespace ssc
 		               _RESTRICT (u8_t *)       out_bytes,
 			       _RESTRICT (u8_t const *) in_bytes,
 			       _RESTRICT (u8_t const *) init_vec,
-			       size_t                   num_bytes_in)
+			       size_t const             num_bytes_in)
 	{
 		using std::memcpy;
 		memcpy( data->state, init_vec, Block_Bytes );
-		while( num_bytes_in >= Block_Bytes ) {
+		size_t bytes_left = num_bytes_in;
+		while( bytes_left >= Block_Bytes ) {
 			memcpy( data->temp, in_bytes, Block_Bytes );
 			xor_block<Block_Bits>( data->temp, data->state );
-			memcpy( out_bytes, state, Block_Bytes );
+			memcpy( out_bytes, data->state, Block_Bytes );
 			in_bytes     += Block_Bytes;
 			out_bytes    += Block_Bytes;
-			num_bytes_in -= Block_Bytes;
+			bytes_left -= Block_Bytes;
 		}
 		memcpy( data->temp, in_bytes, bytes_left );
 		data->temp[ bytes_left ] = 0x80;
@@ -89,7 +90,7 @@ namespace ssc
 		xor_block<Block_Bits>( data->temp, data->state );
 		Threefish_f::cipher( &(data->threefish_data), data->state, data->temp );
 		memcpy( out_bytes, data->state, Block_Bytes );
-		return padded_ciphertext_size( bytes_left );
+		return padded_ciphertext_size( num_bytes_in );
 	}
 
 	TEMPLATE_ARGS
