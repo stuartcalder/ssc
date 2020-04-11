@@ -83,5 +83,6 @@ namespace ssc::crypto_impl
 		Skein_f::hash_native( &(data->skein_data), hash, input, num_input_chars );
 		CSPRNG_f::reseed( data, hash );
 	}
+}/* ~ namespace ssc::crypto_impl */
 #undef OS_PROMPT
 #undef NEW_LINE

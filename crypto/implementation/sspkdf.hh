@@ -18,12 +18,12 @@ See accompanying LICENSE file for licensing information.
 
 namespace ssc::crypto_impl
 {
-	void _PUBLIC sspkdf (_RESTRICT (typename UBI_f::Data) *ubi_data,
-			     _RESTRICT (u8_t *)               output,
-			     _RESTRICT (u8_t const *)         password,
-			     int const                        password_size,
-			     _RESTRICT (u8_t const *)         salt,
-			     u32_t const                      num_iter,
-			     u32_t const                      num_concat);
+	void _PUBLIC sspkdf (typename UBI_f::Data     *ubi_data,
+			     _RESTRICT (u8_t *)       output,
+			     _RESTRICT (u8_t const *) password,
+			     int const                password_size,
+			     _RESTRICT (u8_t const *) salt,
+			     u32_t const              num_iter,
+			     u32_t const              num_concat);
 			     
 }/* ~ namespace ssc::crypto_impl */

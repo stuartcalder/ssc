@@ -14,13 +14,13 @@ See accompanying LICENSE file for licensing information.
 
 namespace ssc::crypto_impl {
 	static_assert (CHAR_BIT == 8);
-	void sspkdf (_RESTRICT (typename UBI_f::Data *) ubi_data,
-		     _RESTRICT (u8_t *)		        output,
-		     _RESTRICT (u8_t const *)	        password,
-		     int const			        password_size,
-		     _RESTRICT (u8_t const *)	        salt,
-		     u32_t const		        num_iter,
-		     u32_t const		        num_concat)
+	void sspkdf (typename UBI_f::Data     *ubi_data,
+		     _RESTRICT (u8_t *)	      output,
+		     _RESTRICT (u8_t const *) password,
+		     int const		      password_size,
+		     _RESTRICT (u8_t const *) salt,
+		     u32_t const	      num_iter,
+		     u32_t const	      num_concat)
 	{
 		_CTIME_CONST (int) State_Bits  = 512;
 		_CTIME_CONST (int) State_Bytes = State_Bits / CHAR_BIT;
