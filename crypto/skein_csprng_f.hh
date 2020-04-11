@@ -71,6 +71,7 @@ namespace ssc
 			Skein_f::hash( &(data->skein_data), data->buffer, data->seed, sizeof(data->seed), sizeof(data->buffer) );
 			std::memcpy( data->seed, data->buffer                , State_Bytes );
 			std::memcpy( output    , (data->buffer + State_Bytes), State_Bytes );
+			output          += State_Bytes;
 			requested_bytes -= State_Bytes;
 		}
 		Skein_f::hash( &(data->skein_data), data->buffer, data->seed, sizeof(data->seed), sizeof(data->buffer) );
