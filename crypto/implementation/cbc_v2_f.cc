@@ -50,7 +50,7 @@ namespace ssc::crypto_impl::cbc_v2
 			u8_t                    entropy_data    [Supplement_Entropy_Buffer_Bytes];
 		} crypto_object;
 		struct {
-			              u64_t  tweak       [Threefish_f::Tweak_Words];
+			              u64_t  tweak       [Threefish_f::External_Tweak_Words];
 	                alignas(u64_t) u8_t  cbc_iv      [Threefish_f::Block_Bytes];
 	                alignas(u64_t) u8_t  sspkdf_salt [Salt_Bytes];
 		} public_object;
@@ -124,8 +124,8 @@ namespace ssc::crypto_impl::cbc_v2
 				      out, // bytes out
 				      output_map.ptr, // bytes in
 				      reinterpret_cast<u8_t*>(crypto_object.key_buffer), // key in
-				      Block_Bytes, // number bytes in
-				      MAC_Bytes ); // num bytes out
+				      MAC_Bytes, // number bytes out
+				      output_map.size - MAC_Bytes); // num bytes in
 		}
 		zero_sensitive( &(crypto_object), sizeof(crypto_object) );
 
@@ -141,7 +141,7 @@ namespace ssc::crypto_impl::cbc_v2
 	{
 		using namespace std;
 		output_map.size = input_map.size;
-		_CTIME_CONST (int) Minimum_Possible_File_Size = Metadata_Bytes + Block_Bytes + MAC_Bytes;
+		_CTIME_CONST (int) Minimum_Possible_File_Size = Metadata_Bytes + Block_Bytes; 
 		if( input_map.size < Minimum_Possible_File_Size ) {
 			close_os_file( output_map.os_file );
 			remove( output_filename );
