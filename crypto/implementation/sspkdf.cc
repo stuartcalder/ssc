@@ -5,7 +5,7 @@ See accompanying LICENSE file for licensing information.
 */
 #include <cstdlib>
 #include <climits>
-#include <ssc/crypto/skein.hh>
+#include <ssc/crypto/skein_f.hh>
 #include <ssc/crypto/operations.hh>
 #include <ssc/general/integers.hh>
 #include <ssc/memory/os_memory_locking.hh>
