@@ -36,7 +36,7 @@ namespace ssc
 	_CTIME_CONST (OS_File_t) Null_OS_File = -1;
 #elif  defined (__Win64__)
 	using OS_File_t = HANDLE;
-	_CTIME_CONST (OS_File_t) Null_OS_File = INVALID_HANDLE_VALUE;
+	_CTIME_CONST (OS_File_t) Null_OS_File = nullptr;
 #else
 #	error 'Unsupported OS'
 #endif
