@@ -5,11 +5,8 @@
 #include <ssc/general/types.hh>
 #include <ssc/general/error_conditions.hh>
 /* SSC Crypto Headers */
-#if 0
-#include <ssc/crypto/skein.hh>
-#else
-#	include <ssc/crytpo/unique_block_iteration_f.hh>
-#	include <ssc/crypto/skein_f.hh>
+#include <ssc/crytpo/unique_block_iteration_f.hh>
+#include <ssc/crypto/skein_f.hh>
 #endif
 /* C Standard Headers */
 #include <cstdlib>
@@ -50,7 +47,7 @@ namespace ssc
 		using UBI_f   = Unique_Block_Iteration_F<Skein_Bits>;
 		using Skein_f = Skein_F<Skein_Bits>;
 		static_assert (std::is_same<typename UBI_f::Data,typename Skein_f::Data_t>::value);
-		using UBI_Data_t = typename UBI_f::Data_t;
+		using UBI_Data_t = typename UBI_f::Data;
 
 		_CTIME_CONST (int)   Skein_Bytes  = Skein_Bits / CHAR_BIT;
 		_CTIME_CONST (int)   Output_Bytes = Skein_Bytes;
@@ -72,6 +69,11 @@ namespace ssc
 		};/* ~ enum class Domain_E:u8_t */
 		
 		Catena_F (void) = delete;
+
+		struct Data {
+			UBI_Data_t ubi_data;
+			/*TODO*/
+		};
 
 		static constexpr u64_t calculate_graph_buffer_size (u8_t const g_high);//TODO
 		static void call (_RESTRICT (UBI_Data_t *) ubi_data,
