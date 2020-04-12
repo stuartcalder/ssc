@@ -28,10 +28,12 @@ namespace ssc::crypto_impl {
 		_CTIME_CONST (int) Salt_Bytes  = Salt_Bits / CHAR_BIT;
 
 		u64_t const concat_size = (static_cast<u64_t>(password_size) + Salt_Bytes + sizeof(u32_t)) * static_cast<u64_t>(num_concat);
-		auto concat_buffer = std::make_unique<u8_t[]>( concat_size );
+		u8_t * const concat_buffer = static_cast<u8_t*>(std::malloc( concat_size ));
+		if( concat_buffer == nullptr )
+			errx( "Error: SSPKDF failed to malloc\n" );
 		{
 			u32_t index = 0;
-			u8_t *buf_ptr = concat_buffer.get();
+			u8_t *buf_ptr = concat_buffer;
 			u8_t * const buf_end = buf_ptr + concat_size;
 			while( buf_ptr < buf_end ) {
 				std::memcpy( buf_ptr, password, password_size);
@@ -47,9 +49,10 @@ namespace ssc::crypto_impl {
 			alignas(u64_t) u8_t key    [Block_Bytes];
 			alignas(u64_t) u8_t buffer [Block_Bytes];
 
-			Skein_f::hash_native( ubi_data, key, concat_buffer.get(), concat_size );
-			Skein_f::mac( ubi_data, buffer, concat_buffer.get(), key, sizeof(buffer), concat_size );
-			zero_sensitive( concat_buffer.get(), concat_size );
+			Skein_f::hash_native( ubi_data, key, concat_buffer, concat_size );
+			Skein_f::mac( ubi_data, buffer, concat_buffer, key, sizeof(buffer), concat_size );
+			zero_sensitive( concat_buffer, concat_size );
+			std::free( concat_buffer );
 			xor_block<State_Bits>( key, buffer );
 
 			for (u32_t i = 1; i < num_iter; ++i) {

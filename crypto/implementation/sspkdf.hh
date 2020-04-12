@@ -11,8 +11,6 @@ See accompanying LICENSE file for licensing information.
 #include <cstdio>
 #include <cstdint>
 #include <cstring>
-/* C++ Standard Headers */
-#include <memory>
 /* Local Headers */
 #include "common.hh"
 
