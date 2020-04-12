@@ -140,7 +140,9 @@ namespace ssc::crypto_impl::cbc_v2
 		      char const *output_filename)
 	{
 		using namespace std;
-		output_map.size = input_map.size;
+
+		output_map.size = input_map.size - Metadata_Bytes;
+
 		_CTIME_CONST (int) Minimum_Possible_File_Size = Metadata_Bytes + Block_Bytes; 
 		if( input_map.size < Minimum_Possible_File_Size ) {
 			close_os_file( output_map.os_file );
