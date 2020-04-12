@@ -5,7 +5,12 @@
 #include <ssc/general/types.hh>
 #include <ssc/general/error_conditions.hh>
 /* SSC Crypto Headers */
+#if 0
 #include <ssc/crypto/skein.hh>
+#else
+#	include <ssc/crytpo/unique_block_iteration_f.hh>
+#	include <ssc/crypto/skein_f.hh>
+#endif
 /* C Standard Headers */
 #include <cstdlib>
 #include <cstdio>
@@ -42,7 +47,10 @@ namespace ssc
 		static_assert (CHAR_BIT == 8);
 		static_assert (Skein_Bits == 256 || Skein_Bits == 512 || Skein_Bits == 1024);
 
-		using Skein_t = Skein<Skein_Bits>;
+		using UBI_f   = Unique_Block_Iteration_F<Skein_Bits>;
+		using Skein_f = Skein_F<Skein_Bits>;
+		static_assert (std::is_same<typename UBI_f::Data,typename Skein_f::Data_t>::value);
+		using UBI_Data_t = typename UBI_f::Data_t;
 
 		_CTIME_CONST (int)   Skein_Bytes  = Skein_Bits / CHAR_BIT;
 		_CTIME_CONST (int)   Output_Bytes = Skein_Bytes;
@@ -66,7 +74,16 @@ namespace ssc
 		Catena_F (void) = delete;
 
 		static constexpr u64_t calculate_graph_buffer_size (u8_t const g_high);//TODO
-
+		static void call (_RESTRICT (UBI_Data_t *) ubi_data,
+				  _RESTRICT (u8_t *)       output,
+				  _RESTRICT (u8_t *)       sensitive_buffer,
+				  _RESTRICT (u8_t *)       password,
+				  int const                password_size,
+				  _RESTRICT (u8_t const *) salt,
+				  u8_t const               g_low,
+				  u8_t const               g_high,
+				  u8_t const               lambda);
+#if 0
 		static void call (u8_t       *output,
 				  Skein_t    *skein,
 				  u8_t       *sensitive_buffer,
@@ -76,6 +93,7 @@ namespace ssc
 				  u8_t const g_low,
 				  u8_t const g_high,
 				  u8_t const lambda);
+#endif
 	private:
 		static inline void generate_tweak_ (u8_t *tweak, u8_t const lambda);
 		static void flap_ (u8_t *in_out, u8_t *graph_memory, Skein_t *skein, u8_t const *salt, u8_t const garlic);
@@ -142,6 +160,23 @@ namespace ssc
 		}
 	}
 
+	TEMPLATE_ARGS
+	void CLASS::call (_RESTRICT (UBI_Data_t *) ubi_data,
+		          _RESTRICT (u8_t *)       output,
+		          _RESTRICT (u8_t *)       sensitive_buffer,
+		          _RESTRICT (u8_t *)       password,
+		          int const                password_size,
+		          _RESTRICT (u8_t const *) salt,
+		          u8_t const               g_low,
+		          u8_t const               g_high,
+		          u8_t const               lambda)
+	{
+#ifndef __SSC_DISABLE_RUNTIME_CHECKS
+		// Check to see that the inputs are valid.
+		if( (g_high > 63) || (g_low > g_high) || (g_low == 0) || (lambda == 0) )
+			errx( "ERROR: One or more invalid inputs to Catena_F was invalid!\n" );
+#endif /* ~ #ifndef __SSC_DISABLE_RUNTIME_CHECKS */
+	}
 	TEMPLATE_ARGS
 	void CLASS::call (u8_t       *output,
 			  Skein_t    *skein,
