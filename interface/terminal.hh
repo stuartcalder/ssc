@@ -127,7 +127,7 @@ namespace ssc
 			outer = false; // Kill the outer loop.
 		} /* while (outer) */
 		// The buffer should now contain a null-terminated C-string.
-		int const password_size = strlen( reinterpret_cast<char*>(buffer) ); // Get the size of the null-terminated C-string in the buffer.
+		int const password_size = strlen( reinterpret_cast<char const*>(buffer) ); // Get the size of the null-terminated C-string in the buffer.
 		delwin( w ); // Delete the window `w`.
 		return password_size; // Return the number of non-null characters of the C-string in the buffer.
 #elif  defined (__Win64__)
@@ -167,7 +167,7 @@ namespace ssc
 			} /* while (repeat_input) */
 			repeat_ui = false;
 		} /* while (repeat_ui) */
-		int const password_size = strlen( reinterpret_cast<Char_t*>(buffer) );
+		int const password_size = strlen( reinterpret_cast<Char_t const*>(buffer) );
 		system( "cls" );
 		return password_size;
 #else
