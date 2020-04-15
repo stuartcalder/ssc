@@ -4,37 +4,37 @@
  */
 #pragma once
 
-namespace ssc
+namespace ssc::ctime
 {
 	template <typename T>
-		constexpr T Return_Largest (T first, T second)
-		{
-			if (first > second)
-				return first;
-			return second;
-		}
+	constexpr T Return_Largest (T first, T second)
+	{
+		if (first > second)
+			return first;
+		return second;
+	}
 	template <typename T, typename... Args>
-		constexpr T Return_Largest (T first, T second, Args... args)
-		{
-			T biggest = first;
-			if (second > biggest)
-				biggest = second;
-			return Return_Largest( biggest, args... );
-		}
+	constexpr T Return_Largest (T first, T second, Args... args)
+	{
+		T biggest = first;
+		if (second > biggest)
+			biggest = second;
+		return Return_Largest( biggest, args... );
+	}
 	
 	template <typename T>
-		constexpr T Return_Smallest (T first, T second)
-		{
-			if (first < second)
-				return first;
-			return second;
-		}
+	constexpr T Return_Smallest (T first, T second)
+	{
+		if (first < second)
+			return first;
+		return second;
+	}
 	template <typename T, typename... Args>
-		constexpr T Return_Smallest (T first, T second, Args... args)
-		{
-			T smallest = first;
-			if (second < smallest)
-				smallest = second;
-			return Return_Smallest( smallest, args... );
-		}
-}/* ~ namespace ssc */
+	constexpr T Return_Smallest (T first, T second, Args... args)
+	{
+		T smallest = first;
+		if (second < smallest)
+			smallest = second;
+		return Return_Smallest( smallest, args... );
+	}
+}/* ~ namespace ssc::ctime */
