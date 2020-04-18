@@ -18,7 +18,7 @@
 #if    defined (TEMPLATE_ARGS) || defined (CLASS)
 #	error 'Some MACRO needed was already defined!'
 #endif
-#define TEMPLATE_ARGS	template <typename Block_Bits>
+#define TEMPLATE_ARGS	template <int Block_Bits>
 #define CLASS		Counter_Mode_F<Block_Bits>
 
 namespace ssc
@@ -28,10 +28,10 @@ namespace ssc
 	{
 	public:
 		static_assert (CHAR_BIT == 8);
-		static_assert (Block_Bits % CHAR_BIT == 0);
-		static_assert (Block_Bits >= 128, "Modern block ciphers have blocks of at least 128 bits.");
+		static_assert ((Block_Bits % CHAR_BIT) == 0);
+		static_assert ((Block_Bits >= 128), "Modern block ciphers have blocks of at least 128 bits.");
 		_CTIME_CONST (int) Block_Bytes = Block_Bits / CHAR_BIT;
-		static_assert (Block_Bytes % 2 == 0, "Block bytes must be evenly divisible in half.");
+		static_assert ((Block_Bytes % 2) == 0, "Block bytes must be evenly divisible in half.");
 		_CTIME_CONST (int) Nonce_Bytes = Block_Bytes / 2;
 		using Threefish_f = Threefish_F<Block_Bits,Key_Schedule_E::Pre_Compute>;
 		using Threefish_Data_t = typename Threefish_f::Data_t;
@@ -68,7 +68,7 @@ namespace ssc
 	TEMPLATE_ARGS
 	void CLASS::xorcrypt (_RESTRICT (Data *) data,
 			      u8_t               *output,
-			      u8_t               *input,
+			      u8_t const         *input,
 			      u64_t              input_size,
 			      u64_t              starting_byte)
 	{
@@ -83,7 +83,7 @@ namespace ssc
 					     data->buffer,
 					     data->keystream );
 			++(*reinterpret_cast<u64_t*>(data->keystream));
-			u8_t const *offset_buffer = data->buffer + offset;
+			u8_t *offset_buffer = data->buffer + offset;
 			u64_t left;
 			if( input_size >= bytes )
 				left = bytes;

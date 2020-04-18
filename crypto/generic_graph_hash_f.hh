@@ -39,7 +39,7 @@
 #define COPY_HASH_WORD(dest,src) \
 	std::memcpy( dest, src, Skein_Bytes )
 
-#define HASH_TWO_WORDS (ubi_ptr,dest,src) \
+#define HASH_TWO_WORDS(ubi_ptr,dest,src) \
 	Skein_f::hash_native( ubi_ptr, \
 			      dest, \
 			      src, \

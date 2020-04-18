@@ -77,7 +77,7 @@ namespace ssc
 		_CTIME_CONST (int)   Tweak_Bytes  = Skein_Bytes + 1 + 1 + 2 + 2;
 		/* CONSTANTS DERIVED FROM TEMPLATE ARGUMENTS */
 		_CTIME_CONST (auto&) Version_ID_Hash = Metadata_t::Version_ID_Hash; // The version ID hash is supplied by the memory-hard function.
-		static_assert (std::is_same<std::decay<decltype(Version_ID_Hash)>::type,
+		static_assert (std::is_same<typename std::decay<decltype(Version_ID_Hash)>::type,
 				            u8_t*>::value, "The Version_ID_Hash must decay into a u8_t pointer");
 		static_assert (sizeof(Version_ID_Hash) == Skein_Bytes, "The Version_ID_Hash must be Skein_Bytes large");
 
@@ -93,6 +93,14 @@ namespace ssc
 		
 		Catena_F (void) = delete;
 
+		template <bool b>
+		static constexpr int Conditional_Size (int size)
+		{
+			if constexpr (b)
+				return size;
+			return 0;
+		}
+
 		struct Data {
 			// Data members needed throughout Catena's lifetime, that must remain intact until termination.
 			UBI_Data_t          ubi_data;
@@ -107,13 +115,8 @@ namespace ssc
 				alignas(u64_t) u8_t phi       [Skein_Bytes * 2];
 				alignas(u64_t) u8_t mhf       [MHF_f::Temp_Bytes];
 				struct {
-					auto Gamma_Size = [](int size) constexpr -> int {
-						if constexpr (Use_Gamma)
-							return size;
-						return 0;
-					};
-					alignas(u64_t) u8_t word_buf [Gamma_Size (Skein_Bytes * 2)];
-					alignas(u64_t) u8_t rng      [Gamma_Size (ctime::Return_Largest (Skein_Bytes,Salt_Bytes) + (sizeof(u64_t) * 2))];
+					alignas(u64_t) u8_t word_buf [Conditional_Size<Use_Gamma>(Skein_Bytes * 2)];
+					alignas(u64_t) u8_t rng      [Conditional_Size<Use_Gamma>(ctime::Return_Largest (Skein_Bytes,Salt_Bytes) + (sizeof(u64_t) * 2))];
 				} gamma;
 			} temp;
 		};/* ~ struct Data */
@@ -139,13 +142,13 @@ namespace ssc
 	};/* ~ class Catena_F<...> */
 
 	TEMPLATE_ARGS
-	CLASS::Return_E CLASS::call (_RESTRICT (Data *) data,
-			             _RESTRICT (u8_t *) output,
-			             _RESTRICT (u8_t *) password,
-			             int const          password_size,
-			             u8_t const         g_low,
-			             u8_t const         g_high,
-			             u8_t const         lambda)
+	typename CLASS::Return_E CLASS::call (_RESTRICT (Data *) data,
+			                      _RESTRICT (u8_t *) output,
+			                      _RESTRICT (u8_t *) password,
+			                      int const          password_size,
+			                      u8_t const         g_low,
+			                      u8_t const         g_high,
+			                      u8_t const         lambda)
 	{
 		// Dynamically allocate the memory we're going to need.
 		data->graph_memory = static_cast<u8_t*>(std::malloc( (static_cast<u64_t>(1) << g_high) * Skein_Bytes ));
@@ -355,8 +358,8 @@ namespace ssc
 			_CTIME_CONST (int) J1_Offset = Skein_Bytes;
 			_CTIME_CONST (int) J2_Offset = J1_Offset + sizeof(u64_t);
 
-			u64_t const j1 = (*reinterpret_cast<u64_t*>(TEMP_MEM.rng + J1_Offset)) >> (64 - gamma);
-			u64_t const j2 = (*reinterpret_cast<u64_t*>(TEMP_MEM.rng + J2_Offset)) >> (64 - gamma);
+			u64_t const j1 = (*reinterpret_cast<u64_t*>(TEMP_MEM.rng + J1_Offset)) >> (64 - garlic);
+			u64_t const j2 = (*reinterpret_cast<u64_t*>(TEMP_MEM.rng + J2_Offset)) >> (64 - garlic);
 			static_assert (sizeof(TEMP_MEM.word_buf) == (Skein_Bytes * 2));
 			COPY_HASH_WORD (INDEX_HASH_WORD (TEMP_MEM.word_buf, 0),
 					INDEX_HASH_WORD (GRAPH_MEM        ,j1));
@@ -383,7 +386,7 @@ namespace ssc
 				INDEX_HASH_WORD (GRAPH_MEM,0),
 				INDEX_HASH_WORD (TEMP_MEM ,0));
 		for( u64_t i = 1; i <= last_word_index; ++i ) {
-			j = (*reinterpret_cast<u64_t*>(INDEX_HASH_WORD (GRAH_MEM,(i-1)))) >> (64 - garlic);
+			j = (*reinterpret_cast<u64_t*>(INDEX_HASH_WORD (GRAPH_MEM,(i-1)))) >> (64 - garlic);
 			COPY_HASH_WORD (INDEX_HASH_WORD (TEMP_MEM ,   0 ),
 					INDEX_HASH_WORD (GRAPH_MEM,(i-1)));
 			COPY_HASH_WORD (INDEX_HASH_WORD (TEMP_MEM ,   1 ),
