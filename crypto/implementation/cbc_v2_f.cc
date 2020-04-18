@@ -181,7 +181,7 @@ namespace ssc::crypto_impl::cbc_v2
 			data.num_concat = *(reinterpret_cast<u32_t const*>(in));
 			in += sizeof(u32_t);
 		}
-		if( memcmp( data.header_id, CBC_V2_ID, sizeof(CBC_V2_ID) ) != 0 ) {
+		if( constant_time_memcmp( data.header_id, CBC_V2_ID, sizeof(CBC_V2_ID) ) != 0 ) {
 			unmap_file( input_map );
 			unmap_file( output_map );
 			close_os_file( input_map.os_file );
@@ -218,7 +218,7 @@ namespace ssc::crypto_impl::cbc_v2
 					      sizeof(generated_mac),
 					      input_map.size - MAC_Bytes );
 			}
-			if( memcmp( generated_mac, (input_map.ptr + input_map.size - MAC_Bytes), MAC_Bytes) != 0 ) {
+			if( constant_time_memcmp( generated_mac, (input_map.ptr + input_map.size - MAC_Bytes), MAC_Bytes) != 0 ) {
 				zero_sensitive( &crypto, sizeof(crypto) );
 
 				UNLOCK_MEMORY (&crypto, sizeof(crypto));

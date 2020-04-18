@@ -95,6 +95,8 @@ namespace ssc::crypto_impl::dragonfly_v1
 						              catena_input.g_high,
 						              catena_input.lambda );
 				if( r != Catena_Safe_f::Return_E::Success ) {
+					zero_sensitive( &secret, sizeof(secret) );
+					UNLOCK_MEMORY (&secret,sizeof(secret));
 					unmap_file( output_map );
 					unmap_file( input_map  );
 					close_os_file( output_map.os_file );
@@ -117,6 +119,8 @@ namespace ssc::crypto_impl::dragonfly_v1
 						                catena_input.g_high,
 						                catena_input.lambda );
 				if( r != Catena_Strong_f::Return_E::Success ) {
+					zero_sensitive( &secret, sizeof(secret) );
+					UNLOCK_MEMORY (&secret,sizeof(secret));
 					unmap_file( output_map );
 					unmap_file( input_map  );
 					close_os_file( output_map.os_file );
@@ -161,6 +165,8 @@ namespace ssc::crypto_impl::dragonfly_v1
 		out += Tweak_Bytes;
 		memcpy( out, pub.catena_salt, Salt_Bytes );
 		out += Salt_Bytes;
+		memcpy( out, pub.ctr_nonce, CTR_f::Nonce_Bytes );
+		out += CTR_f::Nonce_Bytes;
 		// Setup the to-be-encrypted portion of the header.
 		{
 			_CTIME_CONST (int) Zeroes = sizeof(u64_t) * 2;
@@ -200,6 +206,184 @@ namespace ssc::crypto_impl::dragonfly_v1
 		close_os_file( output_map.os_file );
 		close_os_file( input_map.os_file );
 	}/* ~ void encrypt (...) */
+	void decrypt (OS_Map &input_map,
+		      OS_Map &output_map,
+		      char const *output_filename)
+	{
+		output_map.size = input_map.size - Visible_Metadata_Bytes;
+
+		_CTIME_CONST (int) Minimum_Possible_File_Size = Visible_Metadata_Bytes + 1;
+		if( input_map.size < Minimum_Possible_File_Size ) {
+			close_os_file( output_map.os_file );
+			remove( output_filename );
+			unmap_file( input_map );
+			close_os_file( input_map.os_file );
+			errx( "Error: Input file doesn't appear to be large enough to be a SSC_DRAGONFLY_V1 encrypted file\n" );
+		}
+		set_os_file_size( output_map.os_file, output_map.size );
+		map_file( output_map, false );
+		u8_t const *in = input_map.ptr;
+		struct {
+			u64_t               tweak       [Threefish_f::External_Key_Words];
+			alignas(u64_t) u8_t catena_salt [Salt_Bytes];
+			alignas(u64_t) u8_t ctr_nonce   [CTR_f::Nonce_Bytes];
+			u64_t               header_size;
+			u8_t                header_id   [sizeof(Dragonfly_V1_ID)];
+			u8_t                g_low;
+			u8_t                g_high;
+			u8_t                lambda;
+			u8_t                use_phi;
+		} pub;
+		// Copy all the fields of the Dragonfly_V1 header from the memory-mapped input file into the pub struct.
+		{
+			memcpy( pub.header_id, in, sizeof(pub.header_id) );
+			in += sizeof(pub.header_id);
+			pub.header_size = (*reinterpret_cast<u64_t*>(in));
+			in += sizeof(u64_t);
+			pub.g_low   = (*in++);
+			pub.g_high  = (*in++);
+			pub.lambda  = (*in++);
+			pub.use_phi = (*in++);
+			memcpy( pub.tweak, in, Tweak_Bytes );
+			in += Tweak_Bytes;
+			memcpy( pub.catena_salt, in, Salt_Bytes );
+			in += Salt_Bytes;
+			memcpy( pub.ctr_nonce, in, CTR_f::Nonce_Bytes );
+			in += CTR_f::Nonce_Bytes;
+		}
+		if( memcmp( pub.header_id, Dragonfly_V1_ID, sizeof(Dragonfly_V1_ID) ) != 0 ) {
+			unmap_file( input_map );
+			unmap_file( output_map );
+			close_os_file( input_map.os_file );
+			close_os_file( output_map.os_file );
+			remove( output_filename );
+			errx( "Error: Not a Dragonfly_V1 encrypted file." );
+		}
+		struct {
+			CTR_Data_t           ctr_data;
+			typename UBI_f::Data ubi_data;
+			union {
+				typename Catena_Strong_f::Data strong;
+				typename Catena_Safe_f::Data   safe;
+			} catena;
+			u64_t                enc_key  [Threefish_f::External_Key_Words];
+			alignas(u64_t) u8_t  auth_key [Block_Bytes];
+			alignas(u64_t) u8_t  hash_buf [Block_Bytes * 2];
+			u8_t                 password [Password_Buffer_Bytes];
+			alignas(u64_t) u8_t  gen_mac  [MAC_Bytes];
+		} secret;
+
+		LOCK_MEMORY (&secret,sizeof(secret));
+
+		int password_size = obtain_password<Password_Buffer_Bytes>( secret.password, Password_Prompt );
+		if( !pub.use_phi ) {
+			memcpy( secret.catena.safe.salt,
+				pub.catena_salt,
+				sizeof(pub.catena_salt) );
+			auto r = Catena_Safe_f::call( &(secret.catena.safe),
+					              secret.hash_buf,
+						      secret.password,
+						      password_size,
+						      pub.g_low,
+						      pub.g_high,
+						      pub.lambda );
+			if( r != Catena_Safe_f::Return_E::Success ) {
+				zero_sensitive( &secret, sizeof(secret) );
+				UNLOCK_MEMORY (&secret,sizeof(secret));
+				unmap_file( output_map );
+				unmap_file( input_map );
+				close_os_file( output_map.os_file );
+				close_os_file( input_map.os_file );
+				remove( output_filename );
+				errx( "Error: Catena_Safe_f failed with error code %d...\n"
+				      "Do you have enough memory to decrypt this file?\n", static_cast<int>(r) );
+			}
+			zero_sensitive( &(secret.catena.safe), sizeof(secret.catena.safe) );
+		} else {
+			memcpy( secret.catena.strong.salt,
+				pub.catena_salt,
+				sizeof(pub.catena_salt) );
+			auto r = Catena_Strong_f::call( &(secret.catena.strong),
+					                secret.hash_buf,
+							secret.password,
+							password_size,
+							pub.g_low,
+							pub.g_high,
+							pub.lambda );
+			if( r != Catena_Strong_f::Return_E::Success ) {
+				zero_sensitive( &secret, sizeof(secret) );
+				UNLOCK_MEMORY (&secret,sizeof(secret));
+				unmap_file( output_map );
+				unmap_file( input_map );
+				close_os_file( output_map.os_file );
+				close_os_file( input_map.os_file );
+				remove( output_filename );
+				errx( "Error: Catena_Strong_f failed with error code %d...\n"
+				      "Do you have enough memory to decrypt this file?\n", static_cast<int>(r) );
+			}
+			zero_sensitive( &(secret.catena.strong), sizeof(secret.catena.strong) );
+		}
+		{// Generate the keys.
+			Skein_f::hash( &(secret.ubi_data),
+				       secret.hash_buf,
+				       secret.hash_buf,
+				       Block_Bytes,
+				       (Block_Bytes * 2) );
+			memcpy( secret.enc_key,
+				secret.hash_buf,
+				Block_Bytes );
+			memcpy( secret.auth_key,
+				secret.hash_buf + Block_Bytes,
+				Block_Bytes );
+			zero_sensitive( secret.hash_buf, sizeof(secret.hash_buf) );
+			{
+				Skein_f::mac( &secret.ubi_data,
+					      secret.gen_mac,
+					      input_map.ptr,
+					      secret.auth_key,
+					      sizeof(secret.gen_mac),
+					      input_map.size - MAC_Bytes );
+				if( constant_time_memcmp( secret.gen_mac, (input_map.ptr + input_map.size - MAC_Bytes), MAC_Bytes ) != 0 ) {
+					zero_sensitive( &crypto, sizeof(crypto) );
+					UNLOCK_MEMORY (&crypto,sizeof(crypto));
+					unmap_file( input_map  );
+					unmap_file( output_map );
+					close_os_file( input_map.os_file );
+					close_os_file( output_map.os_file );
+					remove( output_filename );
+					errx( "Error: Authentication failed.\n"
+					      "Possibilities: Wrong password, the file is corrupted, or it has been tampered with.\n" );
+				}
+			}
+			Threefish_f::rekey( &(secret.ctr_data.threefish_data),
+					    secret.enc_key,
+					    pub.tweak );
+		}
+		u64_t plaintext_size = output_map.size;
+		{
+			u64_t padding_bytes;
+			CTR_f::xorcrypt( &secret.ctr_data,
+					 &padding_bytes,
+					 in,
+					 sizeof(u64_t) );
+			plaintext_size -= padding_bytes;
+			in += (padding_bytes + (sizeof(u64_t) * 2)); // Skip the second word. It is reserved.
+			CTR_f::xorcrypt( &secret.ctr_data,
+					 output_map.ptr,
+					 in,
+					 plaintext_size,
+					 (sizeof(u64_t) * 2) );
+		}
+		zero_sensitive( &secret, sizeof(secret) );
+		UNLOCK_MEMORY (&secret,sizeof(secret));
+		sync_map( output_map );
+		unmap_file( output_map );
+		unmap_file( input_map  );
+		if( plaintext_size != output_map.size )
+			set_os_file_size( output_map.os_file, plaintext_size );
+		close_os_file( output_map.os_file );
+		close_os_file( input_map.os_file  );
+	}/* ~ void decrypt (...) */
 }/* ~ namespace ssc::crypto_impl::dragonfly_v1 */
 #undef UNLOCK_MEMORY
 #undef LOCK_MEMORY

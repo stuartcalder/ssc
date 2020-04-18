@@ -275,6 +275,29 @@ namespace ssc
 #undef SWAP_F__
 #undef SWAP_F
 	}/* ~ Uint_t reverse_byte_order (Uint_t) */
+
+	[[nodiscard]]
+	inline int constant_time_memcmp (_RESTRICT (void const *) left,
+			                 _RESTRICT (void const *) right,
+					 size_t const             size)
+	{
+		int non_equal_bytes = 0;
+		_CTIME_CONST (u8_t) One_Mask = 0b0000'0001;
+		for( size_t i = 0; i < size; ++i ) {
+			u8_t b = reinterpret_cast<u8_t const*>(left)[ i ] ^
+				 reinterpret_cast<u8_t const*>(right)[ i ];
+			non_equal_bytes += ( (b >> 7) |
+					    ((b >> 6) & One_Mask) |
+					    ((b >> 5) & One_Mask) |
+					    ((b >> 4) & One_Mask) |
+					    ((b >> 3) & One_Mask) |
+					    ((b >> 2) & One_Mask) |
+					    ((b >> 1) & One_Mask) |
+					    (b & One_Mask)
+					   );
+		}
+		return non_equal_bytes;
+	}
 	
 }/* ~ namespace ssc */
 #undef STATIC_ENFORCE_UNSIGNED_INTEGRAL
