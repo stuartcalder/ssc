@@ -18,10 +18,6 @@ ssc_src = [
 	'general/arg_mapping.cc',
 	'general/print.cc',
 	'general/parse_string.cc',
-	# `Crypto` Files
-	'crypto/implementation/sspkdf.cc',
-	#####'crypto/implementation/cbc_v2.cc',
-	'crypto/implementation/cbc_v2_f.cc'
 	]
 lib_deps  = []
 cpp_flags = []
@@ -56,12 +52,12 @@ if get_option('disable_runtime_checks')
 	_flag = _Define_Flag_Prefix + '__SSC_DISABLE_RUNTIME_CHECKS'
 	cpp_flags += _flag
 endif
-if get_option('enable_cbc_v2')
-	###ssc_src += 'crypto/implementation/cbc_v2.cc'
-	ssc_src += 'crypto/implementation/cbc_v2_f.cc'
+if get_option('enable_dragonfly_v1')
+	ssc_src += 'crypto/implementation/dragonfly_v1.cc'
 endif
-if get_option('enable_ctr_v1')
-	ssc_src += 'crypto/implementation/ctr_v1.cc'
+if get_option('enable_cbc_v2')
+	ssc_src += 'crypto/implementation/cbc_v2_f.cc'
+	ssc_src += 'crypto/implementation/sspkdf.cc'
 endif
 if get_option('enable_debugging_symbols') and cc.get_id() == 'gcc' or cc.get_id() == 'clang'
 	cpp_flags += '-g'

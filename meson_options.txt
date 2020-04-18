@@ -2,9 +2,9 @@
 option('disable_memorylocking',  type: 'boolean', value: false)
 # By default, we enable runtime checks, for safety.
 option('disable_runtime_checks', type: 'boolean', value: false)
-# By default, we enable cbc_v2 as the default and only supported crypto method.
+# By default we enable dragonfly_v1 as the default crypto method.
+option('enable_dragonfly_v1', type: 'boolean', value: true)
+# By default, we enable cbc_v2, for decrypting legacy files.
 option('enable_cbc_v2', type: 'boolean', value: true)
-# By default we do not enable ctr_v1.
-option('enable_ctr_v1', type: 'boolean', value: false)
 # By default we do not enable debugging symbols.
 option('enable_debugging_symbols', type: 'boolean', value: false)
