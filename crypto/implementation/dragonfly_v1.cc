@@ -384,6 +384,66 @@ namespace ssc::crypto_impl::dragonfly_v1
 		close_os_file( output_map.os_file );
 		close_os_file( input_map.os_file  );
 	}/* ~ void decrypt (...) */
+	void dump_header (OS_Map &input_map,
+			  char const *input_filename)
+	{
+		_CTIME_CONST (int) Minimum_Size = Visible_Metadata_Bytes + 1;
+		if( input_map.size < Minimum_Size ) {
+			unmap_file( input_map );
+			close_os_file( input_map.os_file );
+			errx( "File `%s` looks too small to be SSC_Dragonfly_V1 encrypted\n", input_filename );
+		}
+		struct {
+			u8_t id     [sizeof(Dragonfly_V1_ID)];
+			u64_t total_size;
+			u8_t  g_low;
+			u8_t  g_high;
+			u8_t  lambda;
+			u8_t  use_phi;
+			u8_t  tweak [Tweak_Bytes];
+			u8_t  salt  [Salt_Bytes];
+			u8_t  nonce [CTR_f::Nonce_Bytes];
+		} header;
+		u8_t mac [MAC_Bytes];
+		{
+			u8_t const *p = input_map.ptr;
+			memcpy( header.id, sizeof(header.id) );
+			p += sizeof(header.id);
+			header.total_size = (*reinterpret_cast<u64_t*>(p));
+			p += sizeof(header.total_size);
+			header.g_low   = (*p++);
+			header.g_high  = (*p++);
+			header.lambda  = (*p++);
+			header.use_phi = (*p++);
+			memcpy( header.tweak, p, sizeof(header.tweak) );
+			p += sizeof(header.tweak);
+			memcpy( header.salt, p, sizeof(header.salt) );
+			p += sizeof(header.salt);
+			memcpy( header.nonce, p, sizeof(header.nonce) );
+			p += sizeof(header.nonce);
+			p = os_map.ptr + os_map.size - MAC_Bytes;
+			memcpy( mac, p, sizeof(mac) );
+		}
+		unmap_file( input_map );
+		close_os_file( input_map.os_file );
+
+		header.id[ sizeof(header.id) - 1 ] = '\0';
+		fprintf( stdout, "File Header ID : %s\n", reinterpret_cast<char*>(header.id) );
+		fprintf( stdout, "File Size      : %zu\n", header.total_size );
+		fprintf( stdout, "Garlic Low: %c\n", header.g_low );
+		fprintf( stdout, "Garlic High: %c\n", header.g_high );
+		fprintf( stdout, "Lambda: %c\n", header.lambda );
+		if( !header.use_phi )
+			fprintf( stdout, "The Phi function is not used.\n" );
+		else
+			fprintf( stdout, "The Phi function is used!\n" );
+		fputs(           "Threefish Tweak : ", stdout );
+		print_integral_buffer<u8_t>( header.tweak, sizeof(header.tweak) );
+		fputs(           "Catena Salt : ", stdout );
+		print_integral_buffer<u8_t>( header.salt, sizeof(header.salt) );
+		fputs(           "CTR Salt : ", stdout );
+		print_integral_buffer<u8_t>( header.nonce, sizeof(header.nonce) );
+	}
 }/* ~ namespace ssc::crypto_impl::dragonfly_v1 */
 #undef UNLOCK_MEMORY
 #undef LOCK_MEMORY
