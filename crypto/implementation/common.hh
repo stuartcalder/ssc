@@ -73,6 +73,13 @@ namespace ssc::crypto_impl
 		u32_t	    number_iterations; // Number of times to iterate SSPKDF.
 		u32_t	    number_concatenations; // Number of times to concatenate password together in SSPKDF.
 	};
+	struct _PUBLIC Catena_Input {
+		bool supplement_os_entropy;
+		u8_t g_low;
+		u8_t g_high;
+		u8_t lambda;
+		u8_t use_phi;
+	};
 
 	inline void supplement_entropy (_RESTRICT (typename CSPRNG_f::Data *) data,
 			                _RESTRICT (u8_t *)                    hash,

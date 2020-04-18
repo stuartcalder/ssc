@@ -29,14 +29,14 @@ namespace ssc
 
 		static inline void initialize_seed (Data *data);
 
-		static void        reseed          (_RESTRICT (Data *)       data,
-				                    _RESTRICT (u8_t const *) seed);
+		static void reseed (_RESTRICT (Data *)       data,
+			            _RESTRICT (u8_t const *) seed);
 
-		static void        os_reseed       (Data *data);
+		static void os_reseed (Data *data);
 
-		static void        get             (_RESTRICT (Data *) data,
-				                    _RESTRICT (u8_t *) output,
-						    u64_t              requested_bytes);
+		static void get (_RESTRICT (Data *) data,
+				 _RESTRICT (u8_t *) output,
+				 u64_t              requested_bytes);
 	};
 
 	TEMPLATE_ARGS

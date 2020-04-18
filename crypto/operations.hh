@@ -264,11 +264,11 @@ namespace ssc
 #else
 #	error 'Unsupported OS'
 #endif
-		if constexpr(std::is_same<Uint_t,u16_t>::value) {
+		if constexpr (std::is_same<Uint_t,u16_t>::value) {
 			return SWAP_F (SIZE (16,ushort),u);
-		} else if constexpr(std::is_same<Uint_t,u32_t>::value) {
+		} else if constexpr (std::is_same<Uint_t,u32_t>::value) {
 			return SWAP_F (SIZE (32,ulong),u);
-		} else if constexpr(std::is_same<Uint_t,u64_t>::value) {
+		} else if constexpr (std::is_same<Uint_t,u64_t>::value) {
 			return SWAP_F (SIZE (64,uint64),u);
 		}
 #undef SIZE
