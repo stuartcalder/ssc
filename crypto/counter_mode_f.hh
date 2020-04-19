@@ -43,9 +43,9 @@ namespace ssc
 
 		Counter_Mode_F (void) = delete;
 
-		inline void set_nonce (_RESTRICT (Data       *) data,
+		static inline void set_nonce (_RESTRICT (Data       *) data,
 				       _RESTRICT (u8_t const *) nonce);
-		void xorcrypt (_RESTRICT (Data *) data,
+		static void xorcrypt (_RESTRICT (Data *) data,
 			       u8_t               *output,
 			       u8_t const         *input,
 			       u64_t              input_size,

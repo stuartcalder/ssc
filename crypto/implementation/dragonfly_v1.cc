@@ -184,7 +184,7 @@ namespace ssc::crypto_impl::dragonfly_v1
 			CTR_f::xorcrypt( &(secret.ctr_data),
 					 out,
 					 input_map.ptr,
-					 inpupt_map.size,
+					 input_map.size,
 					 Zeroes );
 			out += input_map.size;
 		}
@@ -238,7 +238,7 @@ namespace ssc::crypto_impl::dragonfly_v1
 		{
 			memcpy( pub.header_id, in, sizeof(pub.header_id) );
 			in += sizeof(pub.header_id);
-			pub.header_size = (*reinterpret_cast<u64_t*>(in));
+			pub.header_size = (*reinterpret_cast<u64_t const*>(in));
 			in += sizeof(u64_t);
 			pub.g_low   = (*in++);
 			pub.g_high  = (*in++);
@@ -344,8 +344,8 @@ namespace ssc::crypto_impl::dragonfly_v1
 					      sizeof(secret.gen_mac),
 					      input_map.size - MAC_Bytes );
 				if( constant_time_memcmp( secret.gen_mac, (input_map.ptr + input_map.size - MAC_Bytes), MAC_Bytes ) != 0 ) {
-					zero_sensitive( &crypto, sizeof(crypto) );
-					UNLOCK_MEMORY (&crypto,sizeof(crypto));
+					zero_sensitive( &secret, sizeof(secret) );
+					UNLOCK_MEMORY (&secret,sizeof(secret));
 					unmap_file( input_map  );
 					unmap_file( output_map );
 					close_os_file( input_map.os_file );
@@ -363,7 +363,7 @@ namespace ssc::crypto_impl::dragonfly_v1
 		{
 			u64_t padding_bytes;
 			CTR_f::xorcrypt( &secret.ctr_data,
-					 &padding_bytes,
+					 reinterpret_cast<u8_t*>(&padding_bytes),
 					 in,
 					 sizeof(u64_t) );
 			plaintext_size -= padding_bytes;
@@ -407,9 +407,9 @@ namespace ssc::crypto_impl::dragonfly_v1
 		u8_t mac [MAC_Bytes];
 		{
 			u8_t const *p = input_map.ptr;
-			memcpy( header.id, sizeof(header.id) );
+			memcpy( header.id, p, sizeof(header.id) );
 			p += sizeof(header.id);
-			header.total_size = (*reinterpret_cast<u64_t*>(p));
+			header.total_size = (*reinterpret_cast<u64_t const*>(p));
 			p += sizeof(header.total_size);
 			header.g_low   = (*p++);
 			header.g_high  = (*p++);
@@ -421,7 +421,7 @@ namespace ssc::crypto_impl::dragonfly_v1
 			p += sizeof(header.salt);
 			memcpy( header.nonce, p, sizeof(header.nonce) );
 			p += sizeof(header.nonce);
-			p = os_map.ptr + os_map.size - MAC_Bytes;
+			p = input_map.ptr + input_map.size - MAC_Bytes;
 			memcpy( mac, p, sizeof(mac) );
 		}
 		unmap_file( input_map );

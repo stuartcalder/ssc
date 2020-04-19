@@ -76,10 +76,6 @@ namespace ssc
 		//                 Tweak Size =>   H(V) || d || lambda || m || |s|
 		_CTIME_CONST (int)   Tweak_Bytes  = Skein_Bytes + 1 + 1 + 2 + 2;
 		/* CONSTANTS DERIVED FROM TEMPLATE ARGUMENTS */
-		_CTIME_CONST (auto&) Version_ID_Hash = Metadata_t::Version_ID_Hash; // The version ID hash is supplied by the memory-hard function.
-		static_assert (std::is_same<typename std::decay<decltype(Version_ID_Hash)>::type,
-				            u8_t*>::value, "The Version_ID_Hash must decay into a u8_t pointer");
-		static_assert (sizeof(Version_ID_Hash) == Skein_Bytes, "The Version_ID_Hash must be Skein_Bytes large");
 
 		enum class Domain_E : u8_t {
 			Password_Scrambler = 0x00,
@@ -203,13 +199,13 @@ namespace ssc
 	TEMPLATE_ARGS
 	void CLASS::make_tweak_ (Data *data, u8_t const lambda)
 	{
-		static_assert (sizeof(Version_ID_Hash) == Skein_Bytes);
+		static_assert (sizeof(Metadata_t::Version_ID_Hash) == Skein_Bytes);
 		static_assert (Output_Bytes <= (std::numeric_limits<u16_t>::max)());
 		static_assert (Salt_Bytes   <= (std::numeric_limits<u16_t>::max)());
 
 		u8_t *t = data->temp.tw_pw_slt; // Get a pointer to the beginning of temp.tw_pw_slt
-		std::memcpy( t, Version_ID_Hash, sizeof(Version_ID_Hash) ); // Copy the version_id hash in
-		t += sizeof(Version_ID_Hash); // Increment to the domain offset
+		std::memcpy( t, Metadata_t::Version_ID_Hash, Skein_Bytes ); // Copy the version_id hash in
+		t += sizeof(Metadata_t::Version_ID_Hash); // Increment to the domain offset
 		(*t) = static_cast<u8_t>(Domain_E::Key_Derivation_Function); // Copy the domain offset in
 		++t; // Increment to the lambda offset
 		(*t) = lambda; // Copy the lambda in
@@ -322,6 +318,8 @@ namespace ssc
 			COPY_HASH_WORD (data->x_buffer,
 					INDEX_HASH_WORD (GRAPH_MEM,max_hash_index));
 		}
+#undef GRAPH_MEM
+#undef TEMP_MEM
 	}
 
 	TEMPLATE_ARGS
@@ -349,11 +347,11 @@ namespace ssc
 				      Salt_And_Garlic_Size );// input size
 		u64_t const count = static_cast<u64_t>(1) << (((3 * garlic) + 3) / 4);
 		for( u64_t i = 0; i < count; ++i ) {
-			Skein_f::hash( &(data->ubi_data),   // UBI Data
-				       TEMP_MEM.rng,// output
-				       TEMP_MEM.rng,// input
-				       Skein_Bytes,         // input size
-				       RNG_Output_Size );   // output size
+			Skein_f::hash( &(data->ubi_data),// UBI Data
+				       TEMP_MEM.rng,     // output
+				       TEMP_MEM.rng,     // input
+				       Skein_Bytes,      // input size
+				       RNG_Output_Size );// output size
 
 			_CTIME_CONST (int) J1_Offset = Skein_Bytes;
 			_CTIME_CONST (int) J2_Offset = J1_Offset + sizeof(u64_t);
@@ -369,6 +367,8 @@ namespace ssc
 					INDEX_HASH_WORD (GRAPH_MEM        ,j1),
 					INDEX_HASH_WORD (TEMP_MEM.word_buf, 0));
 		}
+#undef GRAPH_MEM
+#undef TEMP_MEM
 	}/* ~ void gamma_(Data*,u8_t const) */
 	TEMPLATE_ARGS
 	void CLASS::phi_ (Data       *data,

@@ -13,7 +13,7 @@ namespace ssc
 		bool success = true;
 		std::string s;
 		for (char const ch : str)
-			if (isdigit( ch ))
+			if (isdigit( static_cast<unsigned char>(ch) ))
 				s += ch;
 		if (s.empty())
 			success = false;

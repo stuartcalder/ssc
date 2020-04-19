@@ -93,9 +93,6 @@ namespace ssc::crypto_impl::dragonfly_v1
 					 Max_Password_Bits,
 					 true,
 					 true>;
-	static_assert (std::is_same<decltype(&(Catena_Safe_f::call)),
-			            decltype(&(Catena_Strong_f::call))>::value,
-				    "Catena_Safe_f and Catena_Strong_f have the same call arguments.");
 	void _PUBLIC encrypt (Catena_Input const &catena_input,
 			      OS_Map             &input_map,
 			      OS_Map             &output_map,

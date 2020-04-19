@@ -52,7 +52,7 @@ namespace ssc
 	{
 	public:
 		static_assert (CHAR_BIT == 8);
-		static_assert (Skein_Bits == 256 || Skein_Bits == 512 || Skein_Bits = 1024);
+		static_assert (Skein_Bits == 256 || Skein_Bits == 512 || Skein_Bits == 1024);
 		_CTIME_CONST (int) Skein_Bytes = Skein_Bits / CHAR_BIT;
 		_CTIME_CONST (int) Temp_Bytes = Skein_Bytes * 2;
 		using UBI_f      = Unique_Block_Iteration_F<Skein_Bits>;
