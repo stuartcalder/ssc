@@ -2,7 +2,6 @@
 /* SSC General Headers */
 #include <ssc/general/integers.hh>
 #include <ssc/general/macros.hh>
-#include <ssc/general/types.hh>
 #include <ssc/general/error_conditions.hh>
 #include <ssc/general/abstract.hh>
 /* SSC Crypto Headers */
