@@ -106,44 +106,29 @@ namespace ssc
 		static_assert ((Block_Bits % CHAR_BIT == 0), "Bits must be a multiple of bytes");
 		_CTIME_CONST(int) Block_Bytes = Block_Bits / CHAR_BIT;
 		if constexpr(Block_Bits == 128) {
-			u64_t       *first_dword  = static_cast<u64_t *>(block);
-			u64_t const *second_dword = static_cast<u64_t const *>(add);
-			static_assert (Block_Bits / 64 == 2);
-			first_dword[ 0 ] ^= second_dword[ 0 ];
-			first_dword[ 1 ] ^= second_dword[ 1 ];
+			reinterpret_cast<u64_t*>(block)[ 0 ] ^= reinterpret_cast<u64_t const*>(add)[ 0 ];
+			reinterpret_cast<u64_t*>(block)[ 1 ] ^= reinterpret_cast<u64_t const*>(add)[ 1 ];
 		} else if constexpr(Block_Bits == 256) {
-			u64_t       *first_dword  = static_cast<u64_t *>(block);
-			u64_t const *second_dword = static_cast<u64_t const *>(add);
-
-			static_assert (Block_Bits / 64 == 4);
-			first_dword[ 0 ] ^= second_dword[ 0 ];
-			first_dword[ 1 ] ^= second_dword[ 1 ];
-			first_dword[ 2 ] ^= second_dword[ 2 ];
-			first_dword[ 3 ] ^= second_dword[ 3 ];
+			reinterpret_cast<u64_t*>(block)[ 0 ] ^= reinterpret_cast<u64_t const*>(add)[ 0 ];
+			reinterpret_cast<u64_t*>(block)[ 1 ] ^= reinterpret_cast<u64_t const*>(add)[ 1 ];
+			reinterpret_cast<u64_t*>(block)[ 2 ] ^= reinterpret_cast<u64_t const*>(add)[ 2 ];
+			reinterpret_cast<u64_t*>(block)[ 3 ] ^= reinterpret_cast<u64_t const*>(add)[ 3 ];
 		} else if constexpr(Block_Bits == 512) {
-			u64_t       *first_dword  = static_cast<u64_t *>(block);
-			u64_t const *second_dword = static_cast<u64_t const *>(add);
-
-			static_assert (Block_Bits / 64 == 8);
-			first_dword[ 0 ] ^= second_dword[ 0 ];
-			first_dword[ 1 ] ^= second_dword[ 1 ];
-			first_dword[ 2 ] ^= second_dword[ 2 ];
-			first_dword[ 3 ] ^= second_dword[ 3 ];
-			first_dword[ 4 ] ^= second_dword[ 4 ];
-			first_dword[ 5 ] ^= second_dword[ 5 ];
-			first_dword[ 6 ] ^= second_dword[ 6 ];
-			first_dword[ 7 ] ^= second_dword[ 7 ];
+			reinterpret_cast<u64_t*>(block)[ 0 ] ^= reinterpret_cast<u64_t const*>(add)[ 0 ];
+			reinterpret_cast<u64_t*>(block)[ 1 ] ^= reinterpret_cast<u64_t const*>(add)[ 1 ];
+			reinterpret_cast<u64_t*>(block)[ 2 ] ^= reinterpret_cast<u64_t const*>(add)[ 2 ];
+			reinterpret_cast<u64_t*>(block)[ 3 ] ^= reinterpret_cast<u64_t const*>(add)[ 3 ];
+			reinterpret_cast<u64_t*>(block)[ 4 ] ^= reinterpret_cast<u64_t const*>(add)[ 4 ];
+			reinterpret_cast<u64_t*>(block)[ 5 ] ^= reinterpret_cast<u64_t const*>(add)[ 5 ];
+			reinterpret_cast<u64_t*>(block)[ 6 ] ^= reinterpret_cast<u64_t const*>(add)[ 6 ];
+			reinterpret_cast<u64_t*>(block)[ 7 ] ^= reinterpret_cast<u64_t const*>(add)[ 7 ];
 		} else if constexpr((Block_Bits > 512) && (Block_Bits % 64 == 0)) {
 			_CTIME_CONST(int) Number_Words = Block_Bits / 64;
-			u64_t       *first_dword  = static_cast<u64_t *>(block);
-			u64_t const *second_dword = static_cast<u64_t const *>(add);
-			for (int i = 0; i < Number_Words; ++i)
-				first_dword[ i ] ^= second_dword[ i ];
+			for( int i = 0; i < Number_Words; ++i )
+				reinterpret_cast<u64_t*>(block)[ i ] ^= reinterpret_cast<u64_t const*>(add)[ i ];
 		} else {
-			u8_t            *first_byte  = static_cast<u8_t *>(block);
-			u8_t const	*second_byte = static_cast<u8_t const *>(add);
-			for (int i = 0; i < Block_Bytes; ++i)
-				first_byte[ i ] ^= second_byte[ i ];
+			for( int i = 0; i < Block_Bytes; ++i )
+				reinterpret_cast<u8_t*>(block)[ i ] ^= reinterpret_cast<u8_t const*>(add)[ i ];
 		}
 	}/* ~ xor_block(void*,void*) */
 

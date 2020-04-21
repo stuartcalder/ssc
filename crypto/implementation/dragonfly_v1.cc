@@ -439,22 +439,9 @@ namespace ssc::crypto_impl::dragonfly_v1
 		header.id[ sizeof(header.id) - 1 ] = '\0';
 		fprintf( stdout, "File Header ID : %s\n", reinterpret_cast<char*>(header.id) );
 		fprintf( stdout, "File Size      : %zu\n", header.total_size );
-		fprintf( stdout, "Garlic Low:  %u\n", static_cast<unsigned int>(header.g_low) );
-		fprintf( stdout, "Garlic High: %u\n", static_cast<unsigned int>(header.g_high) );
-		fprintf( stdout, "Lambda:      %u\n", static_cast<unsigned int>(header.lambda) );
-#if 0
-		fprintf( stdout, "Garlic Low: %c\n", header.g_low );
-		fprintf( stdout, "Garlic High: %c\n", header.g_high );
-		fprintf( stdout, "Lambda: %c\n", header.lambda );
-#endif
-#if 0
-		fprintf( stdout, "Garlic Low\n");
-		print_integral_buffer<u8_t>( &header.g_low, sizeof(header.g_low) );
-		fprintf( stdout, "Garlic High:\n" );
-		print_integral_buffer<u8_t>( &header.g_high, sizeof(header.g_high) );
-		fprintf( stdout, "Lambda:\n" );
-		print_integral_buffer<u8_t>( &header.lambda, sizeof(header.lambda) );
-#endif
+		fprintf( stdout, "Garlic Low     : %d\n", static_cast<int>(header.g_low) );
+		fprintf( stdout, "Garlic High    : %d\n", static_cast<int>(header.g_high) );
+		fprintf( stdout, "Lambda         : %d\n", static_cast<int>(header.lambda) );
 		if( !header.use_phi )
 			fprintf( stdout, "The Phi function is not used.\n" );
 		else
@@ -465,6 +452,9 @@ namespace ssc::crypto_impl::dragonfly_v1
 		print_integral_buffer<u8_t>( header.salt, sizeof(header.salt) );
 		fputs(         "\nCTR Nonce:\n", stdout );
 		print_integral_buffer<u8_t>( header.nonce, sizeof(header.nonce) );
+		fputs(         "\nSkein-MAC:\n", stdout );
+		print_integral_buffer<u8_t>( mac, sizeof(mac) );
+		puts( "" );
 	}
 }/* ~ namespace ssc::crypto_impl::dragonfly_v1 */
 #undef UNLOCK_MEMORY
