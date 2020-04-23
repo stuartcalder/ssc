@@ -74,6 +74,7 @@ namespace ssc::crypto_impl
 		u32_t	    number_concatenations; // Number of times to concatenate password together in SSPKDF.
 	};
 	struct _PUBLIC Catena_Input {
+		u64_t padding_bytes;
 		bool supplement_os_entropy;
 		u8_t g_low;
 		u8_t g_high;

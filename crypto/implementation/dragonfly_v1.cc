@@ -21,7 +21,7 @@ namespace ssc::crypto_impl::dragonfly_v1
 		      char const         *output_filename)
 	{
 		{// Setup the output map.
-			output_map.size = input_map.size + Visible_Metadata_Bytes;// Assume the output file's size to be the plaintext size with a visible header.
+			output_map.size = input_map.size + Visible_Metadata_Bytes + catena_input.padding_bytes;// Assume the output file's size to be the plaintext size with a visible header.
 			set_os_file_size( output_map.os_file, output_map.size );// Set the output file's size.
 			map_file( output_map, false ); // Memory-map the output file, not readonly.
 		}
@@ -175,6 +175,7 @@ namespace ssc::crypto_impl::dragonfly_v1
 		memcpy( out, pub.ctr_nonce, CTR_f::Nonce_Bytes );        // Copy the CTR mode nonce in.
 		out += CTR_f::Nonce_Bytes;
 		// Setup the to-be-encrypted portion of the header.
+#if 0
 		{
 			_CTIME_CONST (int) Zeroes = sizeof(u64_t) * 2;
 			{
@@ -195,6 +196,34 @@ namespace ssc::crypto_impl::dragonfly_v1
 					 Zeroes ); // Encrypt the input file, outputting the payload.
 			out += input_map.size;
 		}
+#else
+		{
+			u64_t crypt_header [2] = { 0 };
+			crypt_header[ 0 ] = catena_input.padding_bytes;
+			CTR_f::set_nonce( &(secret.ctr_data),
+					  pub.ctr_nonce );
+			CTR_f::xorcrypt( &(secret.ctr_data),
+					 out,
+					 reinterpret_cast<u8_t*>(crypt_header),
+					 sizeof(crypt_header) );
+			out += sizeof(crypt_header);
+			if( catena_input.padding_bytes != 0 ) {
+				CTR_f::xorcrypt( &(secret.ctr_data),
+						 out,
+						 out,
+						 catena_input.padding_bytes,
+						 sizeof(crypt_header) );
+				out += catena_input.padding_bytes;
+			}
+			CTR_f::xorcrypt( &(secret.ctr_data),
+					 out,
+					 input_map.ptr,
+					 input_map.size,
+					 sizeof(crypt_header) + catena_input.padding_bytes );
+			out += input_map.size;
+
+		}
+#endif
 		{
 			Skein_f::mac( &(secret.ubi_data),
 				      out,
@@ -227,8 +256,10 @@ namespace ssc::crypto_impl::dragonfly_v1
 			close_os_file( input_map.os_file );
 			errx( "Error: Input file doesn't appear to be large enough to be a SSC_DRAGONFLY_V1 encrypted file\n" );
 		}
+#if 0
 		set_os_file_size( output_map.os_file, output_map.size );
 		map_file( output_map, false );
+#endif
 		u8_t const *in = input_map.ptr;
 		struct {
 			u64_t               tweak       [Threefish_f::External_Key_Words];
@@ -260,8 +291,10 @@ namespace ssc::crypto_impl::dragonfly_v1
 		}
 		if( memcmp( pub.header_id, Dragonfly_V1_ID, sizeof(Dragonfly_V1_ID) ) != 0 ) {
 			unmap_file( input_map );
-			unmap_file( output_map );
 			close_os_file( input_map.os_file );
+#if 0
+			unmap_file( output_map );
+#endif
 			close_os_file( output_map.os_file );
 			remove( output_filename );
 			errx( "Error: Not a Dragonfly_V1 encrypted file." );
@@ -297,7 +330,9 @@ namespace ssc::crypto_impl::dragonfly_v1
 			if( r != Catena_Safe_f::Return_E::Success ) {
 				zero_sensitive( &secret, sizeof(secret) );
 				UNLOCK_MEMORY (&secret,sizeof(secret));
+#if 0
 				unmap_file( output_map );
+#endif
 				unmap_file( input_map );
 				close_os_file( output_map.os_file );
 				close_os_file( input_map.os_file );
@@ -320,7 +355,9 @@ namespace ssc::crypto_impl::dragonfly_v1
 			if( r != Catena_Strong_f::Return_E::Success ) {
 				zero_sensitive( &secret, sizeof(secret) );
 				UNLOCK_MEMORY (&secret,sizeof(secret));
+#if 0
 				unmap_file( output_map );
+#endif
 				unmap_file( input_map );
 				close_os_file( output_map.os_file );
 				close_os_file( input_map.os_file );
@@ -354,7 +391,9 @@ namespace ssc::crypto_impl::dragonfly_v1
 					zero_sensitive( &secret, sizeof(secret) );
 					UNLOCK_MEMORY (&secret,sizeof(secret));
 					unmap_file( input_map  );
+#if 0
 					unmap_file( output_map );
+#endif
 					close_os_file( input_map.os_file );
 					close_os_file( output_map.os_file );
 					remove( output_filename );
@@ -366,30 +405,42 @@ namespace ssc::crypto_impl::dragonfly_v1
 					    secret.enc_key,
 					    pub.tweak );
 		}
+#if 0
 		u64_t plaintext_size = output_map.size;
+#endif
 		{
+			// Set the nonce.
 			CTR_f::set_nonce( &(secret.ctr_data),
 					  pub.ctr_nonce );
 			u64_t padding_bytes;
+			// Decrypt the padding bytes.
 			CTR_f::xorcrypt( &secret.ctr_data,
 					 reinterpret_cast<u8_t*>(&padding_bytes),
 					 in,
 					 sizeof(u64_t) );
+#if 0
 			plaintext_size -= padding_bytes;
+#else
+			output_map.size -= padding_bytes;
+			set_os_file_size( output_map.os_file, output_map.size );
+			map_file( output_map, false );
+#endif
 			in += (padding_bytes + (sizeof(u64_t) * 2)); // Skip the second word. It is reserved.
 			CTR_f::xorcrypt( &secret.ctr_data,
 					 output_map.ptr,
 					 in,
-					 plaintext_size,
-					 (sizeof(u64_t) * 2) );
+					 output_map.size,
+					 (sizeof(u64_t) * 2) + padding_bytes );
 		}
 		zero_sensitive( &secret, sizeof(secret) );
 		UNLOCK_MEMORY (&secret,sizeof(secret));
 		sync_map( output_map );
 		unmap_file( output_map );
 		unmap_file( input_map  );
+#if 0
 		if( plaintext_size != output_map.size )
 			set_os_file_size( output_map.os_file, plaintext_size );
+#endif
 		close_os_file( output_map.os_file );
 		close_os_file( input_map.os_file  );
 	}/* ~ void decrypt (...) */
