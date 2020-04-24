@@ -1,6 +1,10 @@
 #include "dragonfly_v1.hh"
 using namespace std;
 
+// Just in case we need to do this.
+#define __STDC_FORMAT_MACROS
+#include <cinttypes>
+
 #if    defined (LOCK_MEMORY) || defined (UNLOCK_MEMORY)
 #       error 'Some MACRO we need was already defined'
 #endif
@@ -489,7 +493,7 @@ namespace ssc::crypto_impl::dragonfly_v1
 
 		header.id[ sizeof(header.id) - 1 ] = '\0';
 		fprintf( stdout, "File Header ID : %s\n", reinterpret_cast<char*>(header.id) );
-		fprintf( stdout, "File Size      : %zu\n", header.total_size );
+		fprintf( stdout, "File Size      : %" PRIu64 "\n", header.total_size );
 		fprintf( stdout, "Garlic Low     : %d\n", static_cast<int>(header.g_low) );
 		fprintf( stdout, "Garlic High    : %d\n", static_cast<int>(header.g_high) );
 		fprintf( stdout, "Lambda         : %d\n", static_cast<int>(header.lambda) );

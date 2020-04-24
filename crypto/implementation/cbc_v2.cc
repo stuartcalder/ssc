@@ -3,18 +3,26 @@ Copyright (c) 2019-2020 Stuart Steven Calder
 All rights reserved.
 See accompanying LICENSE file for licensing information.
 */
+/* C Std */
+// Just in case we need to do this.
+#define __STDC_FORMAT_MACROS
+#include <cinttypes>
 #include <cstdio>
-
+/* SSC Crypto */
 #include <ssc/crypto/operations.hh>
+/* SSC General */
 #include <ssc/general/macros.hh>
 #include <ssc/general/print.hh>
 #include <ssc/general/error_conditions.hh>
 #include <ssc/general/abstract.hh>
+/* SSC Files */
 #include <ssc/files/files.hh>
 #include <ssc/files/os_map.hh>
+/* SSC Interface */
 #include <ssc/interface/terminal.hh>
+/* SSC Memory */
 #include <ssc/memory/os_memory_locking.hh>
-
+/* C++ Local */
 #include "sspkdf.hh"
 #include "cbc_v2.hh"
 
@@ -262,7 +270,7 @@ namespace ssc::crypto_impl::cbc_v2
 			close_os_file( input_map.os_file );
 			close_os_file( output_map.os_file );
 			remove( output_filename );
-			errx( "Error: Input file size (%zu) does not equal file size in the file header of the input file (%zu)\n", input_map.size, header.total_size );
+			errx( "Error: Input file size (%" PRIu64 ") does not equal file size in the file header of the input file (%" PRIu64 ")\n", input_map.size, header.total_size );
 		}
 		_CTIME_CONST(int) Locked_Buffer_Size = []() -> int {
 			int size = 0;
@@ -404,7 +412,7 @@ namespace ssc::crypto_impl::cbc_v2
 		close_os_file( os_map.os_file );
 
 		fprintf( stdout,   "File Header ID             : %s\n", header.id );
-		fprintf( stdout,   "File Size                  : %zu\n", header.total_size );
+		fprintf( stdout,   "File Size                  : %" PRIu64 "\n", header.total_size );
 		fputs  (           "Threefish Tweak            : ", stdout );
 		print_integral_buffer<u8_t>( header.tweak, sizeof(header.tweak) );
 		fputs  (         "\nSSPKDF Salt                : ", stdout );
