@@ -205,10 +205,8 @@ namespace ssc
 		u8_t *t = data->temp.tw_pw_slt; // Get a pointer to the beginning of temp.tw_pw_slt
 		std::memcpy( t, Metadata_t::Version_ID_Hash, Skein_Bytes ); // Copy the version_id hash in
 		t += sizeof(Metadata_t::Version_ID_Hash); // Increment to the domain offset
-		(*t) = static_cast<u8_t>(Domain_E::Key_Derivation_Function); // Copy the domain offset in
-		++t; // Increment to the lambda offset
-		(*t) = lambda; // Copy the lambda in
-		++t; // Increment to the output size offset
+		(*t++) = static_cast<u8_t>(Domain_E::Key_Derivation_Function); // Copy the domain offset in
+		(*t++) = lambda; // Copy the lambda in
 		*(reinterpret_cast<u16_t*>(t)) = static_cast<u16_t>(Output_Bytes); // Copy the output size in
 		t += sizeof(u16_t); // Increment to the salt size offset
 		*(reinterpret_cast<u16_t*>(t)) = static_cast<u16_t>(Salt_Bytes); // Copy in the salt size
@@ -225,11 +223,33 @@ namespace ssc
 		// flap[ 0, 1, 2 ] <-- layout
 #define TEMP_MEM  data->temp.flap
 #define GRAPH_MEM data->graph_memory
-		Skein_f::hash( &(data->ubi_data),
-			       INDEX_HASH_WORD (TEMP_MEM,0),      // Output
-			       INDEX_HASH_WORD (data->x_buffer,0),// Input
-			       Skein_Bytes,                       // Input size
-			       (Skein_Bytes * 2) );               // Output size
+		if constexpr (Skein_Bytes == 64) {
+			_CTIME_CONST (u8_t) Config [Skein_Bytes] = {
+				0x54, 0x5e, 0x7a, 0x4c, 0x78, 0x32, 0xaf, 0xdb,
+				0xc7, 0xab, 0x18, 0xd2, 0x87, 0xd9, 0xe6, 0x2d,
+				0x41, 0x08, 0x90, 0x3a, 0xcb, 0xa9, 0xa3, 0xae,
+				0x31, 0x08, 0xc7, 0xe4, 0x0e, 0x0e, 0x55, 0xa0,
+				0xc3, 0x9c, 0xa8, 0x5d, 0x6c, 0xd2, 0x46, 0x71,
+				0xba, 0x1b, 0x58, 0x66, 0x31, 0xa3, 0xfd, 0x33,
+				0x87, 0x69, 0x83, 0x54, 0x3c, 0x17, 0x93, 0x02,
+				0xd7, 0x59, 0x94, 0x61, 0x00, 0xb8, 0xb8, 0x07,
+			};
+			std::memcpy( data->ubi_data.key_state,
+				     Config,
+				     sizeof(Config) );
+			UBI_f::chain_message( &data->ubi_data,
+					      INDEX_HASH_WORD (data->x_buffer,0),
+					      Skein_Bytes );
+			UBI_f::chain_output( &data->ubi_data,
+					     INDEX_HASH_WORD (TEMP_MEM,0),
+					     (Skein_Bytes * 2) );
+		} else {
+			Skein_f::hash( &(data->ubi_data),
+				       INDEX_HASH_WORD (TEMP_MEM,0),      // Output
+				       INDEX_HASH_WORD (data->x_buffer,0),// Input
+				       Skein_Bytes,                       // Input size
+				       (Skein_Bytes * 2) );               // Output size
+		}
 		// flap now holds [ {-1}, {-2}, {**} ]
 		HASH_TWO_WORDS (data,
 				INDEX_HASH_WORD (TEMP_MEM,1),  // 1 output hash word
@@ -346,11 +366,33 @@ namespace ssc
 				      Salt_And_Garlic_Size );// input size
 		u64_t const count = static_cast<u64_t>(1) << (((3 * garlic) + 3) / 4);
 		for( u64_t i = 0; i < count; ++i ) {
-			Skein_f::hash( &(data->ubi_data),// UBI Data
-				       TEMP_MEM.rng,     // output
-				       TEMP_MEM.rng,     // input
-				       Skein_Bytes,      // input size
-				       RNG_Output_Size );// output size
+			if constexpr (Skein_Bytes == 64) {
+				_CTIME_CONST (u8_t) Config [64] = {
+					0xf0, 0xef, 0xcb, 0xca, 0xbf, 0xd0, 0x04, 0x7b,
+					0xc0, 0x5d, 0x3e, 0x3a, 0x1d, 0x53, 0xe4, 0x9f,
+					0x07, 0xbf, 0x4f, 0xf5, 0xce, 0x67, 0x53, 0x53,
+					0x9f, 0x0e, 0xf7, 0xfb, 0x22, 0xe6, 0xf4, 0xc3,
+					0x74, 0xcc, 0xb9, 0xed, 0xc0, 0x50, 0x23, 0x81,
+					0x65, 0x27, 0x7a, 0xc2, 0xb2, 0xea, 0xfb, 0x96,
+					0xcb, 0x91, 0xe2, 0x97, 0x59, 0x94, 0x1f, 0x6d,
+					0x51, 0xc3, 0x9f, 0xe5, 0x27, 0x31, 0xd1, 0xc5
+				};
+				std::memcpy( data->ubi_data.key_state,
+					     Config,
+					     sizeof(Config) );
+				UBI_f::chain_message( &data->ubi_data,
+						      TEMP_MEM.rng,
+						      Skein_Bytes );
+				UBI_f::chain_output( &data->ubi_data,
+						     TEMP_MEM.rng,
+						     RNG_Output_Size );
+			} else {
+				Skein_f::hash( &(data->ubi_data),// UBI Data
+					       TEMP_MEM.rng,     // output
+					       TEMP_MEM.rng,     // input
+					       Skein_Bytes,      // input size
+					       RNG_Output_Size );// output size
+			}
 
 			_CTIME_CONST (int) J1_Offset = Skein_Bytes;
 			_CTIME_CONST (int) J2_Offset = J1_Offset + sizeof(u64_t);

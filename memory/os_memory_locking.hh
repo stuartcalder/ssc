@@ -39,15 +39,16 @@ See accompanying LICENSE file for licensing information.
 #		error 'Unsupported OS'
 #	endif
 
-namespace ssc {
+namespace ssc
+{
 	inline void
 	lock_os_memory (void const *addr, size_t const length) {
 		using namespace std;
 #	if    defined (__UnixLike__)
-		if (mlock( addr, length ) != 0)
+		if( mlock( addr, length ) != 0 )
 			errx( "Error: Failed to mlock()\n" );
 #	elif  defined (__Win64__)
-		if (VirtualLock( const_cast<void *>(addr), length ) == 0)
+		if( VirtualLock( const_cast<void *>(addr), length ) == 0 )
 			errx( "Error: Failed to VirtualLock()\n" );
 #	else
 #		error 'Unsupported OS'
@@ -58,10 +59,10 @@ namespace ssc {
 	unlock_os_memory (void const *addr, size_t const length) {
 		using namespace std;
 #	if    defined (__UnixLike__)
-		if (munlock( addr, length ) != 0)
+		if( munlock( addr, length ) != 0 )
 			errx( "Error: Failed to munlock()\n" );
 #	elif  defined (__Win64__)
-		if (VirtualUnlock( const_cast<void *>(addr), length ) == 0)
+		if( VirtualUnlock( const_cast<void *>(addr), length ) == 0 )
 			errx( "Error: Failed to VirtualUnlock()\n" );
 #	else
 #		error 'Unsupported OS'
