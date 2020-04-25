@@ -178,29 +178,6 @@ namespace ssc::crypto_impl::dragonfly_v1
 		out += Salt_Bytes;
 		memcpy( out, pub.ctr_nonce, CTR_f::Nonce_Bytes );        // Copy the CTR mode nonce in.
 		out += CTR_f::Nonce_Bytes;
-		// Setup the to-be-encrypted portion of the header.
-#if 0
-		{
-			_CTIME_CONST (int) Zeroes = sizeof(u64_t) * 2;
-			{
-				u8_t zeroes [Zeroes] = { 0 }; // 16 0x00 bytes.
-				CTR_f::set_nonce( &(secret.ctr_data),
-						  pub.ctr_nonce ); // Set the nonce of the Counter-Mode keystream buffer.
-				// The encrypted, reserved portion of the header.
-				CTR_f::xorcrypt( &(secret.ctr_data),
-						 out,
-						 zeroes,
-						 Zeroes ); // Encrypt the zeroes appending them to the end of the visible header, just before the payload.
-			}
-			out += Zeroes;
-			CTR_f::xorcrypt( &(secret.ctr_data),
-					 out,
-					 input_map.ptr,
-					 input_map.size,
-					 Zeroes ); // Encrypt the input file, outputting the payload.
-			out += input_map.size;
-		}
-#else
 		{
 			u64_t crypt_header [2] = { 0 };
 			crypt_header[ 0 ] = catena_input.padding_bytes;
