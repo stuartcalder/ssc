@@ -25,7 +25,7 @@ See accompanying LICENSE file for licensing information.
 #	include <bcrypt.h>
 #else
 #	error 'Unsupported OS'
-#endif
+#endif/* ~ #if defined (__UnixLike__) */
 /* Byte-swapping OS-Specific Headers */
 #if    defined (__OpenBSD__)
 #	include <endian.h>
@@ -37,12 +37,12 @@ See accompanying LICENSE file for licensing information.
 #	include <stdlib.h>
 #elif !defined (__Mac_OSX__)
 #	error 'Unsupported OS'
-#endif
+#endif/* ~ #if defined (unixlikes...) */
 #if    defined (__Mac_OSX__)
 #	define __STDC_WANT_LIB_EXT1__ 1
 #	include <string.h>
 #	include <ssc/files/files.hh>
-#endif
+#endif/* ~ #if defined (__Mac_OSX__) */
 /* Ensure that the template functions below that expect unsigned integral
  * types can ONLY be used with unsigned integral types, to prevent any
  * unexpectedly nasty behavior.
@@ -238,7 +238,7 @@ namespace ssc
 
 #if    defined (SWAP_F) || defined (SWAP_F__) || defined (SIZE)
 #	error 'SWAP_F, SWAP_F__, or SIZE macro already defined'
-#endif
+#endif/* ~ #if defined(...) */
 
 #define SWAP_F(size,u)	SWAP_F__ (size,u)
 
@@ -252,7 +252,7 @@ namespace ssc
 #	define SWAP_F__(size,u)	_byteswap_##size( u );
 #elif !defined (__Mac_OSX__)
 #	error 'Unsupported OS'
-#endif
+#endif/* ~ #if defined(...) */
 
 #if    defined (__UnixLike__)
 #	define SIZE(unixlike,win64) unixlike
@@ -260,9 +260,12 @@ namespace ssc
 #	define SIZE(unixlike,win64) win64
 #elif !defined (__Mac_OSX__)
 #	error 'Unsupported OS'
-#endif
-#ifdef __Mac_OSX__
+#endif/* ~ #if defined(...) */
 
+#ifdef __Mac_OSX__
+/* Not sure what specific functions to call on this platform for byte-swapping....
+ * Implement it ourselves.
+ */
 		if constexpr (std::is_same<Uint_t,u16_t>::value) {
 			//     [00ff]     [ff00]
 			return (u >> 8) | (u << 8);
@@ -307,8 +310,8 @@ namespace ssc
 		int non_equal_bytes = 0;
 		_CTIME_CONST (u8_t) One_Mask = 0b0000'0001;
 		for( size_t i = 0; i < size; ++i ) {
-			u8_t b = reinterpret_cast<u8_t const*>(left)[ i ] ^
-				 reinterpret_cast<u8_t const*>(right)[ i ];
+			u8_t const b = reinterpret_cast<u8_t const*>(left)[ i ] ^
+				       reinterpret_cast<u8_t const*>(right)[ i ];
 			non_equal_bytes += ( (b >> 7) |
 					    ((b >> 6) & One_Mask) |
 					    ((b >> 5) & One_Mask) |

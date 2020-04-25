@@ -40,6 +40,10 @@ elif os == 'windows'
 	include_install = 'C:/include'
 	lib_deps += cc.find_library('bcrypt')
 endif
+if os == 'darwin'
+	_flag = _Define_Flag_Prefix + '__STDC_WANT_LIB_EXT1__=1'
+	cpp_flags += _flag
+endif
 
 inc_dir += '..'
 
