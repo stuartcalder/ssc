@@ -1,6 +1,6 @@
 #pragma once
 #include <ssc/general/macros.hh>
-#if    defined (__UnixLike__)
+#if    defined (__UnixLike__) && !defined (__Mac_OSX__)
 #	ifdef __SSC_QueryMemory__
 #		error 'Somehow __SSC_QueryMemory__ is already defined!'
 #	endif

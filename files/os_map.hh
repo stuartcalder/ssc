@@ -42,14 +42,14 @@ namespace ssc
 		using Map_Read_Write_t = decltype(PROT_READ);
 		Map_Read_Write_t const readwrite_flag = (readonly ? PROT_READ : (PROT_READ|PROT_WRITE));
 		os_map.ptr = static_cast<u8_t *>(mmap( nullptr, os_map.size, readwrite_flag, MAP_SHARED, os_map.os_file, 0 ));
-		if (os_map.ptr == MAP_FAILED)
+		if( os_map.ptr == MAP_FAILED )
 			errx( "Error: Failed to mmap() the file descriptor %d\n", os_map.os_file );
 #elif  defined (__Win64__)
 		using Page_Read_Write_t = decltype(PAGE_READONLY);
 		using Map_Read_Write_t  = decltype(FILE_MAP_READ);
 		Page_Read_Write_t page_readwrite_flag;
 		Map_Read_Write_t  map_readwrite_flag;
-		if (readonly) {
+		if( readonly ) {
 			page_readwrite_flag = PAGE_READONLY;
 			map_readwrite_flag = FILE_MAP_READ;
 		} else {
@@ -62,10 +62,10 @@ namespace ssc
 		DWORD high_bits = static_cast<DWORD>(os_map.size >> 32);
 		DWORD low_bits  = static_cast<DWORD>(os_map.size);
 		os_map.win64_filemapping = CreateFileMappingA( os_map.os_file, nullptr, page_readwrite_flag, high_bits, low_bits, nullptr );
-		if (os_map.win64_filemapping == nullptr)
+		if( os_map.win64_filemapping == nullptr )
 			errx( "Error: Failed during CreateFileMappingA()\n" );
 		os_map.ptr = static_cast<u8_t *>(MapViewOfFile( os_map.win64_filemapping, map_readwrite_flag, 0, 0, os_map.size ));
-		if (os_map.ptr == nullptr)
+		if( os_map.ptr == nullptr )
 			errx( "Error: Failed during MapViewOfFile()\n" );
 #else
 #	error 'Unsupported OS'

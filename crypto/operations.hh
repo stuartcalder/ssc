@@ -35,8 +35,13 @@ See accompanying LICENSE file for licensing information.
 #	include <byteswap.h>
 #elif  defined (__Win64__)
 #	include <stdlib.h>
-#else
+#elif !defined (__Mac_OSX__)
 #	error 'Unsupported OS'
+#endif
+#if    defined (__Mac_OSX__)
+#	define __STDC_WANT_LIB_EXT1__ 1
+#	include <stdio.h>
+#	include <ssc/files/files.hh>
 #endif
 /* Ensure that the template functions below that expect unsigned integral
  * types can ONLY be used with unsigned integral types, to prevent any
@@ -178,7 +183,12 @@ namespace ssc
 	inline void obtain_os_entropy (u8_t *buffer, size_t num_bytes)
 	{
                 using namespace std;
-#if    defined (__UnixLike__)
+#if    defined (__Mac_OSX__)
+		OS_File_t random_dev = open_existing_os_file( "/dev/random", true );
+		if( read( random_dev, buffer, num_bytes ) != static_cast<ssize_t>(num_bytes) )
+			errx( "Error: Failed to read from /dev/random!\n" );
+		close_os_file( random_dev );
+#elif  defined (__UnixLike__)
 		_CTIME_CONST(int) Max_Bytes = 256;
                 while( num_bytes >= Max_Bytes ) {
                         if( getentropy( buffer, Max_Bytes ) != 0 )
@@ -207,7 +217,9 @@ namespace ssc
 	inline void zero_sensitive (void *buffer, size_t num_bytes)
 	{
 		using namespace std;
-#if    defined (__UnixLike__)
+#if    defined (__Mac_OSX__)
+		memset_s( buffer, num_bytes, 0, num_bytes );
+#elif  defined (__UnixLike__)
 		explicit_bzero( buffer, num_bytes );
 #elif  defined (__Win64__)
 		SecureZeroMemory( buffer, num_bytes );
@@ -238,7 +250,7 @@ namespace ssc
 #	define SWAP_F__(size,u)	bswap_##size( u )
 #elif  defined (__Win64__)
 #	define SWAP_F__(size,u)	_byteswap_##size( u );
-#else
+#elif !defined (__Mac_OSX__)
 #	error 'Unsupported OS'
 #endif
 
@@ -246,9 +258,34 @@ namespace ssc
 #	define SIZE(unixlike,win64) unixlike
 #elif  defined (__Win64__)
 #	define SIZE(unixlike,win64) win64
-#else
+#elif !defined (__Mac_OSX__)
 #	error 'Unsupported OS'
 #endif
+#ifdef __Mac_OSX__
+
+		if constexpr (std::is_same<Uint_t,u16_t>::value) {
+			//     [00ff]     [ff00]
+			return (u >> 8) | (u << 8);
+		} else if constexpr (std::is_same<Uint_t,u32_t>::value) {
+			// 0 1 2 3
+			// 3 2 1 0
+			return (u >> (8*3)) |
+			       ((u >> 8) & 0x00'00'ff'00) |
+			       ((u << 8) & 0x00'ff'00'00) |
+			       (u << (8*3));
+		} else if constexpr (std::is_same<Uint_t,u64_t>::value) {
+			// 0 1 2 3 4 5 6 7
+			// 7 6 5 4 3 2 1 0
+			return (u >> (7*8)) |
+			       ((u >> (5*8)) & 0x00'00'00'00'00'00'ff'00) |
+			       ((u >> (3*8)) & 0x00'00'00'00'00'ff'00'00) |
+			       ((u >> 8    ) & 0x00'00'00'00'ff'00'00'00) |
+			       ((u << 8    ) & 0x00'00'00'ff'00'00'00'00) |
+			       ((u << (3*8)) & 0x00'00'ff'00'00'00'00'00) |
+			       ((u << (5*8)) & 0x00'ff'00'00'00'00'00'00) |
+			       (u << (7*8));
+		}
+#else
 		if constexpr (std::is_same<Uint_t,u16_t>::value) {
 			return SWAP_F (SIZE (16,ushort),u);
 		} else if constexpr (std::is_same<Uint_t,u32_t>::value) {
@@ -256,6 +293,7 @@ namespace ssc
 		} else if constexpr (std::is_same<Uint_t,u64_t>::value) {
 			return SWAP_F (SIZE (64,uint64),u);
 		}
+#endif/* ~ #ifdef __Mac_OSX__ */
 #undef SIZE
 #undef SWAP_F__
 #undef SWAP_F

@@ -40,10 +40,19 @@
 
 /* Operating System Macros */
 
+#if    defined (__APPLE__) && defined (__MACH__)
+#	ifndef __Mac_OSX__
+#		define __Mac_OSX__
+#	else
+#		error '__Mac_OSX__ Already Defined'
+#	endif
+#endif
+
 /* Define OpenBSD, FreeBSD, and GNU/Linux as UNIX-like operating systems. */
-#if    defined (__OpenBSD__) || \
-       defined (__FreeBSD__) || \
-       defined (__gnu_linux__)
+#if    defined (__OpenBSD__)   || \
+       defined (__FreeBSD__)   || \
+       defined (__gnu_linux__) || \
+       defined (__Mac_OSX__)
 #	ifndef __UnixLike__
 #		define __UnixLike__
 #	else
@@ -92,7 +101,7 @@
 #	include <ssc/general/error_conditions.hh>
 #	include <unistd.h>
 #	define _OPENBSD_UNVEIL(path,permissions) \
-		if (unveil( path, permissions ) != 0) \
+		if( unveil( path, permissions ) != 0 ) \
 			errx( "Failed to unveil()\n" )
 #else
 #	define _OPENBSD_UNVEIL // Define as nothing on Non-OpenBSD systems.
