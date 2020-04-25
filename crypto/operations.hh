@@ -40,7 +40,7 @@ See accompanying LICENSE file for licensing information.
 #endif
 #if    defined (__Mac_OSX__)
 #	define __STDC_WANT_LIB_EXT1__ 1
-#	include <stdio.h>
+#	include <string.h>
 #	include <ssc/files/files.hh>
 #endif
 /* Ensure that the template functions below that expect unsigned integral
