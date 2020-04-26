@@ -20,11 +20,7 @@ See accompanying LICENSE file for licensing information.
 /* SSC Memory I/O Headers */
 #include <ssc/memory/os_memory_locking.hh>
 /* SSC Interface Headers */
-#if 0
-#include <ssc/interface/terminal.hh>
-#else
 #include <ssc/interface/terminal_ui_f.hh>
-#endif
 /* C Library Headers */
 #include <climits>
 #include <cstring>
@@ -67,10 +63,10 @@ namespace ssc::crypto_impl
 	_CTIME_CONST (auto&)	Password_Prompt	        = "Please input a password (max length 120 characters)." OS_PROMPT ;
 	_CTIME_CONST (auto&)	Password_Reentry_Prompt = "Please input the same password again (max length 120 characters)." OS_PROMPT ;
 	_CTIME_CONST (auto&)	Entropy_Prompt		= "Please input up to 120 random characters." OS_PROMPT ;
-	using Threefish_f   = Threefish_F<Block_Bits>; // Precomputed-keyschedule Threefish.
+	using Threefish_f   = Threefish_F<Block_Bits>;              // Precomputed-keyschedule Threefish.
 	using UBI_f         = Unique_Block_Iteration_F<Block_Bits>; // UBI for Skein hashing.
-	using Skein_f       = Skein_F<Block_Bits>; // Interface to UBI.
-	using CSPRNG_f      = Skein_CSPRNG_F<Block_Bits>; // UBI-based PRNG.
+	using Skein_f       = Skein_F<Block_Bits>;                  // Interface to UBI.
+	using CSPRNG_f      = Skein_CSPRNG_F<Block_Bits>;           // UBI-based PRNG.
 	using Terminal_UI_f = Terminal_UI_F<u8_t,Password_Buffer_Bytes>; // Using u8_t for password bytes, with Password_Buffer_Bytes as the max buffer size.
 
 	struct _PUBLIC SSPKDF_Input {

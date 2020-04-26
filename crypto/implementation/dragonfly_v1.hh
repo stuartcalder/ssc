@@ -99,11 +99,7 @@ namespace ssc::crypto_impl::dragonfly_v1
 			      char const         *output_filename);
 	void _PUBLIC decrypt (OS_Map &input_map,
 			      OS_Map &output_map,
-			      char const *output_filename);//TODO
+			      char const *output_filename);
 	void _PUBLIC dump_header (OS_Map &input_map,
-			          char const *filename);//TODO
+			          char const *filename);
 }/* ~ namespace ssc::crypto_impl::dragonfly_v1 */
-
-
-
-

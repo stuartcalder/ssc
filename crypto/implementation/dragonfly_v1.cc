@@ -69,17 +69,10 @@ namespace ssc::crypto_impl::dragonfly_v1
 
 		{// Obtain the password.
 			Terminal_UI_f::init();
-#if 1
 			password_size = Terminal_UI_f::obtain_password( secret.first_password,
 					                                secret.second_password,
 									Password_Prompt,
 									Password_Reentry_Prompt );
-#else
-			password_size = obtain_password<Password_Buffer_Bytes>( secret.first_password,
-					                                        secret.second_password,
-										Password_Prompt,
-										Password_Reentry_Prompt );
-#endif
 			zero_sensitive( secret.second_password, Password_Buffer_Bytes ); // Destroy the secondary password buffer; it is no longer necessary.
 		}
 		CSPRNG_f::initialize_seed( &secret.csprng_data ); // Initialize the random number generator.
@@ -245,10 +238,6 @@ namespace ssc::crypto_impl::dragonfly_v1
 			close_os_file( input_map.os_file );
 			errx( "Error: Input file doesn't appear to be large enough to be a SSC_DRAGONFLY_V1 encrypted file\n" );
 		}
-#if 0
-		set_os_file_size( output_map.os_file, output_map.size );
-		map_file( output_map, false );
-#endif
 		u8_t const *in = input_map.ptr;
 		struct {
 			u64_t               tweak       [Threefish_f::External_Key_Words];
@@ -281,9 +270,6 @@ namespace ssc::crypto_impl::dragonfly_v1
 		if( memcmp( pub.header_id, Dragonfly_V1_ID, sizeof(Dragonfly_V1_ID) ) != 0 ) {
 			unmap_file( input_map );
 			close_os_file( input_map.os_file );
-#if 0
-			unmap_file( output_map );
-#endif
 			close_os_file( output_map.os_file );
 			remove( output_filename );
 			errx( "Error: Not a Dragonfly_V1 encrypted file." );
@@ -304,13 +290,9 @@ namespace ssc::crypto_impl::dragonfly_v1
 
 		LOCK_MEMORY (&secret,sizeof(secret));
 
-#if 0
-		int password_size = obtain_password<Password_Buffer_Bytes>( secret.password, Password_Prompt );
-#else
 		Terminal_UI_f::init();
 		int password_size = Terminal_UI_f::obtain_password( secret.password, Password_Prompt );
 		Terminal_UI_f::end();
-#endif
 		if( !pub.use_phi ) {
 			memcpy( secret.catena.safe.salt,
 				pub.catena_salt,
@@ -325,9 +307,6 @@ namespace ssc::crypto_impl::dragonfly_v1
 			if( r != Catena_Safe_f::Return_E::Success ) {
 				zero_sensitive( &secret, sizeof(secret) );
 				UNLOCK_MEMORY (&secret,sizeof(secret));
-#if 0
-				unmap_file( output_map );
-#endif
 				unmap_file( input_map );
 				close_os_file( output_map.os_file );
 				close_os_file( input_map.os_file );
@@ -350,9 +329,6 @@ namespace ssc::crypto_impl::dragonfly_v1
 			if( r != Catena_Strong_f::Return_E::Success ) {
 				zero_sensitive( &secret, sizeof(secret) );
 				UNLOCK_MEMORY (&secret,sizeof(secret));
-#if 0
-				unmap_file( output_map );
-#endif
 				unmap_file( input_map );
 				close_os_file( output_map.os_file );
 				close_os_file( input_map.os_file );
@@ -386,9 +362,6 @@ namespace ssc::crypto_impl::dragonfly_v1
 					zero_sensitive( &secret, sizeof(secret) );
 					UNLOCK_MEMORY (&secret,sizeof(secret));
 					unmap_file( input_map  );
-#if 0
-					unmap_file( output_map );
-#endif
 					close_os_file( input_map.os_file );
 					close_os_file( output_map.os_file );
 					remove( output_filename );
@@ -400,9 +373,6 @@ namespace ssc::crypto_impl::dragonfly_v1
 					    secret.enc_key,
 					    pub.tweak );
 		}
-#if 0
-		u64_t plaintext_size = output_map.size;
-#endif
 		{
 			// Set the nonce.
 			CTR_f::set_nonce( &(secret.ctr_data),
@@ -413,13 +383,9 @@ namespace ssc::crypto_impl::dragonfly_v1
 					 reinterpret_cast<u8_t*>(&padding_bytes),
 					 in,
 					 sizeof(u64_t) );
-#if 0
-			plaintext_size -= padding_bytes;
-#else
 			output_map.size -= padding_bytes;
 			set_os_file_size( output_map.os_file, output_map.size );
 			map_file( output_map, false );
-#endif
 			in += (padding_bytes + (sizeof(u64_t) * 2)); // Skip the second word. It is reserved.
 			CTR_f::xorcrypt( &secret.ctr_data,
 					 output_map.ptr,
@@ -432,10 +398,6 @@ namespace ssc::crypto_impl::dragonfly_v1
 		sync_map( output_map );
 		unmap_file( output_map );
 		unmap_file( input_map  );
-#if 0
-		if( plaintext_size != output_map.size )
-			set_os_file_size( output_map.os_file, plaintext_size );
-#endif
 		close_os_file( output_map.os_file );
 		close_os_file( input_map.os_file  );
 	}/* ~ void decrypt (...) */
