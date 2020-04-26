@@ -68,10 +68,18 @@ namespace ssc::crypto_impl::dragonfly_v1
 		int password_size; // Store the number of bytes in the password we're about to get.
 
 		{// Obtain the password.
+			Terminal_UI_f::init();
+#if 1
+			password_size = Terminal_UI_f::obtain_password( secret.first_password,
+					                                secret.second_password,
+									Password_Prompt,
+									Password_Reentry_Prompt );
+#else
 			password_size = obtain_password<Password_Buffer_Bytes>( secret.first_password,
 					                                        secret.second_password,
 										Password_Prompt,
 										Password_Reentry_Prompt );
+#endif
 			zero_sensitive( secret.second_password, Password_Buffer_Bytes ); // Destroy the secondary password buffer; it is no longer necessary.
 		}
 		CSPRNG_f::initialize_seed( &secret.csprng_data ); // Initialize the random number generator.
@@ -81,6 +89,7 @@ namespace ssc::crypto_impl::dragonfly_v1
 					    secret.entropy_data + Block_Bytes );
 			zero_sensitive( secret.entropy_data, sizeof(secret.entropy_data) ); // Destroy the entropy data.
 		}
+		Terminal_UI_f::end();
 		{// 3 calls to the RNG to generate the tweak, nonce, and salt.
 			CSPRNG_f::get( &secret.csprng_data,
 				       reinterpret_cast<u8_t*>(pub.tf_tweak),
@@ -204,7 +213,6 @@ namespace ssc::crypto_impl::dragonfly_v1
 			out += input_map.size;
 
 		}
-#endif
 		{
 			Skein_f::mac( &(secret.ubi_data),
 				      out,
@@ -296,7 +304,13 @@ namespace ssc::crypto_impl::dragonfly_v1
 
 		LOCK_MEMORY (&secret,sizeof(secret));
 
+#if 0
 		int password_size = obtain_password<Password_Buffer_Bytes>( secret.password, Password_Prompt );
+#else
+		Terminal_UI_f::init();
+		int password_size = Terminal_UI_f::obtain_password( secret.password, Password_Prompt );
+		Terminal_UI_f::end();
+#endif
 		if( !pub.use_phi ) {
 			memcpy( secret.catena.safe.salt,
 				pub.catena_salt,

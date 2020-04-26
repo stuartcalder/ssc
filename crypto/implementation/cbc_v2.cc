@@ -125,7 +125,14 @@ namespace ssc::crypto_impl::cbc_v2
 				static_assert (sizeof(char) == sizeof(u8_t));
 				char	*password_check = reinterpret_cast<char *>(locked_buffer + Password_Check_Offset);
 
+#if 0
 				password_length = obtain_password<Password_Buffer_Bytes>( password, password_check, Password_Prompt, Password_Reentry_Prompt );
+#else
+				password_length = Terminal_UI_f::obtain_password( password,
+						                                  password_check,
+										  Password_Prompt,
+										  Password_Reentry_Prompt );
+#endif
 				zero_sensitive( password_check, Password_Buffer_Bytes );
 			}
 			if (encr_input.supplement_os_entropy) {
@@ -309,7 +316,11 @@ namespace ssc::crypto_impl::cbc_v2
 		UBI_t	    ubi      { &threefish, ubi_data };
 		Skein_t	    skein    { &ubi };
 
+#if 0
 		password_length = obtain_password<Password_Buffer_Bytes>( password, Password_Prompt );
+#else
+		password_length = Terminal_UI_f::obtain_password( password, Password_Prompt );
+#endif
 
 		sspkdf( derived_key, skein, password, password_length, header.sspkdf_salt, header.num_iter, header.num_concat );
 		zero_sensitive( password, Password_Buffer_Bytes );

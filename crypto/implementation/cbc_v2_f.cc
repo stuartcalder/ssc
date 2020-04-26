@@ -60,10 +60,19 @@ namespace ssc::crypto_impl::cbc_v2
 		int password_length;
 		u8_t *out = output_map.ptr;
 		{
+#if 0
 			password_length = obtain_password<Password_Buffer_Bytes>( crypto_object.first_password,
+
 										  crypto_object.second_password,
 										  Password_Prompt,
 										  Password_Reentry_Prompt );
+#else
+			Terminal_UI_f::init();
+			password_length = Terminal_UI_f::obtain_password( crypto_object.first_password,
+					                                  crypto_object.second_password,
+									  Password_Prompt,
+									  Password_Reentry_Prompt );
+#endif
 			zero_sensitive( crypto_object.second_password, Password_Buffer_Bytes );
 		}
 		CSPRNG_f::initialize_seed( &crypto_object.csprng_data );
@@ -73,6 +82,7 @@ namespace ssc::crypto_impl::cbc_v2
 					    crypto_object.entropy_data + Block_Bytes );
 			zero_sensitive( crypto_object.entropy_data, Supplement_Entropy_Buffer_Bytes );
 		}
+		Terminal_UI_f::end();
 		{
 			CSPRNG_f::get( &crypto_object.csprng_data,
 				       reinterpret_cast<u8_t*>(public_object.tweak),
@@ -199,7 +209,13 @@ namespace ssc::crypto_impl::cbc_v2
 		
 		LOCK_MEMORY (&crypto,sizeof(crypto));
 
+#if 0
 		int password_length = obtain_password<Password_Buffer_Bytes>( crypto.password, Password_Prompt );
+#else
+		Terminal_UI_f::init();
+		int password_length = Terminal_UI_f::obtain_password( crypto.password, Password_Prompt );
+		Terminal_UI_f::end();
+#endif
 		sspkdf( &crypto.ubi_data,
 			reinterpret_cast<u8_t*>(crypto.key_buffer),
 			crypto.password,
