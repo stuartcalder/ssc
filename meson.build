@@ -23,6 +23,11 @@ lib_deps  = []
 cpp_flags = []
 inc_dir   = []
 
+if os   == 'darwin'
+	# OSX requires this define for access to memset_s
+	_flag = _Define_Flag_Prefix + '__STDC_WANT_LIB_EXT1__=1'
+	cpp_flags += _flag
+endif
 if os   == 'openbsd' or os == 'freebsd' or os == 'darwin'
 	cpp_flags += '-fvisibility=hidden'
 	cpp_flags += '-fno-exceptions'
@@ -39,10 +44,8 @@ elif os == 'windows'
 	cpp_flags += _flag
 	include_install = 'C:/include'
 	lib_deps += cc.find_library('bcrypt')
-endif
-if os == 'darwin'
-	_flag = _Define_Flag_Prefix + '__STDC_WANT_LIB_EXT1__=1'
-	cpp_flags += _flag
+else
+	assert(false)
 endif
 
 inc_dir += '..'
