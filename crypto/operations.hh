@@ -112,33 +112,6 @@ namespace ssc
 		_CTIME_CONST(int) Block_Bytes = Block_Bits / CHAR_BIT;
 		for( int i = 0; i < Block_Bytes; ++i )
 			reinterpret_cast<u8_t*>(block)[ i ] ^= reinterpret_cast<u8_t const*>(add)[ i ];
-#if 0
-		if constexpr(Block_Bits == 128) {
-			reinterpret_cast<u64_t*>(block)[ 0 ] ^= reinterpret_cast<u64_t const*>(add)[ 0 ];
-			reinterpret_cast<u64_t*>(block)[ 1 ] ^= reinterpret_cast<u64_t const*>(add)[ 1 ];
-		} else if constexpr(Block_Bits == 256) {
-			reinterpret_cast<u64_t*>(block)[ 0 ] ^= reinterpret_cast<u64_t const*>(add)[ 0 ];
-			reinterpret_cast<u64_t*>(block)[ 1 ] ^= reinterpret_cast<u64_t const*>(add)[ 1 ];
-			reinterpret_cast<u64_t*>(block)[ 2 ] ^= reinterpret_cast<u64_t const*>(add)[ 2 ];
-			reinterpret_cast<u64_t*>(block)[ 3 ] ^= reinterpret_cast<u64_t const*>(add)[ 3 ];
-		} else if constexpr(Block_Bits == 512) {
-			reinterpret_cast<u64_t*>(block)[ 0 ] ^= reinterpret_cast<u64_t const*>(add)[ 0 ];
-			reinterpret_cast<u64_t*>(block)[ 1 ] ^= reinterpret_cast<u64_t const*>(add)[ 1 ];
-			reinterpret_cast<u64_t*>(block)[ 2 ] ^= reinterpret_cast<u64_t const*>(add)[ 2 ];
-			reinterpret_cast<u64_t*>(block)[ 3 ] ^= reinterpret_cast<u64_t const*>(add)[ 3 ];
-			reinterpret_cast<u64_t*>(block)[ 4 ] ^= reinterpret_cast<u64_t const*>(add)[ 4 ];
-			reinterpret_cast<u64_t*>(block)[ 5 ] ^= reinterpret_cast<u64_t const*>(add)[ 5 ];
-			reinterpret_cast<u64_t*>(block)[ 6 ] ^= reinterpret_cast<u64_t const*>(add)[ 6 ];
-			reinterpret_cast<u64_t*>(block)[ 7 ] ^= reinterpret_cast<u64_t const*>(add)[ 7 ];
-		} else if constexpr((Block_Bits > 512) && (Block_Bits % 64 == 0)) {
-			_CTIME_CONST (int) Number_Words = Block_Bits / 64;
-			for( int i = 0; i < Number_Words; ++i )
-				reinterpret_cast<u64_t*>(block)[ i ] ^= reinterpret_cast<u64_t const*>(add)[ i ];
-		} else {
-			for( int i = 0; i < Block_Bytes; ++i )
-				reinterpret_cast<u8_t*>(block)[ i ] ^= reinterpret_cast<u8_t const*>(add)[ i ];
-		}
-#endif
 	}/* ~ xor_block(void*,void*) */
 
 	

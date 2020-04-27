@@ -33,17 +33,10 @@ namespace ssc
 			typename Threefish_f::Data_t threefish_data;
 			alignas(u64_t)          u8_t state [Block_Bytes];
 			alignas(u64_t)          u8_t temp  [Block_Bytes];
-#if 0
-			alignas(u64_t)		u8_t ctext [Block_Bytes];
-#endif
 		};
 
 		static inline size_t padded_ciphertext_size (size_t const unpadded_plaintext_size);
-#if 0
-		static int           count_iso_iec_7816_padding_bytes (_RESTRICT (u8_t const *) last_block);
-#else
 		static size_t        count_iso_iec_7816_padding_bytes (_RESTRICT (u8_t const *) bytes, size_t padded_size);
-#endif
 
 		static size_t encrypt (_RESTRICT (Data *)       data,
 				       _RESTRICT (u8_t *)       out_bytes,
@@ -64,7 +57,6 @@ namespace ssc
 		return unpadded_plaintext_size + (Block_Bytes - (unpadded_plaintext_size % Block_Bytes));
 	} 
 
-#if 1
 	TEMPLATE_ARGS
 	size_t CLASS::count_iso_iec_7816_padding_bytes (_RESTRICT (u8_t const *) bytes, size_t padded_size)
 	{
@@ -78,7 +70,7 @@ namespace ssc
 		errx( "Error: Invalid CBC padding\n" );
 		return 1;
 	}
-#else
+#if 0
 	TEMPLATE_ARGS
 	int CLASS::count_iso_iec_7816_padding_bytes (_RESTRICT (u8_t const *) last_block)
 	{
@@ -129,25 +121,6 @@ namespace ssc
 			       _RESTRICT (u8_t const *) init_vec,
 			       size_t const             num_bytes_in)
 	{
-#if 0
-		using std::memcpy;
-
-		memcpy( data->state, init_vec, Block_Bytes );
-		size_t bytes_left = num_bytes_in;
-		u8_t *out = out_bytes;
-		while( bytes_left >= Block_Bytes ) {
-			memcpy( data->ctext, in_bytes, Block_Bytes );
-			Threefish_f::inverse_cipher( &data->threefish_data, data->temp, data->state );
-			xor_block<Block_Bits>( data->temp, data->state );
-			memcpy( out, data->temp, Block_Bytes );
-			memcpy( data->state, data->ctext, Block_Bytes );
-			bytes_left -= Block_Bytes;
-			out        += Block_Bytes;
-			in_bytes   += Block_Bytes;
-		}
-
-                return num_bytes_in - count_iso_iec_7816_padding_bytes( out_bytes, num_bytes_in );
-#else
 		using std::memcpy;
 		memcpy( data->state, init_vec, Block_Bytes );
 		size_t bytes_left = num_bytes_in;
@@ -162,12 +135,7 @@ namespace ssc
 			out        += Block_Bytes;
 			bytes_left -= Block_Bytes;
 		}
-#if 0
-		return num_bytes_in - count_iso_iec_7816_padding_bytes( out_bytes );
-#else
 		return num_bytes_in - count_iso_iec_7816_padding_bytes( out_bytes, num_bytes_in );
-#endif
-#endif
 	}
 }/* ~ namespace ssc */
 #undef CLASS

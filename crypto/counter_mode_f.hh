@@ -86,17 +86,12 @@ namespace ssc
 			Threefish_f::cipher( &(data->threefish_data),
 					     data->buffer,
 					     data->keystream );
-#if 0
-			/* Remove undefined-behavior type-punning. */
-			++(*reinterpret_cast<u64_t*>(data->keystream));
-#else
 			{
 				u64_t temp;
 				std::memcpy( &temp, data->keystream, sizeof(u64_t) );
 				++temp;
 				std::memcpy( data->keystream, &temp, sizeof(temp) );
 			}
-#endif
 			u8_t *offset_buffer = data->buffer + offset;
 			u64_t left;
 			if( input_size >= bytes )
@@ -114,17 +109,12 @@ namespace ssc
 			Threefish_f::cipher( &(data->threefish_data),
 					     data->buffer,
 					     data->keystream );
-#if 0
-			/* Remove undefined-behavior type-punning. */
-			++(*reinterpret_cast<u64_t*>(data->keystream));
-#else
 			{
 				u64_t temp;
 				std::memcpy( &temp, data->keystream, sizeof(temp) );
 				++temp;
 				std::memcpy( data->keystream, &temp, sizeof(temp) );
 			}
-#endif
 			xor_block<Block_Bits>( data->buffer, input );
 			std::memcpy( output, data->buffer, Block_Bytes );
 			input      += Block_Bytes;

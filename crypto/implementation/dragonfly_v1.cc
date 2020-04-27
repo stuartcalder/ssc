@@ -172,12 +172,7 @@ namespace ssc::crypto_impl::dragonfly_v1
 
 		memcpy( out, Dragonfly_V1_ID, sizeof(Dragonfly_V1_ID) ); // Copy the Dragonfly_V1 identifier in.
 		out += sizeof(Dragonfly_V1_ID);
-#if 0
-		/* Remove undefined-behavior type-punning */
-		(*reinterpret_cast<u64_t*>(out)) = output_map.size;      // Copy the size of the mapped output file into the mapped output file.
-#else
 		std::memcpy( out, &output_map.size, sizeof(output_map.size) );
-#endif
 		out += sizeof(u64_t);
 		(*out++) = catena_input.g_low;                           // Copy the lower memory-bound in.
 		(*out++) = catena_input.g_high;                          // Copy the upper memory-bound in.
@@ -263,12 +258,7 @@ namespace ssc::crypto_impl::dragonfly_v1
 		{
 			memcpy( pub.header_id, in, sizeof(pub.header_id) );
 			in += sizeof(pub.header_id);
-#if 0
-			/* Remove undefined-behavior type-punning */
-			pub.header_size = (*reinterpret_cast<u64_t const*>(in));
-#else
 			std::memcpy( &pub.header_size, in, sizeof(pub.header_size) );
-#endif
 			in += sizeof(u64_t);
 			pub.g_low   = (*in++);
 			pub.g_high  = (*in++);
@@ -440,12 +430,7 @@ namespace ssc::crypto_impl::dragonfly_v1
 			u8_t const *p = input_map.ptr;
 			memcpy( header.id, p, sizeof(header.id) );
 			p += sizeof(header.id);
-#if 0
-			/* Remove undefined-behavior type-punning */
-			header.total_size = (*reinterpret_cast<u64_t const*>(p));
-#else
 			std::memcpy( &header.total_size, p, sizeof(header.total_size) );
-#endif
 			p += sizeof(header.total_size);
 			header.g_low   = (*p++);
 			header.g_high  = (*p++);

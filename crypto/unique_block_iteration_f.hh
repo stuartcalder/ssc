@@ -134,12 +134,7 @@ namespace ssc
 		// Manually zero over the rest of the config string.
 		std::memset( (data->msg_state + 5), 0, (sizeof(data->msg_state) - 5) );
 		// Set the "output length" portion of the config string.
-#if 0
-		/* Remove undefined-behavior type-punning */
-		*(reinterpret_cast<u64_t*>(data->msg_state + 8)) = num_out_bits;
-#else
 		std::memcpy( data->msg_state + 8, &num_out_bits, sizeof(num_out_bits) );
-#endif
 		REKEY_CIPHER_XOR (data);
 	}
 
@@ -225,17 +220,12 @@ namespace ssc
 			REKEY_CIPHER_XOR      (data);
 			MODIFY_TWEAK_FLAGS    (data,&=,Tweak_First_Mask);
 			std::memcpy( output, data->key_state, State_Bytes );
-#if 0
-			/* Remove undefined-behavior type-punning */
-			*(reinterpret_cast<u64_t*>(data->msg_state)) += 1;
-#else
 			{
 				u64_t temp;
 				std::memcpy( &temp, data->msg_state, sizeof(temp) );
 				++temp;
 				std::memcpy( data->msg_state, &temp, sizeof(temp) );
 			}
-#endif
 			num_out_bytes -= State_Bytes;
 			output        += State_Bytes;
 
@@ -243,17 +233,12 @@ namespace ssc
 				MODIFY_TWEAK_POSITION (data,+=,sizeof(u64_t));
 				REKEY_CIPHER_XOR (data);
 				std::memcpy( output, data->key_state, State_Bytes );
-#if 0
-				/* Remove undefined-behavior type-punning */
-				*(reinterpret_cast<u64_t*>(data->msg_state)) += 1;
-#else
 				{
 					u64_t temp;
 					std::memcpy( &temp, data->msg_state, sizeof(temp) );
 					++temp;
 					std::memcpy( data->msg_state, &temp, sizeof(temp) );
 				}
-#endif
 				num_out_bytes -= State_Bytes;
 				output        += State_Bytes;
 			}
