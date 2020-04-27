@@ -1,8 +1,7 @@
-/*
-Copyright (c) 2019-2020 Stuart Steven Calder
-All rights reserved.
-See accompanying LICENSE file for licensing information.
-*/
+/* Copyright (c) 2019-2020 Stuart Steven Calder
+ * All rights reserved.
+ * See accompanying LICENSE file for licensing information.
+ */
 #include <cstdlib>
 #include <climits>
 #include <ssc/crypto/skein_f.hh>

@@ -1,3 +1,7 @@
+/* Copyright (c) 2019-2020 Stuart Steven Calder
+ * All rights reserved.
+ * See accompanying LICENSE file for licensing information.
+ */
 #include "cbc_v2_f.hh"
 #include "sspkdf.hh"
 
