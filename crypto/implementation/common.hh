@@ -58,6 +58,7 @@ namespace ssc::crypto_impl
 
 	_CTIME_CONST (int)	Max_Password_Chars = 120;
 	_CTIME_CONST (int)	Max_Entropy_Chars  = 120;
+	static_assert (Max_Password_Chars == Max_Entropy_Chars);
 	_CTIME_CONST (int)	Password_Buffer_Bytes   = Max_Password_Chars + 1;
 	_CTIME_CONST (int)      Supplement_Entropy_Buffer_Bytes = Max_Entropy_Chars + Block_Bytes + 1;
 	_CTIME_CONST (auto&)	Password_Prompt	        = "Please input a password (max length 120 characters)." OS_PROMPT ;
@@ -88,7 +89,10 @@ namespace ssc::crypto_impl
 					_RESTRICT (u8_t *)                    input)
 	{
 		int num_input_chars = Terminal_UI_f::obtain_password( input, Entropy_Prompt );
-		Skein_f::hash_native( &(data->skein_data), hash, input, num_input_chars );
+		Skein_f::hash_native( &(data->skein_data),
+				      hash,
+				      input,
+				      num_input_chars );
 		CSPRNG_f::reseed( data, hash );
 	}
 }/* ~ namespace ssc::crypto_impl */

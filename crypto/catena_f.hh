@@ -18,7 +18,7 @@
 
 #if    defined (DEFAULT_ARGS)    || defined (TEMPLATE_ARGS)  || defined (CLASS)          || \
        defined (INDEX_HASH_WORD) || defined (COPY_HASH_WORD) || defined (HASH_TWO_WORDS) || \
-       defined (GRAPH_MEM)       || defined (TEMP_MEM)
+       defined (GRAPH_MEM)       || defined (TEMP_MEM)       || defined (X_MEM)
 #	error 'Some MACRO we need was already defined'
 #endif
 
@@ -223,8 +223,9 @@ namespace ssc
 		// flap[ 0, 1, 2 ] <-- layout
 #define TEMP_MEM  data->temp.flap
 #define GRAPH_MEM data->graph_memory
+#define X_MEM     data->x_buffer
 		if constexpr (Skein_Bytes == 64) {
-			_CTIME_CONST (u8_t) Config [Skein_Bytes] = {
+			alignas(u64_t) _CTIME_CONST (u8_t) Config [Skein_Bytes] = {
 				0x54, 0x5e, 0x7a, 0x4c, 0x78, 0x32, 0xaf, 0xdb,
 				0xc7, 0xab, 0x18, 0xd2, 0x87, 0xd9, 0xe6, 0x2d,
 				0x41, 0x08, 0x90, 0x3a, 0xcb, 0xa9, 0xa3, 0xae,
@@ -238,17 +239,17 @@ namespace ssc
 				     Config,
 				     sizeof(Config) );
 			UBI_f::chain_message( &data->ubi_data,
-					      INDEX_HASH_WORD (data->x_buffer,0),
+					      INDEX_HASH_WORD (X_MEM,0),
 					      Skein_Bytes );
 			UBI_f::chain_output( &data->ubi_data,
 					     INDEX_HASH_WORD (TEMP_MEM,0),
 					     (Skein_Bytes * 2) );
 		} else {
 			Skein_f::hash( &(data->ubi_data),
-				       INDEX_HASH_WORD (TEMP_MEM,0),      // Output
-				       INDEX_HASH_WORD (data->x_buffer,0),// Input
-				       Skein_Bytes,                       // Input size
-				       (Skein_Bytes * 2) );               // Output size
+				       INDEX_HASH_WORD (TEMP_MEM,0), // Output
+				       INDEX_HASH_WORD (X_MEM   ,0), // Input
+				       Skein_Bytes,                  // Input size
+				       (Skein_Bytes * 2) );          // Output size
 		}
 		// flap now holds [ {-1}, {-2}, {**} ]
 		HASH_TWO_WORDS (data,
@@ -334,9 +335,10 @@ namespace ssc
 			phi_( data,
 			      garlic );
 		} else {
-			COPY_HASH_WORD (data->x_buffer,
+			COPY_HASH_WORD (INDEX_HASH_WORD (X_MEM    ,0),
 					INDEX_HASH_WORD (GRAPH_MEM,max_hash_index));
 		}
+#undef X_MEM
 #undef GRAPH_MEM
 #undef TEMP_MEM
 	}
@@ -417,6 +419,7 @@ namespace ssc
 	{
 #define GRAPH_MEM data->graph_memory
 #define TEMP_MEM  data->temp.phi
+#define X_MEM     data->x_buffer
 		u64_t const last_word_index = (static_cast<u64_t>(1) << garlic) - 1;
 		u64_t j = (*reinterpret_cast<u64_t*>(INDEX_HASH_WORD (GRAPH_MEM,last_word_index))) >> (64 - garlic);
 		COPY_HASH_WORD (INDEX_HASH_WORD (TEMP_MEM ,              0),
@@ -436,11 +439,12 @@ namespace ssc
 					INDEX_HASH_WORD (GRAPH_MEM,i),
 					INDEX_HASH_WORD (TEMP_MEM ,0));
 		}
-		COPY_HASH_WORD (INDEX_HASH_WORD (data->x_buffer,0),
+		COPY_HASH_WORD (INDEX_HASH_WORD (X_MEM    ,0              ),
 				INDEX_HASH_WORD (GRAPH_MEM,last_word_index));
 	}/* ~ void phi_(Data *,u8_t const) */
 
 }/* ~ namespace ssc */
+#undef X_MEM
 #undef GRAPH_MEM
 #undef TEMP_MEM
 #undef HASH_TWO_WORDS

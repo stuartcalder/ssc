@@ -128,7 +128,7 @@ namespace ssc
 			reinterpret_cast<u64_t*>(block)[ 6 ] ^= reinterpret_cast<u64_t const*>(add)[ 6 ];
 			reinterpret_cast<u64_t*>(block)[ 7 ] ^= reinterpret_cast<u64_t const*>(add)[ 7 ];
 		} else if constexpr((Block_Bits > 512) && (Block_Bits % 64 == 0)) {
-			_CTIME_CONST(int) Number_Words = Block_Bits / 64;
+			_CTIME_CONST (int) Number_Words = Block_Bits / 64;
 			for( int i = 0; i < Number_Words; ++i )
 				reinterpret_cast<u64_t*>(block)[ i ] ^= reinterpret_cast<u64_t const*>(add)[ i ];
 		} else {
