@@ -48,12 +48,12 @@ namespace ssc
 		Counter_Mode_F (void) = delete;
 
 		static inline void set_nonce (_RESTRICT (Data       *) data,
-				       _RESTRICT (u8_t const *) nonce);
+				              _RESTRICT (u8_t const *) nonce);
 		static void xorcrypt (_RESTRICT (Data *) data,
-			       u8_t               *output,
-			       u8_t const         *input,
-			       u64_t              input_size,
-			       u64_t              starting_byte = 0);
+			              u8_t               *output,
+			              u8_t const         *input,
+			              u64_t              input_size,
+			              u64_t              starting_byte = 0);
 	};
 
 	TEMPLATE_ARGS
@@ -77,16 +77,26 @@ namespace ssc
 			      u64_t              starting_byte)
 	{
 		if( starting_byte == 0 ) {
-			*(reinterpret_cast<u64_t*>(data->keystream)) = starting_byte;
+			std::memcpy( data->keystream, &starting_byte, sizeof(starting_byte) );
 		} else {
 			u64_t starting_block = starting_byte / Block_Bytes;
 			u64_t offset         = starting_byte % Block_Bytes;
 			u64_t bytes          = Block_Bytes - offset;
-			*(reinterpret_cast<u64_t*>(data->keystream)) = starting_block;
+			std::memcpy( data->keystream, &starting_block, sizeof(starting_block) );
 			Threefish_f::cipher( &(data->threefish_data),
 					     data->buffer,
 					     data->keystream );
+#if 0
+			/* Remove undefined-behavior type-punning. */
 			++(*reinterpret_cast<u64_t*>(data->keystream));
+#else
+			{
+				u64_t temp;
+				std::memcpy( &temp, data->keystream, sizeof(u64_t) );
+				++temp;
+				std::memcpy( data->keystream, &temp, sizeof(temp) );
+			}
+#endif
 			u8_t *offset_buffer = data->buffer + offset;
 			u64_t left;
 			if( input_size >= bytes )
@@ -104,7 +114,17 @@ namespace ssc
 			Threefish_f::cipher( &(data->threefish_data),
 					     data->buffer,
 					     data->keystream );
+#if 0
+			/* Remove undefined-behavior type-punning. */
 			++(*reinterpret_cast<u64_t*>(data->keystream));
+#else
+			{
+				u64_t temp;
+				std::memcpy( &temp, data->keystream, sizeof(temp) );
+				++temp;
+				std::memcpy( data->keystream, &temp, sizeof(temp) );
+			}
+#endif
 			xor_block<Block_Bits>( data->buffer, input );
 			std::memcpy( output, data->buffer, Block_Bytes );
 			input      += Block_Bytes;

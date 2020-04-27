@@ -211,9 +211,20 @@ namespace ssc
 		t += sizeof(Metadata_t::Version_ID_Hash); // Increment to the domain offset
 		(*t++) = static_cast<u8_t>(Domain_E::Key_Derivation_Function); // Copy the domain offset in
 		(*t++) = lambda; // Copy the lambda in
+#if 0
+		/* Remove undefined-behavior type-punning */
 		*(reinterpret_cast<u16_t*>(t)) = static_cast<u16_t>(Output_Bytes); // Copy the output size in
 		t += sizeof(u16_t); // Increment to the salt size offset
 		*(reinterpret_cast<u16_t*>(t)) = static_cast<u16_t>(Salt_Bytes); // Copy in the salt size
+#else
+		{
+			u16_t temp = static_cast<u16_t>(Output_Bytes);
+			std::memcpy( t, &temp, sizeof(temp) );
+			t += sizeof(temp);
+			temp = static_cast<u16_t>(Salt_Bytes);
+			std::memcpy( t, &temp, sizeof(temp) );
+		}
+#endif
 	}
 
 	TEMPLATE_ARGS
@@ -403,8 +414,17 @@ namespace ssc
 			_CTIME_CONST (int) J1_Offset = Skein_Bytes;
 			_CTIME_CONST (int) J2_Offset = J1_Offset + sizeof(u64_t);
 
+#if 0
+			/* Remove undefined-behavior type-punning */
 			u64_t const j1 = (*reinterpret_cast<u64_t*>(TEMP_MEM.rng + J1_Offset)) >> (64 - garlic);
 			u64_t const j2 = (*reinterpret_cast<u64_t*>(TEMP_MEM.rng + J2_Offset)) >> (64 - garlic);
+#else
+			u64_t j1, j2;
+			std::memcpy( &j1, TEMP_MEM.rng + J1_Offset, sizeof(j1) );
+			j1 >>= (64 - garlic);
+			std::memcpy( &j2, TEMP_MEM.rng + J2_Offset, sizeof(j2) );
+			j2 >>= (64 - garlic);
+#endif
 			static_assert (sizeof(TEMP_MEM.word_buf) == (Skein_Bytes * 2));
 			COPY_HASH_WORD (INDEX_HASH_WORD (TEMP_MEM.word_buf, 0),
 					INDEX_HASH_WORD (GRAPH_MEM        ,j1));
@@ -425,7 +445,17 @@ namespace ssc
 #define TEMP_MEM  data->temp.phi
 #define X_MEM     data->x_buffer
 		u64_t const last_word_index = (static_cast<u64_t>(1) << garlic) - 1;
+		int const   right_shift_amt = 64 - garlic;
+#if 0
+		/* Remove undefined-behavior type-punning */
 		u64_t j = (*reinterpret_cast<u64_t*>(INDEX_HASH_WORD (GRAPH_MEM,last_word_index))) >> (64 - garlic);
+#else
+		u64_t j;
+		std::memcpy( &j,
+			     INDEX_HASH_WORD (GRAPH_MEM,last_word_index),
+			     sizeof(j) );
+		j >>= right_shift_amt;
+#endif
 		COPY_HASH_WORD (INDEX_HASH_WORD (TEMP_MEM ,              0),
 				INDEX_HASH_WORD (GRAPH_MEM,last_word_index));
 		COPY_HASH_WORD (INDEX_HASH_WORD (TEMP_MEM ,1),
@@ -434,7 +464,15 @@ namespace ssc
 				INDEX_HASH_WORD (GRAPH_MEM,0),
 				INDEX_HASH_WORD (TEMP_MEM ,0));
 		for( u64_t i = 1; i <= last_word_index; ++i ) {
+#if 0
+			/* Remove undefined-behavior type-punning */
 			j = (*reinterpret_cast<u64_t*>(INDEX_HASH_WORD (GRAPH_MEM,(i-1)))) >> (64 - garlic);
+#else
+			std::memcpy( &j,
+				     INDEX_HASH_WORD (GRAPH_MEM,(i-1)),
+				     sizeof(j) );
+			j >>= right_shift_amt;
+#endif
 			COPY_HASH_WORD (INDEX_HASH_WORD (TEMP_MEM ,   0 ),
 					INDEX_HASH_WORD (GRAPH_MEM,(i-1)));
 			COPY_HASH_WORD (INDEX_HASH_WORD (TEMP_MEM ,   1 ),

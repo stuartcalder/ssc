@@ -93,7 +93,12 @@ namespace ssc::crypto_impl::cbc_v2
 		{
 			memcpy( out, CBC_V2_ID, sizeof(CBC_V2_ID) ); // Header ID.
 			out += sizeof(CBC_V2_ID);
+#if 0
+			/* Remove undefined-behavior type-punning */
 			*(reinterpret_cast<u64_t*>(out)) = output_map.size; // Total size.
+#else
+			std::memcpy( out, &output_map.size, sizeof(output_map.size) );
+#endif
 			out += sizeof(u64_t);
 			memcpy( out, public_object.tweak, Tweak_Bytes );
 			out += Tweak_Bytes;
@@ -101,10 +106,17 @@ namespace ssc::crypto_impl::cbc_v2
 			out += sizeof(public_object.sspkdf_salt);
 			memcpy( out, public_object.cbc_iv, sizeof(public_object.cbc_iv) ); // CBC IV.
 			out += sizeof(public_object.cbc_iv);
+#if 0
+			/* Remove undefined-behavior type-punning */
 			*(reinterpret_cast<u32_t*>(out)) = sspkdf_input.number_iterations; // SSPKDF Iterations.
 			out += sizeof(u32_t);
 			*(reinterpret_cast<u32_t*>(out)) = sspkdf_input.number_concatenations; // SSPKDF Concatenations.
 			out += sizeof(u32_t);
+#else
+			std::memcpy( out, &sspkdf_input.number_iterations, sizeof(sspkdf_input.number_iterations) );
+			out += sizeof(u32_t);
+			std::memcpy( out, &sspkdf_input.number_concatenations, sizeof(sspkdf_input.number_concatenations) );
+#endif
 		}
 		sspkdf( &crypto_object.ubi_data,
 		        reinterpret_cast<u8_t*>(crypto_object.key_buffer),
@@ -174,7 +186,12 @@ namespace ssc::crypto_impl::cbc_v2
 		{
 			memcpy( data.header_id, in, sizeof(data.header_id) );
 			in += sizeof(data.header_id);
+#if 0
+			/* Remove undefined-behaviour type-punning */
 			data.header_size = *(reinterpret_cast<u64_t const*>(in));
+#else
+			std::memcpy( &data.header_size, in, sizeof(u64_t) );
+#endif
 			in += sizeof(u64_t);
 			memcpy( data.tweak, in, Tweak_Bytes );
 			in += Tweak_Bytes;
@@ -182,9 +199,16 @@ namespace ssc::crypto_impl::cbc_v2
 			in += sizeof(data.sspkdf_salt);
 			memcpy( data.cbc_iv, in, sizeof(data.cbc_iv) );
 			in += sizeof(data.cbc_iv);
+#if 0
+			/* Remove undefined-behavior type-punning */
 			data.num_iter = *(reinterpret_cast<u32_t const*>(in));
 			in += sizeof(u32_t);
 			data.num_concat = *(reinterpret_cast<u32_t const*>(in));
+#else
+			std::memcpy( &data.num_iter  , in, sizeof(u32_t) );
+			in += sizeof(u32_t);
+			std::memcpy( &data.num_concat, in, sizeof(u32_t) );
+#endif
 			in += sizeof(u32_t);
 		}
 		if( constant_time_memcmp( data.header_id, CBC_V2_ID, sizeof(CBC_V2_ID) ) != 0 ) {

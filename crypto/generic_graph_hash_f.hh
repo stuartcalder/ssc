@@ -62,19 +62,19 @@ namespace ssc
 		using UBI_Data_t = typename UBI_f::Data;
 		using Skein_f    = Skein_F<Skein_Bits>;
 		static_assert (std::is_same<UBI_Data_t,typename Skein_f::Data_t>::value);
-		static inline void call (UBI_Data_t *ubi_data,
-				         u8_t       *temp,
-				         u8_t       *graph_memory,
-				         u8_t const garlic,
-					 u8_t const lambda);
+		static inline void call (_RESTRICT (UBI_Data_t *) ubi_data,
+				         _RESTRICT (u8_t *)       temp,
+					 _RESTRICT (u8_t *)       graph_memory,
+					 u8_t const               garlic,
+					 u8_t const               lambda);
 	};
 
 	TEMPLATE_ARGS
-	void CLASS::call (UBI_Data_t *ubi_data,
-			  u8_t       *temp,
-			  u8_t       *graph_memory,
-			  u8_t const garlic,
-			  u8_t const lambda)
+	void CLASS::call (_RESTRICT (UBI_Data_t *) ubi_data,
+			  _RESTRICT (u8_t *)       temp,
+			  _RESTRICT (u8_t *)       graph_memory,
+			  u8_t const               garlic,
+			  u8_t const               lambda)
 	{
 		u64_t const garlic_end = (static_cast<u64_t>(1) << garlic) - 1;
 		for( u8_t j = 1; j <= lambda; ++j ) {

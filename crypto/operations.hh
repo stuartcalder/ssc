@@ -110,6 +110,9 @@ namespace ssc
 		static_assert (CHAR_BIT == 8);
 		static_assert ((Block_Bits % CHAR_BIT == 0), "Bits must be a multiple of bytes");
 		_CTIME_CONST(int) Block_Bytes = Block_Bits / CHAR_BIT;
+		for( int i = 0; i < Block_Bytes; ++i )
+			reinterpret_cast<u8_t*>(block)[ i ] ^= reinterpret_cast<u8_t const*>(add)[ i ];
+#if 0
 		if constexpr(Block_Bits == 128) {
 			reinterpret_cast<u64_t*>(block)[ 0 ] ^= reinterpret_cast<u64_t const*>(add)[ 0 ];
 			reinterpret_cast<u64_t*>(block)[ 1 ] ^= reinterpret_cast<u64_t const*>(add)[ 1 ];
@@ -135,6 +138,7 @@ namespace ssc
 			for( int i = 0; i < Block_Bytes; ++i )
 				reinterpret_cast<u8_t*>(block)[ i ] ^= reinterpret_cast<u8_t const*>(add)[ i ];
 		}
+#endif
 	}/* ~ xor_block(void*,void*) */
 
 	

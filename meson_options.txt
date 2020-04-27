@@ -8,7 +8,7 @@ option('disable_runtime_checks', type: 'boolean', value: false)
 option('enable_dragonfly_v1', type: 'boolean', value: true)
 
 # By default, we enable cbc_v2, for decrypting legacy files.
-option('enable_cbc_v2', type: 'boolean', value: true)
+option('enable_cbc_v2', type: 'boolean', value: false)
 
 # By default we do not enable debugging symbols.
 option('enable_debugging_symbols', type: 'boolean', value: false)
