@@ -66,7 +66,7 @@ if get_option('enable_cbc_v2')
 	ssc_src += 'crypto/implementation/cbc_v2_f.cc'
 	ssc_src += 'crypto/implementation/sspkdf.cc'
 endif
-if get_option('enable_debugging_symbols') and cc.get_id() == 'gcc' or cc.get_id() == 'clang'
+if get_option('enable_debugging_symbols') and (cc.get_id() == 'gcc' or cc.get_id() == 'clang')
 	cpp_flags += '-g'
 endif
 # Stop parsing options.
