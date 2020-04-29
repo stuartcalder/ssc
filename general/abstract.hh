@@ -9,7 +9,7 @@ namespace ssc::ctime
 	template <typename T>
 	constexpr T Return_Largest (T first, T second)
 	{
-		if (first > second)
+		if( first > second )
 			return first;
 		return second;
 	}
@@ -17,7 +17,7 @@ namespace ssc::ctime
 	constexpr T Return_Largest (T first, T second, Args... args)
 	{
 		T biggest = first;
-		if (second > biggest)
+		if( second > biggest )
 			biggest = second;
 		return Return_Largest( biggest, args... );
 	}
@@ -25,7 +25,7 @@ namespace ssc::ctime
 	template <typename T>
 	constexpr T Return_Smallest (T first, T second)
 	{
-		if (first < second)
+		if( first < second )
 			return first;
 		return second;
 	}
@@ -33,7 +33,7 @@ namespace ssc::ctime
 	constexpr T Return_Smallest (T first, T second, Args... args)
 	{
 		T smallest = first;
-		if (second < smallest)
+		if( second < smallest )
 			smallest = second;
 		return Return_Smallest( smallest, args... );
 	}

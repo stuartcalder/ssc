@@ -1,8 +1,7 @@
-/*
-Copyright (c) 2019-2020 Stuart Steven Calder
-All rights reserved.
-See accompanying LICENSE file for licensing information.
-*/
+/* Copyright (c) 2019-2020 Stuart Steven Calder
+ * All rights reserved.
+ * See accompanying LICENSE file for licensing information.
+ */
 #pragma once
 
 /* SSC General Headers */
@@ -63,12 +62,12 @@ namespace ssc
 		using namespace std;
 #if    defined (__UnixLike__)
 		struct stat stat_struct;
-		if (fstat( os_file, &stat_struct ) == -1)
+		if( fstat( os_file, &stat_struct ) == -1 )
 			errx( "Error: Unable to fstat file descriptor #%d\n", os_file );
 		return static_cast<size_t>(stat_struct.st_size);
 #elif  defined (__Win64__)
 		LARGE_INTEGER lg_int;
-		if (GetFileSizeEx( os_file, &lg_int ) == 0)
+		if( GetFileSizeEx( os_file, &lg_int ) == 0 )
 			errx( "Error: GetFileSizeEx() failed\n" );
 		return static_cast<size_t>(lg_int.QuadPart);
 #else
@@ -81,7 +80,7 @@ namespace ssc
 		using namespace std;
 #if    defined (__UnixLike__)
 		struct stat s;
-		if (stat( filename, &s) != 0)
+		if( stat( filename, &s) != 0 )
 			errx( "Error: Failed to stat() info about %s\n", filename );
 		return static_cast<size_t>(s.st_size);
 #elif  defined (__Win64__)
@@ -162,14 +161,14 @@ namespace ssc
 		using Read_Write_t = decltype(O_RDWR);
 		int file_d;
 		Read_Write_t const read_write_rights = (readonly ? O_RDONLY : O_RDWR);
-		if ((file_d = open( filename, read_write_rights, static_cast<mode_t>(0600) )) == -1)
+		if( (file_d = open( filename, read_write_rights, static_cast<mode_t>(0600) )) == -1 )
 			errx( "Error: Unable to open existing file %s with open()\n", filename );
 		return file_d;
 #elif  defined (__Win64__)
 		using Read_Write_t = decltype(GENERIC_READ);
 		HANDLE file_h;
 		Read_Write_t const read_write_rights = (readonly ? GENERIC_READ : (GENERIC_READ|GENERIC_WRITE));
-		if ((file_h = CreateFileA( filename, read_write_rights, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr )) == INVALID_HANDLE_VALUE)
+		if( (file_h = CreateFileA( filename, read_write_rights, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr )) == INVALID_HANDLE_VALUE )
 			errx( "Error: Unable to open existing file %s with CreateFileA()\n", filename );
 		return file_h;
 #else
@@ -183,12 +182,12 @@ namespace ssc
 		enforce_file_existence( filename, false );
 #if    defined (__UnixLike__)
 		int file_d;
-		if ((file_d = open( filename, (O_RDWR|O_TRUNC|O_CREAT), static_cast<mode_t>(0600) )) == -1)
+		if( (file_d = open( filename, (O_RDWR|O_TRUNC|O_CREAT), static_cast<mode_t>(0600) )) == -1 )
 			errx( "Error: Unable to create new file %s with open()\n", filename );
 		return file_d;
 #elif  defined (__Win64__)
 		HANDLE file_h;
-		if ((file_h = CreateFileA( filename, (GENERIC_READ|GENERIC_WRITE), 0, nullptr, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, nullptr )) == INVALID_HANDLE_VALUE)
+		if( (file_h = CreateFileA( filename, (GENERIC_READ|GENERIC_WRITE), 0, nullptr, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, nullptr )) == INVALID_HANDLE_VALUE )
 			errx( "Error: Unable to create file %s with CreateFileA()\n", filename );
 		return file_h;
 #else
@@ -200,10 +199,10 @@ namespace ssc
 	{
 		using namespace std;
 #if    defined (__UnixLike__)
-		if (close( os_file ) == -1)
+		if( close( os_file ) == -1 )
 			errx( "Error: Wasn't able to close file descriptor %d\n", os_file );
 #elif  defined (__Win64__)
-		if (CloseHandle( os_file ) == 0)
+		if( CloseHandle( os_file ) == 0 )
 			errx( "Error: Wasn't able to close file handle\n" );
 #else
 #	error 'Unsupported OS'
@@ -214,14 +213,14 @@ namespace ssc
 	{
 		using namespace std;
 #if    defined (__UnixLike__)
-		if (ftruncate( os_file, new_size ) == -1)
+		if( ftruncate( os_file, new_size ) == -1 )
 			errx( "Error: Failed to set size of file descriptor %d to %zu\n", os_file, new_size );
 #elif  defined (__Win64__)
 		LARGE_INTEGER lg_int;
 		lg_int.QuadPart = static_cast<decltype(lg_int.QuadPart)>(new_size);
-		if (SetFilePointerEx( os_file, lg_int, nullptr, FILE_BEGIN ) == 0)
+		if( SetFilePointerEx( os_file, lg_int, nullptr, FILE_BEGIN ) == 0 )
 			errx( "Error: Failed to SetFilePointerEx()\n" );
-		if (SetEndOfFile( os_file ) == 0)
+		if( SetEndOfFile( os_file ) == 0 )
 			errx( "Error: Failed to SetEndOfFile()\n" );
 #else
 #	error 'Unsupported OS'

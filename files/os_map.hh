@@ -1,8 +1,7 @@
-/*
-Copyright (c) 2019-2020 Stuart Steven Calder
-All rights reserved.
-See accompanying LICENSE file for licensing information.
-*/
+/* Copyright (c) 2019-2020 Stuart Steven Calder
+ * All rights reserved.
+ * See accompanying LICENSE file for licensing information.
+ */
 #pragma once
 
 /* SSC General Headers */
@@ -76,10 +75,10 @@ namespace ssc
 	{
 		using namespace std;
 #if    defined (__UnixLike__)
-		if (munmap( os_map.ptr, os_map.size ) == -1)
+		if( munmap( os_map.ptr, os_map.size ) == -1 )
 			errx( "Error: Failed to munmap()\n" );
 #elif  defined (__Win64__)
-		if (UnmapViewOfFile( static_cast<LPCVOID>(os_map.ptr) ) == 0)
+		if( UnmapViewOfFile( static_cast<LPCVOID>(os_map.ptr) ) == 0 )
 			errx( "Error: Failed to UnmapViewOfFile()\n" );
 		close_os_file( os_map.win64_filemapping );
 #else
@@ -90,10 +89,10 @@ namespace ssc
 	inline void sync_map (OS_Map const &os_map)
 	{
 #if    defined (__UnixLike__)
-		if (msync( os_map.ptr, os_map.size, MS_SYNC ) == -1)
+		if( msync( os_map.ptr, os_map.size, MS_SYNC ) == -1 )
 			errx( "Error: Failed to msync()\n" );
 #elif  defined (__Win64__)
-		if (FlushViewOfFile( static_cast<LPCVOID>(os_map.ptr), os_map.size ) == 0)
+		if( FlushViewOfFile( static_cast<LPCVOID>(os_map.ptr), os_map.size ) == 0 )
 			errx( "Error: Failed to FlushViewOfFile()\n" );
 #else
 #	error 'Unsupported OS'

@@ -114,8 +114,8 @@ namespace ssc
 				alignas(u64_t) u8_t phi       [Skein_Bytes * 2];
 				alignas(u64_t) u8_t mhf       [MHF_f::Temp_Bytes];
 				struct {
-					alignas(u64_t) u8_t word_buf [Conditional_Size<Use_Gamma>(Skein_Bytes * 2)];
-					alignas(u64_t) u8_t rng      [Conditional_Size<Use_Gamma>(ctime::Return_Largest (Skein_Bytes,Salt_Bytes) + (sizeof(u64_t) * 2))];
+					alignas(u64_t) u8_t word_buf [Conditional_Size<Use_Gamma> (Skein_Bytes * 2)];
+					alignas(u64_t) u8_t rng      [Conditional_Size<Use_Gamma> (ctime::Return_Largest (Skein_Bytes,Salt_Bytes) + (sizeof(u64_t) * 2))];
 				} gamma;
 			} temp;
 		};/* ~ struct Data */

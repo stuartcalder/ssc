@@ -48,7 +48,7 @@
 #	endif
 #endif
 
-/* Define OpenBSD, FreeBSD, and GNU/Linux as UNIX-like operating systems. */
+/* Define OpenBSD, FreeBSD, GNU/Linux, and Mac OSX as UNIX-like operating systems. */
 #if    defined (__OpenBSD__)   || \
        defined (__FreeBSD__)   || \
        defined (__gnu_linux__) || \

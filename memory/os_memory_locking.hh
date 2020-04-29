@@ -1,15 +1,14 @@
-/*
-Copyright (c) 2019-2020 Stuart Steven Calder
-All rights reserved.
-See accompanying LICENSE file for licensing information.
-*/
+/* Copyright (c) 2019-2020 Stuart Steven Calder
+ * All rights reserved.
+ * See accompanying LICENSE file for licensing information.
+ */
 #pragma once
 
 #include <ssc/general/macros.hh>
 
 #ifndef ENABLE_MEMORYLOCKING
-	// Memory-lock on all supported operating systems, for prudence.
-#	if    defined (__UnixLike__) || defined (__Win64__)
+	// Memory-lock on all supported operating systems except for OpenBSD.
+#	if    (defined (__UnixLike__) && !defined (__OpenBSD__)) || defined (__Win64__)
 #		define ENABLE_MEMORYLOCKING
 #	endif
 #else

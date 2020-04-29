@@ -7,7 +7,7 @@
 
 namespace ssc
 {
-    void print_binary_buffer( u8_t const * buffer, size_t const num_bytes )
+    void print_binary_buffer (u8_t const * buffer, size_t const num_bytes)
 	{
 		auto print_4_bits = [](u8_t i){
 			switch( i ) {
@@ -64,7 +64,7 @@ namespace ssc
 		}; /* ~ lambda print_4_bits (u8_t) */
 		size_t i = 0;
 		std::printf( "0b" );
-		while (i < num_bytes) {
+		while( i < num_bytes ) {
 			print_4_bits( buffer[i] >> 4 );
 			print_4_bits( buffer[i] & 0b00001111 );
 			std::putchar( ',' );

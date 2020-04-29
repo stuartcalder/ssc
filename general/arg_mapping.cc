@@ -15,16 +15,16 @@ namespace ssc
 	{
 		// Vectorize the arguments.
 		std::vector< std::string > vec;
-		for (int i = 0; i < argc; ++i)
+		for( int i = 0; i < argc; ++i )
 		    vec.push_back( argv[i] );
 		std::pair< std::string, std::string > temp_pair;
-		for (decltype(vec.size()) i = 0; i < vec.size(); ++i) {
+		for( decltype(vec.size()) i = 0; i < vec.size(); ++i ) {
 			// If the string vec[ i ] is an option...
 			if( is_option( vec[ i ] ) ) {
 				// put it in the `first` of the temp_pair.
 				temp_pair.first = vec[ i ];
 				// Is the next string (if there is one) an option, or an argument to this option?
-				if ((i + 1) < vec.size() && (! is_option( vec[ i + 1 ] ))) {
+				if( (i + 1) < vec.size() && (! is_option( vec[ i + 1 ] )) ) {
 					temp_pair.second = vec[i + 1];
 					// We consumed one more string than we would have otherwise, so increment.
 					++i;
@@ -56,14 +56,14 @@ namespace ssc
 	{
 		// Determine the longest string length out of all of them to use as the minimum field width.
 		decltype(mapping)::size_type min_field_size = 0;
-		for (auto const &pair : mapping) {
-			if (pair.first.size() > min_field_size)
+		for( auto const &pair : mapping ) {
+			if( pair.first.size() > min_field_size )
 				min_field_size = pair.first.size();
-			if (pair.second.size() > min_field_size)
+			if( pair.second.size() > min_field_size )
 				min_field_size = pair.second.size();
 		}
 		/* Print out everything */
-		for (auto const &pair : mapping) {
+		for( auto const &pair : mapping ) {
 			std::printf( "{ %*s, %*s }\n",
 			             static_cast<int>(min_field_size), pair.first.c_str(),
 			             static_cast<int>(min_field_size), pair.second.c_str() );
