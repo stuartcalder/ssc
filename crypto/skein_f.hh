@@ -29,32 +29,32 @@ namespace ssc
 
 		Skein_F (void) = delete;
 
-		static void hash (Data_t      *ubi_data,
-				  u8_t        *bytes_out,
-				  u8_t  const *bytes_in,
-				  u64_t const num_bytes_in,
-				  u64_t const num_bytes_out);
+		static void hash (_RESTRICT (Data_t *) ubi_data,
+				  u8_t                 *bytes_out,
+				  u8_t  const          *bytes_in,
+				  u64_t const          num_bytes_in,
+				  u64_t const          num_bytes_out);
 		
-		static void hash_native (Data_t      *ubi_data,
-				         u8_t        *bytes_out,
-					 u8_t const  *bytes_in,
-					 u64_t const num_bytes_in);
+		static void hash_native (_RESTRICT (Data_t *) ubi_data,
+				         u8_t                 *bytes_out,
+					 u8_t const           *bytes_in,
+					 u64_t const          num_bytes_in);
 
-		static void mac (Data_t      *ubi_data,
-				 u8_t        *bytes_out,
-				 u8_t const  *bytes_in,
-				 u8_t const  *key_in,
-				 u64_t const num_bytes_out,
-				 u64_t const num_bytes_in);
+		static void mac (_RESTRICT (Data_t *)     ubi_data,
+				 u8_t                     *bytes_out,
+				 u8_t const               *bytes_in,
+				 _RESTRICT (u8_t const *) key_in,
+				 u64_t const              num_bytes_out,
+				 u64_t const              num_bytes_in);
 				         
 	};
 
 	TEMPLATE_ARGS
-	void CLASS::hash (Data_t      *ubi_data,
-	 	          u8_t        *bytes_out,
-		          u8_t  const *bytes_in,
-		          u64_t const num_bytes_in,
-		          u64_t const num_bytes_out)
+	void CLASS::hash (_RESTRICT (Data_t *) ubi_data,
+	 	          u8_t                 *bytes_out,
+		          u8_t  const          *bytes_in,
+		          u64_t const          num_bytes_in,
+		          u64_t const          num_bytes_out)
 	{
 		std::memset( ubi_data->key_state, 0, State_Bytes );
 		UBI_f::chain_config( ubi_data, (num_bytes_out * CHAR_BIT) );
@@ -62,10 +62,10 @@ namespace ssc
 		UBI_f::chain_output( ubi_data, bytes_out, num_bytes_out );
 	}
 	TEMPLATE_ARGS
-	void CLASS::hash_native (Data_t      *ubi_data,
-                                 u8_t        *bytes_out,
-                                 u8_t const  *bytes_in,
-                                 u64_t const num_bytes_in)
+	void CLASS::hash_native (_RESTRICT (Data_t *) ubi_data,
+                                 u8_t                 *bytes_out,
+                                 u8_t const           *bytes_in,
+                                 u64_t const          num_bytes_in)
 	{
 		static_assert (State_Bits == 256 || State_Bits == 512 || State_Bits == 1024);
 		if constexpr (State_Bits == 256) {
@@ -114,12 +114,12 @@ namespace ssc
 	}
 
 	TEMPLATE_ARGS
-	void CLASS::mac (Data_t      *ubi_data,
-			 u8_t        *bytes_out,
-			 u8_t const  *bytes_in,
-			 u8_t const  *key_in,
-			 u64_t const num_bytes_out,
-			 u64_t const num_bytes_in)
+	void CLASS::mac (_RESTRICT (Data_t *)     ubi_data,
+			 u8_t                     *bytes_out,
+			 u8_t const               *bytes_in,
+			 _RESTRICT (u8_t const *) key_in,
+			 u64_t const              num_bytes_out,
+			 u64_t const              num_bytes_in)
 	{
 		using T_Mask_e = typename UBI_f::Type_Mask_E;
 
