@@ -61,6 +61,7 @@
 
 namespace ssc
 {
+#if 0
 	static_assert (CHAR_BIT == 8);
 	template <typename Uint_t>
 	Uint_t rotate_left (Uint_t value, unsigned int count)
@@ -71,7 +72,9 @@ namespace ssc
 		count &= mask;
 		return ( value << count ) | ( value >> (-count & mask));
 	} /* ~ Uint_t rotate_left(Uint_t,unsigned int) */
+#endif
 
+#if 0
 	template <unsigned int Count, typename Uint_t>
 	constexpr Uint_t ctime_rotate_left (Uint_t value)
 	{
@@ -81,7 +84,19 @@ namespace ssc
 		constexpr Uint_t Masked_Count = Mask & Count;
 		return (value << Masked_Count) | (value >> (-Masked_Count & Mask));
 	}
+#else
+	template <unsigned int Count, typename Uint_t>
+	constexpr Uint_t rotate_left (Uint_t value)
+	{
+		STATIC_ENFORCE_UNSIGNED_INTEGRAL (Uint_t);
 
+		constexpr Uint_t Mask = (CHAR_BIT * sizeof(Uint_t)) - 1;
+		constexpr Uint_t Masked_Count = Mask & Count;
+		return (value << Masked_Count) | (value >> (-Masked_Count & Mask));
+	}
+#endif
+
+#if 0
 	template <typename Uint_t>
 	Uint_t rotate_right (Uint_t value, unsigned int count)
 	{
@@ -91,7 +106,9 @@ namespace ssc
 		count &= mask;
 		return ( value >> count ) | ( value << (-count & mask));
 	} /* ~ Uint_t rotate_right(Uint_t,unsigned int) */
+#endif
 
+#if 0
 	template <unsigned int Count, typename Uint_t>
 	constexpr Uint_t ctime_rotate_right (Uint_t value)
 	{
@@ -101,6 +118,17 @@ namespace ssc
 		constexpr Uint_t Masked_Count = Mask & Count;
 		return (value >> Masked_Count) | (value << (-Masked_Count & Mask));
 	}
+#else
+	template <unsigned int Count, typename Uint_t>
+	constexpr Uint_t rotate_right (Uint_t value)
+	{
+		STATIC_ENFORCE_UNSIGNED_INTEGRAL (Uint_t);
+
+		constexpr Uint_t Mask = (CHAR_BIT * sizeof(Uint_t)) - 1;
+		constexpr Uint_t Masked_Count = Mask & Count;
+		return (value >> Masked_Count) | (value << (-Masked_Count & Mask));
+	}
+#endif
 
 	template <int Block_Bits>
 	void xor_block (_RESTRICT (void *)       block,

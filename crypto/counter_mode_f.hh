@@ -98,7 +98,7 @@ namespace ssc
 				left = bytes;
 			else
 				left = input_size;
-			for( int i = 0; i < left; ++i )
+			for( u64_t i = 0; i < left; ++i )
 				offset_buffer[ i ] ^= input[ i ];
 			std::memcpy( output, offset_buffer, left );
 			input      += left;
@@ -125,7 +125,7 @@ namespace ssc
 			Threefish_f::cipher( &(data->threefish_data),
 					     data->buffer,
 					     data->keystream );
-			for( int i = 0; i < input_size; ++i )
+			for( u64_t i = 0; i < input_size; ++i )
 				data->buffer[ i ] ^= input[ i ];
 			std::memcpy( output, data->buffer, input_size );
 		}

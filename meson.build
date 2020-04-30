@@ -12,6 +12,11 @@ if os == 'windows' and cc.get_id() == 'msvc'
 else
 	_Define_Flag_Prefix = '-D'
 endif
+if cc.get_id() == 'gcc' or cc.get_id() == 'clang'
+	is_gcc_compatible = true
+else
+	is_gcc_compatbile = false
+endif
 
 ssc_src = [
 	# `General` Files
@@ -22,6 +27,10 @@ ssc_src = [
 lib_deps  = []
 cpp_flags = []
 inc_dir   = []
+gcc_compatible_flags = [
+	'-fvisibility=hidden', '-fno-exceptions', '-fstrict-aliasing',
+	'-Wall', '-funroll-loops'
+]
 
 if os   == 'darwin'
 	# OSX requires this define for access to memset_s
@@ -29,21 +38,23 @@ if os   == 'darwin'
 	cpp_flags += _flag
 endif
 if os   == 'openbsd' or os == 'freebsd' or os == 'darwin'
-	cpp_flags += '-fvisibility=hidden'
-	cpp_flags += '-fno-exceptions'
+	if is_gcc_compatible
+		cpp_flags += gcc_compatible_flags
+	endif
 	lib_deps  += cc.find_library('ncurses')
 	include_install = '/usr/local/include'
 elif os == 'linux'
-	cpp_flags += '-fvisibility=hidden'
-	cpp_flags += '-fno-exceptions'
+	if is_gcc_compatible
+		cpp_flags += gcc_compatible_flags
+	endif
 	lib_deps  += cc.find_library('ncurses')
+	lib_deps  += cc.find_library('tinfo')
 	include_install = '/usr/include'
-	lib_deps += cc.find_library('tinfo')
 elif os == 'windows'
-	_flag = _Define_Flag_Prefix + '__BUILD_STATIC'
+	_flag      = _Define_Flag_Prefix + '__BUILD_STATIC'
 	cpp_flags += _flag
-	include_install = 'C:/include'
 	lib_deps += cc.find_library('bcrypt')
+	include_install = 'C:/include'
 else
 	assert(false)
 endif
@@ -66,9 +77,15 @@ if get_option('enable_cbc_v2')
 	ssc_src += 'crypto/implementation/cbc_v2_f.cc'
 	ssc_src += 'crypto/implementation/sspkdf.cc'
 endif
-if get_option('enable_debugging_symbols') and (cc.get_id() == 'gcc' or cc.get_id() == 'clang')
-	cpp_flags += '-g'
+if is_gcc_compatible
+	if get_option('enable_debugging_symbols')
+		cpp_flags += '-g'
+	endif
+	if get_option('use_native_optimizations')
+		cpp_flags += '-march=native'
+	endif
 endif
+
 # Stop parsing options.
 
 install_subdir('../ssc', install_dir: include_install, exclude_directories: ['builddir','.git'],

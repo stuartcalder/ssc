@@ -24,15 +24,6 @@
 #define TEMPLATE_ARGS	template <int Bits,Key_Schedule_E Key_Schedule_Gen>
 #define CLASS Threefish_F<Bits,Key_Schedule_Gen>
 
-static_assert (CHAR_BIT == 8);
-#if    defined (BITS_TO_BYTES) || defined (BYTES_TO_WORDS)
-#	error 'BITS_TO_BYTES or BYTES_TO_WORDS defined'
-#endif
-#define BITS_TO_BYTES(bits) \
-	(bits / CHAR_BIT)
-#define BYTES_TO_WORDS(bytes) \
-	(bytes / sizeof(u64_t))
-
 namespace ssc
 {
 
@@ -40,16 +31,21 @@ namespace ssc
 	class Threefish_F
 	{
 	public:
-		static_assert (Bits == 256 || Bits == 512 || Bits == 1024);
+		static_assert (CHAR_BIT      == 8,"This code assumes 8-bit bytes.");
+		static_assert (sizeof(u64_t) == 8,"This code assumes 64-bit integers are 8 bytes large.");
+		static_assert (Bits == 256 ||
+			       Bits == 512 ||
+			       Bits == 1024,
+			       "The Threefish block cipher is defined only for 256, 512, 1024 bits.");
 	/* Key Schedule Control Constants */
 		static_assert (Key_Schedule_Gen == Key_Schedule_E::Pre_Compute ||
 			       Key_Schedule_Gen == Key_Schedule_E::Runtime_Compute);
 		Threefish_F (void) = delete;
 	/* Constants */
 		_CTIME_CONST (int) Block_Bits = Bits;
-		_CTIME_CONST (int) Block_Bytes = BITS_TO_BYTES (Block_Bits);
-		_CTIME_CONST (int) Block_Words = BYTES_TO_WORDS (Block_Bytes);
-		_CTIME_CONST (int) Tweak_Words = 2;
+		_CTIME_CONST (int) Block_Bytes = Block_Bits / CHAR_BIT;
+		_CTIME_CONST (int) Block_Words = Block_Bytes / sizeof(u64_t);
+		_CTIME_CONST (int) Tweak_Words = 2; // All versions of Threefish use a 16-byte tweak.
 		_CTIME_CONST (int) Tweak_Bytes = Tweak_Words * sizeof(u64_t);
 		_CTIME_CONST (int) Tweak_Bits  = Tweak_Bytes * CHAR_BIT;
 		_CTIME_CONST (int) Number_Rounds = []() {
@@ -57,18 +53,22 @@ namespace ssc
 				return 80;
 			return 72;
 		}();
-		static_assert (Number_Rounds == 72 || Number_Rounds == 80);
+		static_assert (Number_Rounds == 72 || Number_Rounds == 80,
+			       "Threefish 1024 uses 80 rounds, 256 and 512 use 72 rounds.");
 		_CTIME_CONST (int) Number_Subkeys = (Number_Rounds / 4) + 1;
-		static_assert (Number_Subkeys == 19 || Number_Subkeys == 21);
+		static_assert (Number_Subkeys == 19 || Number_Subkeys == 21,
+			       "Given a choice of 72 and 80 rounds, there may only be 19 or 21 subkeys.");
 		_CTIME_CONST (int) External_Key_Words = Block_Words + 1;
 		_CTIME_CONST (int) External_Tweak_Words = Tweak_Words + 1;
 		_CTIME_CONST (u64_t) Constant_240 = 0x1b'd1'1b'da'a9'fc'1a'22; // Constant_240, defined in the Threefish specification.
 
 		struct Precomputed_Data {
+			// When we pre-compute all the subkeys of the key schedule, we store them in `key_schedule`.
 			u64_t key_schedule [Block_Words * Number_Subkeys];
 			u64_t state        [Block_Words];
 		};/* ~ struct Precomputed_Data */
 		struct Runtime_Data {
+			// When we compute the subkeys at runtime, we store pointers to the input key and tweak.
 			u64_t state        [Block_Words];
 			u64_t *stored_key;  // -> [External_Key_Words]
 			u64_t *stored_tweak;// -> [External_Tweak_Words]
@@ -78,13 +78,14 @@ namespace ssc
 		static_assert (std::is_same<Data_t,Precomputed_Data>::value || std::is_same<Data_t,Runtime_Data>::value);
 
 		static void rekey          (_RESTRICT (Data_t *) data,
-				            _RESTRICT (u64_t *) key,
-					    _RESTRICT (u64_t *) tweak);
+				            _RESTRICT (u64_t *)  key,
+					    _RESTRICT (u64_t *)  tweak);
 
-		static void cipher         (_RESTRICT (Data_t *)       data,
+		static void cipher         (_RESTRICT (Data_t *)     data,
 				            _RESTRICT (u8_t *)       ctext,
 					    _RESTRICT (u8_t const *) ptext);
-		static void inverse_cipher (_RESTRICT (Data_t *)       data,
+
+		static void inverse_cipher (_RESTRICT (Data_t *)     data,
 				            _RESTRICT (u8_t *)       ptext,
 					    _RESTRICT (u8_t const *) ctext);
 	private:
@@ -104,9 +105,12 @@ namespace ssc
 	key_var[ (subkey + i) % (Block_Words + 1) ]
 
 #define SET_WORD(subkey,i) \
-	static_assert (std::is_same<decltype(subkey),int>::value && subkey >= 0 && subkey < Number_Subkeys); \
-	static_assert (std::is_same<decltype(i),int>::value && i >= 0 && i < Block_Words); \
-	static_assert (Key_Schedule_Gen == Key_Schedule_E::Pre_Compute || Key_Schedule_Gen == Key_Schedule_E::Runtime_Compute); \
+	static_assert (std::is_same<decltype(subkey),int>::value && subkey >= 0 && subkey < Number_Subkeys, \
+		       "Ensure the subkey is an integer, and within the range of valid subkeys."); \
+	static_assert (std::is_same<decltype(i),int>::value && i >= 0 && i < Block_Words, \
+		       "Ensure the index i is an integer, and within the range of valid indices"); \
+	static_assert (Key_Schedule_Gen == Key_Schedule_E::Pre_Compute || Key_Schedule_Gen == Key_Schedule_E::Runtime_Compute, \
+		       "Ensure the key schedule is precisely specified as precomputed, or runtime computed."); \
 	data->key_schedule[ (subkey * Block_Words) + i ] = MAKE_WORD (key,subkey,i)
 
 #define SET_FOUR_WORDS(subkey,start_i) \
@@ -118,7 +122,8 @@ namespace ssc
 
 #define MAKE_SUBKEY(subkey) \
 	_MACRO_SHIELD \
-		static_assert (std::is_same<decltype(subkey),int>::value && subkey >= 0 && subkey < Number_Subkeys); \
+		static_assert (std::is_same<decltype(subkey),int>::value && subkey >= 0 && subkey < Number_Subkeys, \
+			       "Ensure the subkey is an integer, and within the valid range of subkey values."); \
 		if constexpr (Block_Words == 4) { \
 			SET_WORD (subkey,0); /* 0 */ \
 			SET_WORD (subkey,1) + tweak[ subkey % 3 ]; \
@@ -130,7 +135,7 @@ namespace ssc
 			SET_WORD (subkey,5) + tweak[ subkey % 3 ]; /* 5 */ \
 			SET_WORD (subkey,6) + tweak[ (subkey + 1) % 3 ]; \
 			SET_WORD (subkey,7) + subkey; \
-		} else if constexpr (Block_Words== 16) { \
+		} else if constexpr (Block_Words == 16) { \
 			SET_EIGHT_WORDS (subkey,0); /* 0 - 7 */ \
 			SET_FOUR_WORDS  (subkey,8); /* 8 - 11*/ \
 			SET_WORD       (subkey,12); /* 12 */ \
@@ -156,7 +161,7 @@ namespace ssc
 	// Setup the tweak.
 		tweak[ 2 ] = tweak[ 0 ] ^ tweak[ 1 ];
 		if constexpr (Key_Schedule_Gen == Key_Schedule_E::Pre_Compute) {
-	// Generate the keyschedule.
+			// A pre-computed key-schedule has been asked for.. Generate all the subkeys and stored them in `key_schedule`.
 			static_assert (Number_Subkeys == 19 || Number_Subkeys == 21);
 			MAKE_SUBKEY  (0);
 			MAKE_SUBKEY  (1);
@@ -182,6 +187,7 @@ namespace ssc
 				MAKE_SUBKEY (20);
 			}
 		} else if constexpr (Key_Schedule_Gen == Key_Schedule_E::Runtime_Compute) {
+			// A runtime-computed key-schedule has been asked for.. Store pointers to the key and tweak for accessing later.
 			data->stored_key = key;
 			data->stored_tweak = tweak;
 		}
@@ -199,12 +205,16 @@ namespace ssc
 	       PERMUTE, INVERSE_PERMUTE, ENC_ROUND, DEC_ROUND, EIGHT_ENC_ROUNDS, EIGHT_DEC_ROUNDS Already Defined'
 #endif
 #	define MIX(word_0,word_1,round,index) \
-	static_assert (std::is_same<decltype(word_0),u64_t&>::value); \
-	static_assert (std::is_same<decltype(word_1),u64_t&>::value); \
-	static_assert (std::is_same<decltype(round),int>::value); \
-	static_assert (std::is_same<decltype(index),int>::value); \
+	static_assert (std::is_same<decltype(word_0),u64_t&>::value, \
+		       "word_0 must be an unsigned 64-bit integer reference."); \
+	static_assert (std::is_same<decltype(word_1),u64_t&>::value, \
+		       "word_1 must be an unsigned 64-bit integer reference."); \
+	static_assert (std::is_same<decltype(round),int>::value, \
+		       "round must be an integer."); \
+	static_assert (std::is_same<decltype(index),int>::value, \
+		       "index must be an integer."); \
 	word_0 += word_1; \
-	word_1 = ctime_rotate_left< \
+	word_1 = rotate_left< \
 			rotate_const_<round,index>(), \
 			u64_t \
 		> (word_1) ^ word_0
@@ -214,7 +224,7 @@ namespace ssc
 
 #	define INVERSE_MIX(word_0,word_1,round,index) \
 	word_1 ^= word_0; \
-	word_1 = ctime_rotate_right< \
+	word_1 = rotate_right< \
 			rotate_const_<round,index>(), \
 			u64_t \
 		> (word_1); \
@@ -226,8 +236,11 @@ namespace ssc
 #	define USE_SUBKEY(operation,round) \
 	_MACRO_SHIELD \
 		_CTIME_CONST (int) Subkey_Index = round / 4; \
-		_CTIME_CONST (int) Subkey_Offset = Subkey_Index * Block_Words; \
 		if constexpr (Key_Schedule_Gen == Key_Schedule_E::Pre_Compute) { \
+			/* The key-schedule has been pre-computed, thus we can modify the state by directly accessing
+			 * the keyschedule, where operation is += or -= for adding or subtracting the subkey from the state
+			 * words.*/ \
+			_CTIME_CONST (int) Subkey_Offset = Subkey_Index * Block_Words; \
 			if constexpr (Block_Words == 4) { \
 				data->state[ 0 ] operation data->key_schedule[ Subkey_Offset + 0 ]; \
 				data->state[ 1 ] operation data->key_schedule[ Subkey_Offset + 1 ]; \
@@ -261,10 +274,12 @@ namespace ssc
 				data->state[ 15 ] operation data->key_schedule[ Subkey_Offset + 15 ]; \
 			} \
 		} else if constexpr (Key_Schedule_Gen == Key_Schedule_E::Runtime_Compute) { \
+			/* The key-schedule is computed at runtime. For each += or -= operation, we compute
+			 * the subkeys on-demand. */ \
 			if constexpr (Block_Words == 4) { \
 				data->state[ 0 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,0)); \
-				data->state[ 1 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,1) + data->stored_tweak[ Subkey_Index% 3 ]); \
-				data->state[ 2 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,2) + data->stored_tweak[ (Subkey_Index+ 1) % 3 ]); \
+				data->state[ 1 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,1) + data->stored_tweak[ Subkey_Index % 3 ]); \
+				data->state[ 2 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,2) + data->stored_tweak[ (Subkey_Index + 1) % 3 ]); \
 				data->state[ 3 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,3) + Subkey_Index); \
 			} else if constexpr (Block_Words == 8) { \
 				data->state[ 0 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,0)); \
@@ -272,8 +287,8 @@ namespace ssc
 				data->state[ 2 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,2)); \
 				data->state[ 3 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,3)); \
 				data->state[ 4 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,4)); \
-				data->state[ 5 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,5) + data->stored_tweak[ Subkey_Index% 3 ]); \
-				data->state[ 6 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,6) + data->stored_tweak[ (Subkey_Index+ 1) % 3 ]); \
+				data->state[ 5 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,5) + data->stored_tweak[ Subkey_Index % 3 ]); \
+				data->state[ 6 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,6) + data->stored_tweak[ (Subkey_Index + 1) % 3 ]); \
 				data->state[ 7 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,7) + Subkey_Index); \
 			} else if constexpr (Block_Words == 16) { \
 				data->state[  0 ] operation (MAKE_WORD (data->stored_key,Subkey_Index, 0)); \
@@ -289,8 +304,8 @@ namespace ssc
 				data->state[ 10 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,10)); \
 				data->state[ 11 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,11)); \
 				data->state[ 12 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,12)); \
-				data->state[ 13 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,13) + data->stored_tweak[ Subkey_Index% 3 ]); \
-				data->state[ 14 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,14) + data->stored_tweak[ (Subkey_Index+ 1) % 3 ]); \
+				data->state[ 13 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,13) + data->stored_tweak[ Subkey_Index % 3 ]); \
+				data->state[ 14 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,14) + data->stored_tweak[ (Subkey_Index + 1) % 3 ]); \
 				data->state[ 15 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,15) + Subkey_Index); \
 			} \
 		} \
@@ -389,7 +404,8 @@ namespace ssc
 		_MACRO_SHIELD_EXIT
 
 #	define ENC_ROUND(round) \
-	static_assert (std::is_same<decltype(round),int>::value && round >= 0 && round < Number_Rounds); \
+	static_assert (std::is_same<decltype(round),int>::value && round >= 0 && round < Number_Rounds, \
+		       "Enforce that round is an integer, from 0 to less than the number of threefish rounds."); \
 	if constexpr (round % 4 == 0) \
 		USE_SUBKEY (+=,round); \
 	if constexpr (Block_Words == 4) { \
@@ -545,8 +561,6 @@ namespace ssc
 #undef SET_FOUR_WORDS
 #undef SET_WORD
 #undef MAKE_WORD
-#undef BYTES_TO_WORDS
-#undef BITS_TO_BYTES
 #undef CLASS
 #undef TEMPLATE_ARGS
 #undef DEFAULT_ARGS

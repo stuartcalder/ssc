@@ -1,3 +1,4 @@
+### FEATURES ###
 # By default, we enable "memory locking" on operating systems that support it.
 option('disable_memorylocking',  type: 'boolean', value: false)
 
@@ -10,5 +11,8 @@ option('enable_dragonfly_v1', type: 'boolean', value: true)
 # By default, we enable cbc_v2, for decrypting legacy files.
 option('enable_cbc_v2', type: 'boolean', value: false)
 
+### BUILD OPTIONS ###
 # By default we do not enable debugging symbols.
 option('enable_debugging_symbols', type: 'boolean', value: false)
+
+option('use_native_optimizations', type: 'boolean', value: false)
