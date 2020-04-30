@@ -6,6 +6,14 @@ project('ssc', 'cpp',
 cc = meson.get_compiler('cpp') # Get the C++ compiler.
 
 os = host_machine.system() # Get the operating system.
+assert (
+	(os == 'openbsd' or os == 'freebsd' or os == 'darwin' or os == 'linux' or os == 'windows'),
+	'You are trying to build SSC with an unsupported operating system!'
+)
+assert (
+	(cc.get_id() == 'gcc' or cc.get_id() == 'clang' or cc.get_id() == 'msvc'),
+	'The only supported compilers are GCC, Clang, And MSVC!'
+)
 
 if os == 'windows' and cc.get_id() == 'msvc'
 	_Define_Flag_Prefix = '/D'
@@ -55,8 +63,6 @@ elif os == 'windows'
 	cpp_flags += _flag
 	lib_deps += cc.find_library('bcrypt')
 	include_install = 'C:/include'
-else
-	assert(false)
 endif
 
 inc_dir += '..'
