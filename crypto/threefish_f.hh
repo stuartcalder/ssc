@@ -95,8 +95,8 @@ namespace ssc
 
 	TEMPLATE_ARGS
 	void CLASS::rekey (_RESTRICT (Data_t *) data,
-                           _RESTRICT (u64_t *) key,
-                           _RESTRICT (u64_t *) tweak)
+                           _RESTRICT (u64_t *)  key,
+                           _RESTRICT (u64_t *)  tweak)
 	{
 #if    defined (MAKE_WORD) || defined (SET_WORDS) || defined (SET_FOUR_WORDS) || defined (SET_EIGHT_WORDS) || defined (MAKE_SUBKEY)
 #	error 'A macro name we need was already defined'
@@ -194,7 +194,7 @@ namespace ssc
 	}/* ~ void rekey (...) */
 
 	TEMPLATE_ARGS
-	void CLASS::cipher (_RESTRICT (Data_t *)       data,
+	void CLASS::cipher (_RESTRICT (Data_t *)     data,
                             _RESTRICT (u8_t *)       ctext,
                             _RESTRICT (u8_t const *) ptext)
 	{
@@ -478,7 +478,7 @@ namespace ssc
 	}/* ~ void cipher (...) */
 
 	TEMPLATE_ARGS
-	void CLASS::inverse_cipher (_RESTRICT (Data_t *)       data,
+	void CLASS::inverse_cipher (_RESTRICT (Data_t *)     data,
 			            _RESTRICT (u8_t *)       ptext,
 				    _RESTRICT (u8_t const *) ctext)
 	{

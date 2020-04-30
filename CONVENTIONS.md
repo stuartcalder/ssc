@@ -63,7 +63,6 @@ constexpr_function_call (first_arg,second_arg);
 /* We use the same syntax rules to represent constexpr function calls to represent function-like macro usage. */
 MACRO_FUNCTION_CALL (first_arg,second_arg);
 ```
-* To accomodate all the ways that modern C++ allows us to write expressions that are "executed" or evaluted at different times, 
 * Modern C++ allows us to write expressions that are "executed", or evaluated at different times, but doesn't give us much in the way of differentiating between these different execution times syntactically. We propose using whitespace for this purpose to make complex interleaved usage of run-time code and compile-time code easier to read.
 * This extends to other kinds of statements, to show whether "execution happens on this line"
 ```c++
@@ -86,3 +85,4 @@ if constexpr (sizeof(example_array) == 5) {
 ```
 #Function Classes
 * All the classes postfixed with _F represent function classes, where all the functions in the class are static.
+* Type aliases of Function Classes are postfixed with _f, as type aliases of other types are postfixed with _t.

@@ -21,7 +21,6 @@ namespace ssc
 		static_assert (CHAR_BIT == 8);
 		static_assert (Bits == 256 || Bits == 512 || Bits == 1024);
 		using Skein_f = Skein_F<Bits>;
-		using Data_t  = typename Skein_f::Data_t;
 		_CTIME_CONST (int) State_Bits = Bits;
 		_CTIME_CONST (int) State_Bytes = State_Bits / CHAR_BIT;
 
