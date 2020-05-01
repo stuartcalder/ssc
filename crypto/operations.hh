@@ -194,7 +194,7 @@ namespace ssc
 		close_os_file( random_dev );
 #elif  defined (__UnixLike__)
 		_CTIME_CONST(int) Max_Bytes = 256;
-                while( num_bytes >= Max_Bytes ) {
+                while( num_bytes > Max_Bytes ) {
                         if( getentropy( buffer, Max_Bytes ) != 0 )
 				errx( "Error: Failed to getentropy()\n" );
 			num_bytes -= Max_Bytes;

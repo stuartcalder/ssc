@@ -21,6 +21,24 @@ using namespace std;
 #       define UNLOCK_MEMORY(non_0,none_1)
 #endif
 
+#define CLEANUP_MAP(map) \
+	unmap_file( map ); \
+	close_os_file( map.os_file )
+
+#define CLEANUP_ERROR(secret_object) \
+	zero_sensitive( &secret_object, sizeof(secret_object) ); \
+	UNLOCK_MEMORY (&secret_object,sizeof(secret_object)); \
+	CLEANUP_MAP (output_map); \
+	CLEANUP_MAP (input_map); \
+	remove( output_filename )
+
+#define CLEANUP_SUCCESS(secret_object) \
+	zero_sensitive( &secret_object, sizeof(secret_object) ); \
+	UNLOCK_MEMORY (&secret_object,sizeof(secret_object)); \
+	sync_map( output_map ); \
+	CLEANUP_MAP (output_map); \
+	CLEANUP_MAP (input_map)
+
 namespace ssc::crypto_impl::dragonfly_v1
 {
 	void encrypt (Catena_Input const &catena_input,
@@ -113,13 +131,7 @@ namespace ssc::crypto_impl::dragonfly_v1
 						              catena_input.g_high,   // Pass in the upper memory-bound, g_high.
 						              catena_input.lambda ); // Pass in the time-cost parameter, lambda.
 				if( r != Catena_Safe_f::Return_E::Success ) { // CATENA failed to allocate memory branch.
-					zero_sensitive( &secret, sizeof(secret) ); // Destroy the secret data.
-					UNLOCK_MEMORY (&secret,sizeof(secret));    // Unlock the secret data.
-					unmap_file( output_map );                  // Unmap the output file.
-					unmap_file( input_map  );                  // Unmap the input file.
-					close_os_file( output_map.os_file );       // Close the output file.
-					close_os_file( input_map.os_file  );       // Close the input file.
-					remove( output_filename );                 // Delete the created output file from the filesystem.
+					CLEANUP_ERROR (secret);
 					errx( "Error: Catena_Safe_f failed with error code %d...\n"
 					      "Allocating too much memory?\n", static_cast<int>(r) ); // Die.
 				}
@@ -137,13 +149,7 @@ namespace ssc::crypto_impl::dragonfly_v1
 						                catena_input.g_high,     // Pass in the upper memory-bound, g_high.
 						                catena_input.lambda );   // Pass in the time-cost parameter, lambda.
 				if( r != Catena_Strong_f::Return_E::Success ) { // CATENA failed to allocate memory branch.
-					zero_sensitive( &secret, sizeof(secret) ); // Destroy the secret data.
-					UNLOCK_MEMORY (&secret,sizeof(secret));    // Unlock the secret data.
-					unmap_file( output_map );                  // Unmap the output file.
-					unmap_file( input_map  );                  // Unmap the input file.
-					close_os_file( output_map.os_file );       // Close the output file.
-					close_os_file( input_map.os_file  );       // Close the input file.
-					remove( output_filename );                 // Delete the created output file from the filesystem.
+					CLEANUP_ERROR (secret);
 					errx( "Error: Catena_Strong_f failed with error code %d...\n"
 					      "Allocating too much memory?\n", static_cast<int>(r) ); // Die.
 				}
@@ -218,15 +224,7 @@ namespace ssc::crypto_impl::dragonfly_v1
 				      MAC_Bytes,
 				      output_map.size - MAC_Bytes ); // Authenticate the ciphertext with the auth key we generated earlier.
 		}
-		zero_sensitive( &secret, sizeof(secret) );
-
-		UNLOCK_MEMORY (&secret,sizeof(secret));
-
-		sync_map( output_map );
-		unmap_file( output_map );
-		unmap_file( input_map );
-		close_os_file( output_map.os_file );
-		close_os_file( input_map.os_file );
+		CLEANUP_SUCCESS (secret);
 	}/* ~ void encrypt (...) */
 	void decrypt (OS_Map &input_map,
 		      OS_Map &output_map,
@@ -238,8 +236,7 @@ namespace ssc::crypto_impl::dragonfly_v1
 		if( input_map.size < Minimum_Possible_File_Size ) {
 			close_os_file( output_map.os_file );
 			remove( output_filename );
-			unmap_file( input_map );
-			close_os_file( input_map.os_file );
+			CLEANUP_MAP (input_map);
 			errx( "Error: Input file doesn't appear to be large enough to be a SSC_DRAGONFLY_V1 encrypted file\n" );
 		}
 		u8_t const *in = input_map.ptr;
@@ -311,9 +308,8 @@ namespace ssc::crypto_impl::dragonfly_v1
 			if( r != Catena_Safe_f::Return_E::Success ) {
 				zero_sensitive( &secret, sizeof(secret) );
 				UNLOCK_MEMORY (&secret,sizeof(secret));
-				unmap_file( input_map );
+				CLEANUP_MAP (input_map);
 				close_os_file( output_map.os_file );
-				close_os_file( input_map.os_file );
 				remove( output_filename );
 				errx( "Error: Catena_Safe_f failed with error code %d...\n"
 				      "Do you have enough memory to decrypt this file?\n", static_cast<int>(r) );
@@ -333,9 +329,8 @@ namespace ssc::crypto_impl::dragonfly_v1
 			if( r != Catena_Strong_f::Return_E::Success ) {
 				zero_sensitive( &secret, sizeof(secret) );
 				UNLOCK_MEMORY (&secret,sizeof(secret));
-				unmap_file( input_map );
+				CLEANUP_MAP (input_map);
 				close_os_file( output_map.os_file );
-				close_os_file( input_map.os_file );
 				remove( output_filename );
 				errx( "Error: Catena_Strong_f failed with error code %d...\n"
 				      "Do you have enough memory to decrypt this file?\n", static_cast<int>(r) );
@@ -365,8 +360,7 @@ namespace ssc::crypto_impl::dragonfly_v1
 				if( constant_time_memcmp( secret.gen_mac, (input_map.ptr + input_map.size - MAC_Bytes), MAC_Bytes ) != 0 ) {
 					zero_sensitive( &secret, sizeof(secret) );
 					UNLOCK_MEMORY (&secret,sizeof(secret));
-					unmap_file( input_map  );
-					close_os_file( input_map.os_file );
+					CLEANUP_MAP (input_map);
 					close_os_file( output_map.os_file );
 					remove( output_filename );
 					errx( "Error: Authentication failed.\n"
@@ -400,18 +394,15 @@ namespace ssc::crypto_impl::dragonfly_v1
 		zero_sensitive( &secret, sizeof(secret) );
 		UNLOCK_MEMORY (&secret,sizeof(secret));
 		sync_map( output_map );
-		unmap_file( output_map );
-		unmap_file( input_map  );
-		close_os_file( output_map.os_file );
-		close_os_file( input_map.os_file  );
+		CLEANUP_MAP (output_map);
+		CLEANUP_MAP (input_map);
 	}/* ~ void decrypt (...) */
 	void dump_header (OS_Map &input_map,
 			  char const *input_filename)
 	{
 		_CTIME_CONST (int) Minimum_Size = Visible_Metadata_Bytes + 1;
 		if( input_map.size < Minimum_Size ) {
-			unmap_file( input_map );
-			close_os_file( input_map.os_file );
+			CLEANUP_MAP (input_map);
 			errx( "File `%s` looks too small to be SSC_Dragonfly_V1 encrypted\n", input_filename );
 		}
 		struct {
@@ -445,8 +436,7 @@ namespace ssc::crypto_impl::dragonfly_v1
 			p = input_map.ptr + input_map.size - MAC_Bytes;
 			memcpy( mac, p, sizeof(mac) );
 		}
-		unmap_file( input_map );
-		close_os_file( input_map.os_file );
+		CLEANUP_MAP (input_map);
 
 		header.id[ sizeof(header.id) - 1 ] = '\0';
 		fprintf( stdout, "File Header ID : %s\n", reinterpret_cast<char*>(header.id) );
