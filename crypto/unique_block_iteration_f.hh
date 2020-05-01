@@ -50,10 +50,12 @@ namespace ssc
 		static_assert (Bits % 8 == 0);
 		using Threefish_f = Threefish_F<Bits,Key_Sch>;
 
-		_CTIME_CONST (int) State_Bits = Bits;
-		_CTIME_CONST (int) State_Bytes = State_Bits / CHAR_BIT;
-		_CTIME_CONST (int) Tweak_Bits = Threefish_f::Tweak_Bits;
-		_CTIME_CONST (int) Tweak_Bytes = Tweak_Bits / CHAR_BIT;
+		enum Int_Constants : int {
+			State_Bits  = Bits,
+			State_Bytes = State_Bits / CHAR_BIT,
+			Tweak_Bits  = Threefish_f::Tweak_Bits,
+			Tweak_Bytes = Tweak_Bits / CHAR_BIT
+		};
 		_CTIME_CONST (Key_Schedule_E) Threefish_KS = Key_Sch;
 
 		Unique_Block_Iteration_F (void) = delete;
@@ -68,11 +70,11 @@ namespace ssc
 			Msg = 48,
 			Out = 63
 		};
-		_CTIME_CONST (u8_t) Tweak_First_Bit  = 0b0100'0000;
-		_CTIME_CONST (u8_t) Tweak_First_Mask = ~(Tweak_First_Bit);
-		_CTIME_CONST (u8_t) Tweak_Last_Bit   = 0b1000'0000;
+		_CTIME_CONST (u8_t) Tweak_First_Bit = 0b0100'0000;
+		_CTIME_CONST (u8_t) Tweak_Last_Bit  = 0b1000'0000;
+		_CTIME_CONST (u8_t) Tweak_First_Mask = ~Tweak_First_Bit;
 
-		static_assert (State_Bytes == Threefish_f::Block_Bytes);
+		static_assert (static_cast<int>(State_Bytes) == static_cast<int>(Threefish_f::Block_Bytes));
 		struct Data {
 			typename Threefish_f::Data_t threefish_data;
 			u64_t                        key_state   [Threefish_f::External_Key_Words];

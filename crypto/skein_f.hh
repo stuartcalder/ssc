@@ -24,8 +24,10 @@ namespace ssc
 		using Data_t = typename UBI_f::Data;
 
 		static_assert (CHAR_BIT == 8);
-		_CTIME_CONST (int) State_Bits = Bits;
-		_CTIME_CONST (int) State_Bytes = State_Bits / CHAR_BIT;
+		enum Int_Constants : int {
+			State_Bits = Bits,
+			State_Bytes = State_Bits / CHAR_BIT
+		};
 
 		Skein_F (void) = delete;
 

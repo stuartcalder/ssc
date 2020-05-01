@@ -42,25 +42,29 @@ namespace ssc
 			       Key_Schedule_Gen == Key_Schedule_E::Runtime_Compute);
 		Threefish_F (void) = delete;
 	/* Constants */
-		_CTIME_CONST (int) Block_Bits = Bits;
-		_CTIME_CONST (int) Block_Bytes = Block_Bits / CHAR_BIT;
-		_CTIME_CONST (int) Block_Words = Block_Bytes / sizeof(u64_t);
-		_CTIME_CONST (int) Tweak_Words = 2; // All versions of Threefish use a 16-byte tweak.
-		_CTIME_CONST (int) Tweak_Bytes = Tweak_Words * sizeof(u64_t);
-		_CTIME_CONST (int) Tweak_Bits  = Tweak_Bytes * CHAR_BIT;
-		_CTIME_CONST (int) Number_Rounds = []() {
-			if constexpr (Block_Bits == 1024)
-				return 80;
-			return 72;
-		}();
+		enum Int_Constants : int {
+			Block_Bits    = Bits,
+			Block_Bytes   = Block_Bits / CHAR_BIT,
+			Block_Words   = Block_Bytes / sizeof(u64_t),
+			Tweak_Words   = 2,
+			Tweak_Bytes   = Tweak_Words * sizeof(u64_t),
+			Tweak_Bits    = Tweak_Bytes * CHAR_BIT,
+			Number_Rounds = [](){
+				if constexpr (Block_Bits == 1024)
+					return 80;
+				return 72;
+			}(),
+			Number_Subkeys       = (Number_Rounds / 4) + 1,
+			External_Key_Words   = Block_Words + 1,
+			External_Tweak_Words = Tweak_Words + 1
+		};
 		static_assert (Number_Rounds == 72 || Number_Rounds == 80,
 			       "Threefish 1024 uses 80 rounds, 256 and 512 use 72 rounds.");
-		_CTIME_CONST (int) Number_Subkeys = (Number_Rounds / 4) + 1;
 		static_assert (Number_Subkeys == 19 || Number_Subkeys == 21,
 			       "Given a choice of 72 and 80 rounds, there may only be 19 or 21 subkeys.");
-		_CTIME_CONST (int) External_Key_Words = Block_Words + 1;
-		_CTIME_CONST (int) External_Tweak_Words = Tweak_Words + 1;
-		_CTIME_CONST (u64_t) Constant_240 = 0x1b'd1'1b'da'a9'fc'1a'22; // Constant_240, defined in the Threefish specification.
+		enum U64_Constants : u64_t {
+			Constant_240 = 0x1b'd1'1b'da'a9'fc'1a'22
+		};
 
 		struct Precomputed_Data {
 			// When we pre-compute all the subkeys of the key schedule, we store them in `key_schedule`.

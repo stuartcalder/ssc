@@ -69,15 +69,16 @@ namespace ssc
 		using Skein_f    = Skein_F<Skein_Bits>;
 		static_assert (std::is_same<UBI_Data_t,typename Skein_f::Data_t>::value);
 
-		_CTIME_CONST (int) Skein_Bytes  = Skein_Bits / CHAR_BIT;
-		_CTIME_CONST (int) Output_Bytes = Skein_Bytes;
-		_CTIME_CONST (int) Salt_Bytes   = Salt_Bits / CHAR_BIT;
-		static_assert (Salt_Bytes % sizeof(u64_t) == 0, "Force the salt to be divisible into 64-bit words.");
-		_CTIME_CONST (int) Max_Password_Bytes = Max_Password_Bits / CHAR_BIT;
-		//                                                                                   (represented in bytes)    (represented in bytes)
+		enum Int_Constants : int {
+			Skein_Bytes  = Skein_Bits / CHAR_BIT,
+			Output_Bytes = Skein_Bytes,
+			Salt_Bytes   = Salt_Bits / CHAR_BIT,
+			Max_Password_Bytes = Max_Password_Bits / CHAR_BIT,
 		//    Hash(Version String) -> Skein_Bytes || Domain -> 1 byte || lambda -> 1 byte || output size -> 2 bytes || salt size -> 2 bytes
 		//                 Tweak Size =>   H(V) || d || lambda || m || |s|
-		_CTIME_CONST (int)   Tweak_Bytes  = Skein_Bytes + 1 + 1 + 2 + 2;
+			Tweak_Bytes  = Skein_Bytes + 1 + 1 + 2 + 2
+		};
+		static_assert (Salt_Bytes % sizeof(u64_t) == 0, "Force the salt to be divisible into 64-bit words.");
 		/* CONSTANTS DERIVED FROM TEMPLATE ARGUMENTS */
 
 		enum class Domain_E : u8_t {
