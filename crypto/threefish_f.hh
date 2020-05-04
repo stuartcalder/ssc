@@ -20,7 +20,7 @@
 #if    defined (DEFAULT_ARGS) || defined (TEMPLATE_ARGS) || defined (CLASS)
 #	error 'One of DEFAULT_ARGS, TEMPLATE_ARGS, CLASS was already defined'
 #endif
-#define DEFAULT_ARGS	template <int Bits,Key_Schedule_E Key_Schedule_Gen = Key_Schedule_E::Pre_Compute>
+#define DEFAULT_ARGS	template <int Bits,Key_Schedule_E Key_Schedule_Gen = Key_Schedule_E::Stored>
 #define TEMPLATE_ARGS	template <int Bits,Key_Schedule_E Key_Schedule_Gen>
 #define CLASS Threefish_F<Bits,Key_Schedule_Gen>
 
@@ -38,8 +38,8 @@ namespace ssc
 			       Bits == 1024,
 			       "The Threefish block cipher is defined only for 256, 512, 1024 bits.");
 	/* Key Schedule Control Constants */
-		static_assert (Key_Schedule_Gen == Key_Schedule_E::Pre_Compute ||
-			       Key_Schedule_Gen == Key_Schedule_E::Runtime_Compute);
+		static_assert (Key_Schedule_Gen == Key_Schedule_E::Stored ||
+			       Key_Schedule_Gen == Key_Schedule_E::On_Demand);
 		Threefish_F (void) = delete;
 	/* Constants */
 		enum Int_Constants : int {
@@ -66,20 +66,20 @@ namespace ssc
 			Constant_240 = 0x1b'd1'1b'da'a9'fc'1a'22
 		};
 
-		struct Precomputed_Data {
+		struct Stored_Data {
 			// When we pre-compute all the subkeys of the key schedule, we store them in `key_schedule`.
 			u64_t key_schedule [Block_Words * Number_Subkeys];
 			u64_t state        [Block_Words];
 		};/* ~ struct Precomputed_Data */
-		struct Runtime_Data {
+		struct On_Demand_Data {
 			// When we compute the subkeys at runtime, we store pointers to the input key and tweak.
 			u64_t state        [Block_Words];
 			u64_t *stored_key;  // -> [External_Key_Words]
 			u64_t *stored_tweak;// -> [External_Tweak_Words]
 		};/* ~ struct Runtime_Data */
 
-		using Data_t = typename std::conditional<(Key_Schedule_Gen == Key_Schedule_E::Pre_Compute),Precomputed_Data,Runtime_Data>::type;
-		static_assert (std::is_same<Data_t,Precomputed_Data>::value || std::is_same<Data_t,Runtime_Data>::value);
+		using Data_t = typename std::conditional<(Key_Schedule_Gen == Key_Schedule_E::Stored),Stored_Data,On_Demand_Data>::type;
+		static_assert (std::is_same<Data_t,Stored_Data>::value || std::is_same<Data_t,On_Demand_Data>::value);
 
 		static void rekey          (_RESTRICT (Data_t *) data,
 				            _RESTRICT (u64_t *)  key,
@@ -113,7 +113,7 @@ namespace ssc
 		       "Ensure the subkey is an integer, and within the range of valid subkeys."); \
 	static_assert (std::is_same<decltype(i),int>::value && i >= 0 && i < Block_Words, \
 		       "Ensure the index i is an integer, and within the range of valid indices"); \
-	static_assert (Key_Schedule_Gen == Key_Schedule_E::Pre_Compute || Key_Schedule_Gen == Key_Schedule_E::Runtime_Compute, \
+	static_assert (Key_Schedule_Gen == Key_Schedule_E::Stored|| Key_Schedule_Gen == Key_Schedule_E::On_Demand, \
 		       "Ensure the key schedule is precisely specified as precomputed, or runtime computed."); \
 	data->key_schedule[ (subkey * Block_Words) + i ] = MAKE_WORD (key,subkey,i)
 
@@ -164,7 +164,7 @@ namespace ssc
 		}
 	// Setup the tweak.
 		tweak[ 2 ] = tweak[ 0 ] ^ tweak[ 1 ];
-		if constexpr (Key_Schedule_Gen == Key_Schedule_E::Pre_Compute) {
+		if constexpr (Key_Schedule_Gen == Key_Schedule_E::Stored) {
 			// A pre-computed key-schedule has been asked for.. Generate all the subkeys and stored them in `key_schedule`.
 			static_assert (Number_Subkeys == 19 || Number_Subkeys == 21);
 			MAKE_SUBKEY  (0);
@@ -190,7 +190,7 @@ namespace ssc
 				MAKE_SUBKEY (19);
 				MAKE_SUBKEY (20);
 			}
-		} else if constexpr (Key_Schedule_Gen == Key_Schedule_E::Runtime_Compute) {
+		} else if constexpr (Key_Schedule_Gen == Key_Schedule_E::On_Demand) {
 			// A runtime-computed key-schedule has been asked for.. Store pointers to the key and tweak for accessing later.
 			data->stored_key = key;
 			data->stored_tweak = tweak;
@@ -240,7 +240,7 @@ namespace ssc
 #	define USE_SUBKEY(operation,round) \
 	_MACRO_SHIELD \
 		_CTIME_CONST (int) Subkey_Index = round / 4; \
-		if constexpr (Key_Schedule_Gen == Key_Schedule_E::Pre_Compute) { \
+		if constexpr (Key_Schedule_Gen == Key_Schedule_E::Stored) { \
 			/* The key-schedule has been pre-computed, thus we can modify the state by directly accessing
 			 * the keyschedule, where operation is += or -= for adding or subtracting the subkey from the state
 			 * words.*/ \
@@ -277,7 +277,7 @@ namespace ssc
 				data->state[ 14 ] operation data->key_schedule[ Subkey_Offset + 14 ]; \
 				data->state[ 15 ] operation data->key_schedule[ Subkey_Offset + 15 ]; \
 			} \
-		} else if constexpr (Key_Schedule_Gen == Key_Schedule_E::Runtime_Compute) { \
+		} else if constexpr (Key_Schedule_Gen == Key_Schedule_E::On_Demand) { \
 			/* The key-schedule is computed at runtime. For each += or -= operation, we compute
 			 * the subkeys on-demand. */ \
 			if constexpr (Block_Words == 4) { \

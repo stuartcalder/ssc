@@ -26,7 +26,8 @@ is_gcc_compatible = (cc.get_id() == 'gcc' or cc.get_id() == 'clang')
 # Describe the source files we'll be compiling into libssc.
 ssc_src = [
 	# `General` Files
-	'general/arg_mapping.cc',
+	#'general/arg_mapping.cc',
+	'general/c_argument_map.cc',
 	'general/print.cc',
 	'general/parse_string.cc',
 	]

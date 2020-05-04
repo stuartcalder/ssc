@@ -8,5 +8,9 @@
 
 namespace ssc
 {
+#if 0
 	bool _PUBLIC enforce_integer (std::string & str);
+#else
+	int _PUBLIC shift_left_digits (char *c_str, int size);
+#endif
 }/* ~ namespace ssc */

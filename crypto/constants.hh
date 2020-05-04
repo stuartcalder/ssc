@@ -8,7 +8,7 @@ namespace ssc
 {
 	enum class Key_Schedule_E
 	{
-		Pre_Compute,
-		Runtime_Compute
+		Stored,
+		On_Demand
 	};
 }/* ~ namespace ssc */

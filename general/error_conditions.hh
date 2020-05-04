@@ -39,3 +39,11 @@ inline void errx (char const *format, Arg_Pack... args)
 	else
 		errx( static_cast<int>(EXIT_FAILURE), format, args... );
 }/* ~ void errx (char const*, Arg_map...) */
+
+namespace ssc
+{
+	struct Generic_Error
+	{
+		_CTIME_CONST (auto&) Alloc_Failure = "Error: Generic Allocation Failure!\n";
+	};
+}

@@ -22,7 +22,7 @@ namespace ssc
 		static_assert (CHAR_BIT == 8);
 		static_assert (Bits % CHAR_BIT == 0);
 		static_assert (Bits == 256 || Bits == 512 || Bits == 1024);
-		using Threefish_f = Threefish_F<Bits,Key_Schedule_E::Pre_Compute>;
+		using Threefish_f = Threefish_F<Bits,Key_Schedule_E::Stored>;
 
 		_CTIME_CONST (int) Block_Bits = Bits;
 		_CTIME_CONST (int) Block_Bytes = Block_Bits / CHAR_BIT;

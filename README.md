@@ -1,15 +1,22 @@
 # ssc
-C++17 Cryptography & Abstract File I/O Library for 64-bit OpenBSD, FreeBSD, GNU/Linux, and Microsoft Windows systems, on little-endian architectures only.
+Portable Cryptography Library (Little-Endian 64-bit)
 ## Purpose
-SSC aims to provide robust, easy-to-use abstract interfaces to a limited number of strong cryptographic primitives as C++ templates, including:
-- The [Threefish Block Cipher](https://www.schneier.com/academic/skein/threefish.html), which we use as the essential crypto primtive in SSC.
-	* CipherBlockChaining (CBC) Mode encryption for block ciphers, which we use to provide cryptographic confidentiality.
-	* Counter             (CTR) Mode encryption for block ciphers, which we use to provide cryptographic confidentiality.
-- The [Skein Cryptographic Hash Function](http://www.skein-hash.info/about), which is built out of the [Threefish Block Cipher](https://www.schneier.com/academic/skein/threefish.html).
-	* The SSC implementation of Skein can output up to (2^64) - 1 bytes per invocation.
-	* Skein's security proof states roughly: "If [Threefish](https://www.schneier.com/academic/skein/threefish.html) is an ideal block cipher, Skein is a cryptographically secure hash function."
-	* From the specification, SSC has implementations of a Skein-based key-derivation function and a Skein-based Cryptographically Secure PseudoRandom Number Generator.
-	* For authentication, we use Skein's native MAC instead of HMAC.
+Provide strong symmetric security on many platforms, and take advantage of C++17 features to simplify the expression of cryptographic code.
+SSC implements the following algorithms:
+* [Threefish](https://www.schneier.com/academic/skein/threefish.html), tweakable block cipher: 128-bit tweaks, n-bit block bits, n-bit key bits. Threefish<256>, Threefish<512>, Threefish<1024>.
+	- Two different implementations of the key schedule:
+	1. Computed On-Demand : When re-keying is common, we compute the key schedule of the cipher on-demand instead of computing and storing all the sub-keys of the key-schedule.
+	2. Computed And Stored: When re-keying is uncommon, we compute all the subkeys of the key-schedule and store it, to be accessed sequentially called every cipher() and inverse\_cipher() call.
+	- Accessed like so: Threefish<256,Key\_Schedule\_E::Stored>, or Threefish<1024,Key\_Schedule\_E::On\_Demand>. If not specified, Stored will be defaulted to.
+* [Skein](https://www.schneier.com/academic/skein/), cryptographically-secure hash function: n-byte inputs, p-byte outputs up to (2^64 - 1)-bytes.
+	- Uses Threefish as a tweakable block cipher in a compression function with mathematical proof of security under the assumption of security of the tweakable block cipher,
+	  reducing security of Skein down to the security of Threefish.
+	- Repeatedly re-keys the block cipher in its compression-function; Skein uses Threefish with the On\_Demand implementation of the key-schedule.
+	- Skein can process a near-abitrary amount of bytes, and output a near-arbitrary amount of bytes. We can stop all those ad-hoc methods of getting arbitrary outputs with fixed-width output hash functions.
+	- In SSC, Skein is used, as advised in its specification, as a pseudorandom-number generator, under the assumption that Skein can be modelled as a random oracle.
+* [CBC Mode]()
+* From the specification, SSC has implementations of a Skein-based key-derivation function and a Skein-based Cryptographically Secure PseudoRandom Number Generator.
+* For authentication, we use Skein's native MAC instead of HMAC.
 
 ## Dependencies
 -	[meson](https://mesonbuild.com) Build system

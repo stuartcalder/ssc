@@ -10,7 +10,7 @@
 #	error 'Some MACRO we need was already defined'
 #endif
 
-#define DEFAULT_ARGS	template <int Bits, Key_Schedule_E Tf_Key_Sch = Key_Schedule_E::Runtime_Compute>
+#define DEFAULT_ARGS	template <int Bits, Key_Schedule_E Tf_Key_Sch = Key_Schedule_E::On_Demand>
 #define TEMPLATE_ARGS	template <int Bits, Key_Schedule_E Tf_Key_Sch>
 #define CLASS		Skein_F<Bits,Tf_Key_Sch>
 

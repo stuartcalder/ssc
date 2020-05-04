@@ -37,7 +37,7 @@ namespace ssc
 		_CTIME_CONST (int) Block_Bytes = Block_Bits / CHAR_BIT;
 		static_assert ((Block_Bytes % 2) == 0, "Block bytes must be evenly divisible in half.");
 		_CTIME_CONST (int) Nonce_Bytes = Block_Bytes / 2;
-		using Threefish_f = Threefish_F<Block_Bits,Key_Schedule_E::Pre_Compute>;
+		using Threefish_f = Threefish_F<Block_Bits,Key_Schedule_E::Stored>;
 		using Threefish_Data_t = typename Threefish_f::Data_t;
 		struct Data {
 			Threefish_Data_t    threefish_data;
