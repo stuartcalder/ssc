@@ -121,14 +121,13 @@ namespace ssc
 			} temp;
 		};/* ~ struct Data */
 
-		[[nodiscard]]
-		static Return_E call (_RESTRICT (Data *) data,
-				      _RESTRICT (u8_t *) output,
-				      _RESTRICT (u8_t *) password,
-				      int const          password_size,
-				      u8_t const         g_low,
-				      u8_t const         g_high,
-				      u8_t const         lambda);
+		[[nodiscard]] static Return_E call (_RESTRICT (Data *) data,
+		                                    _RESTRICT (u8_t *) output,
+	                                            _RESTRICT (u8_t *) password,
+		                                    int const          password_size,
+		                                    u8_t const         g_low,
+		                                    u8_t const         g_high,
+		                                    u8_t const         lambda);
 	private:
 		static inline void make_tweak_ (Data       *data,
 				                u8_t const lambda);

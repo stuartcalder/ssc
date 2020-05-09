@@ -42,18 +42,18 @@ namespace ssc
 
 	/* Prototype all the inline functions defined in this header.
 	 */
-	inline size_t	get_file_size (OS_File_t const);
-	inline size_t	get_file_size (char const *);
-	inline size_t	get_file_size (std::FILE *);
-	inline bool	file_exists   (char const *);
+	[[nodiscard]] inline size_t	get_file_size (OS_File_t const);
+	[[nodiscard]] inline size_t	get_file_size (char const *);
+	[[nodiscard]] inline size_t	get_file_size (std::FILE *);
+	[[nodiscard]] inline bool	file_exists   (char const *);
 	inline void	check_file_name_sanity (std::string const &, size_t const);
 
 	inline void	enforce_file_existence (_RESTRICT (char const *),
 			                        bool const,
 						_RESTRICT (char const *) = nullptr);
 
-	inline OS_File_t open_existing_os_file  (char const *, bool const);
-	inline OS_File_t create_os_file         (char const *);
+	[[nodiscard]] inline OS_File_t open_existing_os_file  (char const *, bool const);
+	[[nodiscard]] inline OS_File_t create_os_file         (char const *);
 	inline void	 close_os_file		(OS_File_t const);
 	inline void	 set_os_file_size	(OS_File_t const, size_t const);
 

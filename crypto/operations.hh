@@ -86,7 +86,7 @@ namespace ssc
 	}
 #else
 	template <unsigned int Count, typename Uint_t>
-	constexpr Uint_t rotate_left (Uint_t value)
+	[[nodiscard]] constexpr Uint_t rotate_left (Uint_t value)
 	{
 		STATIC_ENFORCE_UNSIGNED_INTEGRAL (Uint_t);
 
@@ -120,7 +120,7 @@ namespace ssc
 	}
 #else
 	template <unsigned int Count, typename Uint_t>
-	constexpr Uint_t rotate_right (Uint_t value)
+	[[nodiscard]] constexpr Uint_t rotate_right (Uint_t value)
 	{
 		STATIC_ENFORCE_UNSIGNED_INTEGRAL (Uint_t);
 
@@ -193,7 +193,7 @@ namespace ssc
 			errx( "Error: Failed to read from /dev/random!\n" );
 		close_os_file( random_dev );
 #elif  defined (__UnixLike__)
-		_CTIME_CONST(int) Max_Bytes = 256;
+		_CTIME_CONST (int) Max_Bytes = 256;
                 while( num_bytes > Max_Bytes ) {
                         if( getentropy( buffer, Max_Bytes ) != 0 )
 				errx( "Error: Failed to getentropy()\n" );
@@ -233,7 +233,7 @@ namespace ssc
 	} /* ~ zero_sensitive(u8_t *,size_t) */
 
 	template <typename Uint_t>
-	Uint_t reverse_byte_order (Uint_t u)
+	[[nodiscard]] Uint_t reverse_byte_order (Uint_t u)
 	{
 		STATIC_ENFORCE_UNSIGNED_INTEGRAL (Uint_t);
 
@@ -306,10 +306,9 @@ namespace ssc
 #undef SWAP_F
 	}/* ~ Uint_t reverse_byte_order (Uint_t) */
 
-	[[nodiscard]]
-	inline int constant_time_memcmp (_RESTRICT (void const *) left,
-			                 _RESTRICT (void const *) right,
-					 size_t const             size)
+	[[nodiscard]] inline int constant_time_memcmp (_RESTRICT (void const *) left,
+			                               _RESTRICT (void const *) right,
+					               size_t const             size)
 	{
 		int non_equal_bytes = 0;
 		_CTIME_CONST (u8_t) One_Mask = 0b0000'0001;

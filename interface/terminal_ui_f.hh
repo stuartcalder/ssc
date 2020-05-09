@@ -38,22 +38,22 @@ namespace ssc
 
 		static void end ();
 
-		static int get_sensitive_string (_RESTRICT (Char_t *)     buffer,
-				                 _RESTRICT (char const *) prompt);
+		[[nodiscard]] static int get_sensitive_string (_RESTRICT (Char_t *)     buffer,
+				                               _RESTRICT (char const *) prompt);
 
 		static void notify (char const *notice);
 
-		static int obtain_password (_RESTRICT (Char_t *)     password_buffer,
-				            _RESTRICT (char const *) entry_prompt,
-					    int const                min_pw_size = 1,
-					    int const                max_pw_size = Max_Buffer_Size - 1);
+		[[nodiscard]] static int obtain_password (_RESTRICT (Char_t *)     password_buffer,
+				                          _RESTRICT (char const *) entry_prompt,
+					                  int const                min_pw_size = 1,
+					                  int const                max_pw_size = Max_Buffer_Size - 1);
 
-		static int obtain_password (_RESTRICT (Char_t *)     password_buffer,
-				            _RESTRICT (Char_t *)     check_buffer,
-					    _RESTRICT (char const *) entry_prompt,
-					    _RESTRICT (char const *) reentry_prompt,
-					    int const                min_pw_size = 1,
-					    int const                max_ps_size = Max_Buffer_Size - 1);
+		[[nodiscard]] static int obtain_password (_RESTRICT (Char_t *)     password_buffer,
+				                          _RESTRICT (Char_t *)     check_buffer,
+					                  _RESTRICT (char const *) entry_prompt,
+					                  _RESTRICT (char const *) reentry_prompt,
+					                  int const                min_pw_size = 1,
+					                  int const                max_ps_size = Max_Buffer_Size - 1);
 #	ifdef __UnixLike__
 		using Window_t = WINDOW;
 		using Coord_Pair_t = std::pair<int,int>;
