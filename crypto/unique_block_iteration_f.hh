@@ -45,9 +45,11 @@ namespace ssc
 	class Unique_Block_Iteration_F
 	{
 	public:
-	/* Compile-Time checks, Constatns, and Aliases */
-		static_assert (CHAR_BIT == 8);
-		static_assert (Bits % 8 == 0);
+	/* Compile-Time checks, Constants, and Aliases */
+		static_assert (CHAR_BIT == 8,
+			       "We need 8-bit bytes.");
+		static_assert (Bits % CHAR_BIT == 0,
+			       "The number of bits must be divisible into bytes.");
 		using Threefish_f = Threefish_F<Bits,Key_Sch>;
 
 		enum Int_Constants : int {
@@ -98,8 +100,9 @@ namespace ssc
 		template <Type_Mask_E Type,int Input_Bytes>
 		static void chain_type (_RESTRICT (Data *)       data,
 				        _RESTRICT (u8_t const *) input);
-	/* Constructors / Destructors */
-	};/* ~ class Unique_Block_Iteration_F */
+	/* Constructors / Destructors
+	 */
+	};// ~ class Unique_Block_Iteration_F
 
 	TEMPLATE_ARGS
 	void CLASS::chain_config (Data *data, u64_t const num_out_bits)
@@ -107,35 +110,35 @@ namespace ssc
 		INIT_TWEAK            (data,(Tweak_Last_Bit | static_cast<u8_t>(Type_Mask_E::Cfg)));
 		MODIFY_TWEAK_POSITION (data,=,32);
 
-		/*
-		 * Layout of the configuration string
-		 *
-		   _CTIME_CONST (u8_t) config [32] = {
-			// First 4 bytes
-			0x53, 0x48, 0x41, 0x33, // Schema identifier "SHA3"
-			// Next 2 bytes
-			0x01, 0x00, // Version number (1)
-			// Next 2 bytes
-			0x00, 0x00, // Reserved (0)
-			// Next 8 bytes
-			0x00, 0x00, 0x00, 0x00, // Output length
-			0x00, 0x00, 0x00, 0x00,
-			// Remaining 16 bytes
-			0x00, 0x00, 0x00, 0x00,
-			0x00, 0x00, 0x00, 0x00,
-			0x00, 0x00, 0x00, 0x00,
-			0x00, 0x00, 0x00, 0x00
-		   };
-		*/
+	/*
+	 * Layout of the configuration string
+	 *
+	   _CTIME_CONST (u8_t) config [32] = {
+		// First 4 bytes
+		0x53, 0x48, 0x41, 0x33, // Schema identifier "SHA3"
+		// Next 2 bytes
+		0x01, 0x00, // Version number (1)
+		// Next 2 bytes
+		0x00, 0x00, // Reserved (0)
+		// Next 8 bytes
+		0x00, 0x00, 0x00, 0x00, // Output length
+		0x00, 0x00, 0x00, 0x00,
+		// Remaining 16 bytes
+		0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00
+	   };
+	*/
 		_CTIME_CONST (u8_t) first_5_config_bytes [5] = {
 			0x53, 0x48, 0x41, 0x33, // Schema identifier "SHA3"
 			0x01 // Version number (1)
 		};
-		// Only copy in the first 5 bytes of the config string since the rest are zeroes.
+	// Only copy in the first 5 bytes of the config string since the rest are zeroes.
 		std::memcpy( data->msg_state, first_5_config_bytes, sizeof(first_5_config_bytes) );
-		// Manually zero over the rest of the config string.
+	// Manually zero over the rest of the config string.
 		std::memset( (data->msg_state + 5), 0, (sizeof(data->msg_state) - 5) );
-		// Set the "output length" portion of the config string.
+	// Set the "output length" portion of the config string.
 		std::memcpy( data->msg_state + 8, &num_out_bits, sizeof(num_out_bits) );
 		REKEY_CIPHER_XOR (data);
 	}
@@ -144,14 +147,14 @@ namespace ssc
 	void CLASS::chain_native_output (_RESTRICT (Data *) data,
 			                 _RESTRICT (u8_t *) output)
 	{
-		// Set the tweak first bit, last bit, and the type to Out.
+	// Set the tweak first bit, last bit, and the type to Out.
 		INIT_TWEAK            (data,(Tweak_Last_Bit | static_cast<u8_t>(Type_Mask_E::Out)));
-		// Set the tweak position to State_Bytes.
+	// Set the tweak position to State_Bytes.
 		MODIFY_TWEAK_POSITION (data,=,sizeof(u64_t));
-		// Zero over the message state.
+	// Zero over the message state.
 		std::memset( data->msg_state, 0, sizeof(data->msg_state) );
 		REKEY_CIPHER_XOR (data);
-		// Copy the key state into the output buffer.
+	// Copy the key state into the output buffer.
 		std::memcpy( output, data->key_state, State_Bytes );
 	}
 
@@ -160,51 +163,51 @@ namespace ssc
 			           _RESTRICT (u8_t const *) input,
 				   u64_t                    num_in_bytes)
 	{
-		// Set the tweak first bit and the type to Msg.
+	// Set the tweak first bit and the type to Msg.
 		INIT_TWEAK (data,static_cast<u8_t>(Type_Mask_E::Msg));
 		if( num_in_bytes <= State_Bytes ) { // If there is one or less blocks worth of input...
-			// Set the tweak last bit.
+		// Set the tweak last bit.
 			MODIFY_TWEAK_FLAGS    (data,|=,Tweak_Last_Bit);
-			// Set the tweak position to the number of input bytes.
+		// Set the tweak position to the number of input bytes.
 			MODIFY_TWEAK_POSITION (data,=,num_in_bytes);
-			// Copy the whole input into the message state.
+		// Copy the whole input into the message state.
 			std::memcpy( data->msg_state, input, num_in_bytes );
-			// If the input was not an entire block, zero over the rest of the message state.
+		// If the input was not an entire block, zero over the rest of the message state.
 			std::memset( (data->msg_state + num_in_bytes), 0, (sizeof(data->msg_state) - num_in_bytes) );
 			REKEY_CIPHER_XOR (data);
 			return;
 		} else { // If there is more than one block worth of input to begin with...
-			// Set the tweak position to the number of state bytes.
+		// Set the tweak position to the number of state bytes.
 			MODIFY_TWEAK_POSITION (data,=,State_Bytes);
-			// Copy a block worth of input into the message state.
+		// Copy a block worth of input into the message state.
 			std::memcpy( data->msg_state, input, State_Bytes );
 			REKEY_CIPHER_XOR   (data);
-			// Clear the tweak first bit.
+		// Clear the tweak first bit.
 			MODIFY_TWEAK_FLAGS (data,&=,Tweak_First_Mask);
-			// Decrement bytes left, increment input pointer.
+		// Decrement bytes left, increment input pointer.
 			num_in_bytes -= State_Bytes;
 			input        += State_Bytes;
 		}
 		while( num_in_bytes > State_Bytes ) { // While there is more than one block of input left to process...
-			// Increment the tweak position by State_Bytes.
+		// Increment the tweak position by State_Bytes.
 			MODIFY_TWEAK_POSITION (data,+=,State_Bytes);
-			// Copy a block worth of input into the message state.
+		// Copy a block worth of input into the message state.
 			std::memcpy( data->msg_state, input, State_Bytes );
 			REKEY_CIPHER_XOR (data);
-			// Decrement bytes left, increment input pointer.
+		// Decrement bytes left, increment input pointer.
 			num_in_bytes -= State_Bytes;
 			input        += State_Bytes;
 		}
-		// Set the tweak last bit.
+	// Set the tweak last bit.
 		MODIFY_TWEAK_FLAGS    (data,|=,Tweak_Last_Bit);
-		// Increment the tweak position by the number of bytes left, for the last block.
+	// Increment the tweak position by the number of bytes left, for the last block.
 		MODIFY_TWEAK_POSITION (data,+=,num_in_bytes);
-		// Copy the remaining input bytes into the message state.
+	// Copy the remaining input bytes into the message state.
 		std::memcpy( data->msg_state, input, num_in_bytes );
-		// If less than 1 block of input was left, zero over the remaining bytes of the message state.
+	// If less than 1 block of input was left, zero over the remaining bytes of the message state.
 		std::memset( (data->msg_state + num_in_bytes), 0, (sizeof(data->msg_state) - num_in_bytes) );
 		REKEY_CIPHER_XOR (data);
-	}
+	}// ~ void chain_message(...)
 	TEMPLATE_ARGS
 	void CLASS::chain_output (_RESTRICT (Data *) data,
 			          _RESTRICT (u8_t *) output,
@@ -294,7 +297,7 @@ namespace ssc
 			REKEY_CIPHER_XOR (data);
 		}
 	}
-}/* ~ namespace ssc */
+}// ~ namespace ssc
 #undef INIT_TWEAK
 #undef MODIFY_TWEAK_POSITION
 #undef MODIFY_TWEAK_FLAGS

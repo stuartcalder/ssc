@@ -3,20 +3,24 @@
  * See accompanying LICENSE file for licensing information.
  */
 #pragma once
-/* SSC General Headers */
+/* SSC General
+ */
 #include <ssc/general/integers.hh>
 #include <ssc/general/macros.hh>
 #include <ssc/general/error_conditions.hh>
 #include <ssc/general/abstract.hh>
-/* SSC Crypto Headers */
+/* SSC Crypto
+ */
 #include <ssc/crypto/unique_block_iteration_f.hh>
 #include <ssc/crypto/skein_f.hh>
-/* C Standard Headers */
+/* C Std
+ */
 #include <cstdlib>
 #include <cstdio>
 #include <cstdint>
 #include <cstring>
-/* C++ Standard Headers */
+/* C++ Std
+ */
 #include <limits>
 #include <type_traits>
 
@@ -61,6 +65,8 @@ namespace ssc
 	class Catena_F
 	{
 	public:
+	/* Compile-Time Checks and Constants
+	 */
 		static_assert (CHAR_BIT == 8);
 		static_assert (Skein_Bits == 256 || Skein_Bits == 512 || Skein_Bits == 1024);
 
@@ -74,18 +80,19 @@ namespace ssc
 			Output_Bytes = Skein_Bytes,
 			Salt_Bytes   = Salt_Bits / CHAR_BIT,
 			Max_Password_Bytes = Max_Password_Bits / CHAR_BIT,
-		//    Hash(Version String) -> Skein_Bytes || Domain -> 1 byte || lambda -> 1 byte || output size -> 2 bytes || salt size -> 2 bytes
-		//                 Tweak Size =>   H(V) || d || lambda || m || |s|
+	/*    Hash(Version String) -> Skein_Bytes || Domain -> 1 byte || lambda -> 1 byte || output size -> 2 bytes || salt size -> 2 bytes
+	 *    Tweak Size =>   H(V) || d || lambda || m || |s|
+	 */
 			Tweak_Bytes  = Skein_Bytes + 1 + 1 + 2 + 2
 		};
 		static_assert (Salt_Bytes % sizeof(u64_t) == 0, "Force the salt to be divisible into 64-bit words.");
-		/* CONSTANTS DERIVED FROM TEMPLATE ARGUMENTS */
-
+	/* Constants derived from template arguments.
+	 */
 		enum class Domain_E : u8_t {
 			Password_Scrambler = 0x00,
 			Key_Derivation_Function = 0x01,
 			Proof_Of_Work = 0x02
-		};/* ~ enum class Domain_E:u8_t */
+		};// ~ enum class Domain_E:u8_t
 		enum class Return_E {
 			Success = 0,
 			Alloc_Failure = 1
@@ -93,6 +100,10 @@ namespace ssc
 		
 		Catena_F (void) = delete;
 
+
+	/* conditional_size<bool $b> (int $size) -> int
+	 * 	Returns the size given some constant boolean $b, otherwise 0.
+	 */
 		template <bool b>
 		static constexpr int Conditional_Size (int size)
 		{
@@ -101,14 +112,20 @@ namespace ssc
 			return 0;
 		}
 
+
+	/* struct Data
+	 * 	Store all the stack data necessary to compute Skein512-Catena-BRG.
+	 */
 		struct Data {
-			// Data members needed throughout Catena's lifetime, that must remain intact until termination.
+		/* Data members needed throughout Catena's lifetime, that must remain intact until termination.
+		 */
 			UBI_Data_t          ubi_data;
 			u8_t                *graph_memory;
 			alignas(u64_t) u8_t x_buffer  [Skein_Bytes];
 			alignas(u64_t) u8_t salt      [Salt_Bytes];
+		/* Temporary data members. Only one of these members of this union is active at a time.
+		 */
 			union {
-				// Temporary data members. Only one of these members of this union is active at a time.
 				alignas(u64_t) u8_t tw_pw_slt [Tweak_Bytes + Max_Password_Bytes + Salt_Bytes];
 				alignas(u64_t) u8_t flap      [Skein_Bytes * 3];
 				alignas(u64_t) u8_t catena    [Skein_Bytes + sizeof(u8_t)];
@@ -121,6 +138,16 @@ namespace ssc
 			} temp;
 		};/* ~ struct Data */
 
+
+	/* call (_RESTRICT(Data*),
+	 *       _RESTRICT(u8_t*),
+	 *       _RESTRICT(u8_t*),
+	 *       int const,
+	 *       u8_t const,
+	 *       u8_t const,
+	 *       u8_t const) -> Return_E
+	 *	 	Invoke Catena.
+	 */
 		[[nodiscard]] static Return_E call (_RESTRICT (Data *) data,
 		                                    _RESTRICT (u8_t *) output,
 	                                            _RESTRICT (u8_t *) password,
@@ -129,13 +156,25 @@ namespace ssc
 		                                    u8_t const         g_high,
 		                                    u8_t const         lambda);
 	private:
+	/* make_tweak_ (Data*,u8_t const) -> void
+	 * 	Compute, then store the tweak for the given value of $lambda.
+	 */
 		static inline void make_tweak_ (Data       *data,
 				                u8_t const lambda);
+	/* flap_ (Data*,u8_t const,u8_t const) -> void
+	 * 	Compute the flap function for the given $garlic and $lambda.
+	 */
 		static void flap_ (Data       *data,
 				   u8_t const garlic,
 				   u8_t const lambda);
+	/* gamma_ (Data*,u8_t const) -> void
+	 * 	Compute the gamma function for the given $garlic.
+	 */
 		static inline void gamma_ (Data       *data,
 				           u8_t const garlic);
+	/* phi_ (Data*,u8_t const) -> void
+	 * 	Compute the phi function for the given $garlic.
+	 */
 		static inline void phi_ (Data       *data,
 				         u8_t const garlic);
 	};/* ~ class Catena_F<...> */
@@ -149,38 +188,38 @@ namespace ssc
 			                      u8_t const         g_high,
 			                      u8_t const         lambda)
 	{
-		// Dynamically allocate the memory we're going to need.
+	// Dynamically allocate the memory we're going to need.
 		data->graph_memory = static_cast<u8_t*>(std::malloc( (static_cast<u64_t>(1) << g_high) * Skein_Bytes ));
 		if( data->graph_memory == nullptr )
 			return Return_E::Alloc_Failure;
-		// Setup the tweak.
+	// Setup the tweak.
 		make_tweak_( data, lambda );
-		// Append the password to the tweak.
+	// Append the password to the tweak.
 		std::memcpy( data->temp.tw_pw_slt + Tweak_Bytes,
 			     password,
 			     password_size );
-		// Destroy the password.
+	// Destroy the password.
 		zero_sensitive( password, password_size );
-		// Append the salt to the password.
+	// Append the salt to the password.
 		std::memcpy( data->temp.tw_pw_slt + Tweak_Bytes + password_size,
 			     data->salt,
 			     sizeof(data->salt) );
-		// Hash (tweak||password||salt) into the x buffer.
+	// Hash (tweak||password||salt) into the x buffer.
 		Skein_f::hash_native( &(data->ubi_data),
 				      data->x_buffer,
 				      data->temp.tw_pw_slt,
 				      password_size + (Tweak_Bytes + Salt_Bytes) );
-		// Do an initial flap.
+	// Do an initial flap.
 		flap_( data, (g_low + 1) / 2, lambda );
-		// Hash the x buffer into itself.
+	// Hash the x buffer into itself.
 		Skein_f::hash_native( &(data->ubi_data),
 				      data->x_buffer,
 				      data->x_buffer,
 				      sizeof(data->x_buffer) );
 		for( u8_t g = g_low; g <= g_high; ++g ) {
-			// Flap.
+		// Flap.
 			flap_( data, g, lambda );
-			// Concatenate g and the x buffer, and hash it back into the x buffer.
+		// Concatenate g and the x buffer, and hash it back into the x buffer.
 			static_assert (sizeof(data->temp.catena) == (sizeof(data->x_buffer) + sizeof(u8_t)));
 			*(data->temp.catena) = g;
 			COPY_HASH_WORD (data->temp.catena + sizeof(u8_t),
@@ -190,14 +229,14 @@ namespace ssc
 					      data->temp.catena,
 					      sizeof(data->temp.catena) );
 		}
-		// Zero out the used graph memory now that we have finished our flaps.
+	// Zero out the used graph memory now that we have finished our flaps.
 		zero_sensitive( data->graph_memory, (static_cast<u64_t>(1) << g_high) * Skein_Bytes );
-		// Free the dynamically allocated graph memory.
+	// Free the dynamically allocated graph memory.
 		std::free( data->graph_memory );
 		COPY_HASH_WORD (output,
 				data->x_buffer);
 		return Return_E::Success;
-	}/* ~ void call(...) */
+	}// ~ void call(...)
 
 	TEMPLATE_ARGS
 	void CLASS::make_tweak_ (Data *data, u8_t const lambda)
@@ -205,34 +244,41 @@ namespace ssc
 		static_assert (sizeof(Metadata_t::Version_ID_Hash) == Skein_Bytes);
 		static_assert (Output_Bytes <= (std::numeric_limits<u16_t>::max)());
 		static_assert (Salt_Bytes   <= (std::numeric_limits<u16_t>::max)());
-
-		u8_t *t = data->temp.tw_pw_slt; // Get a pointer to the beginning of temp.tw_pw_slt
-		std::memcpy( t, Metadata_t::Version_ID_Hash, Skein_Bytes ); // Copy the version_id hash in
-		t += sizeof(Metadata_t::Version_ID_Hash); // Increment to the domain offset
-		(*t++) = static_cast<u8_t>(Domain_E::Key_Derivation_Function); // Copy the domain offset in
-		(*t++) = lambda; // Copy the lambda in
+	// Get a pointer to the beginning of temp.tw_pw_slt.
+		u8_t *t = data->temp.tw_pw_slt;
+	// Copy the version_id hash in.
+		std::memcpy( t, Metadata_t::Version_ID_Hash, Skein_Bytes );
+	// Increment to the domain offset.
+		t += sizeof(Metadata_t::Version_ID_Hash);
+	 // Copy the domain offset in.
+		(*t++) = static_cast<u8_t>(Domain_E::Key_Derivation_Function);
+	 // Copy the lambda in.
+		(*t++) = lambda;
 		{
+		// Use memcpy to type-pun between u8_t and u16_t.
 			u16_t temp = static_cast<u16_t>(Output_Bytes);
 			std::memcpy( t, &temp, sizeof(temp) );
 			t += sizeof(temp);
 			temp = static_cast<u16_t>(Salt_Bytes);
 			std::memcpy( t, &temp, sizeof(temp) );
 		}
-	}
+	}// ~ void make_tweak_(Data*,u8_t const)
 
 	TEMPLATE_ARGS
 	void CLASS::flap_ (Data *data,
 			   u8_t const garlic,
 			   u8_t const lambda)
 	{
-		static_assert (sizeof(data->x_buffer)  == Skein_Bytes);
-		static_assert (sizeof(data->temp.flap) == (Skein_Bytes * 3));
-		// Instead of implementing Hinit as described in the Catena spec, use Skein's ability to output arbitarily large data.
-		// flap[ 0, 1, 2 ] <-- layout
 #define TEMP_MEM  data->temp.flap
 #define GRAPH_MEM data->graph_memory
 #define X_MEM     data->x_buffer
+		static_assert (sizeof(TEMP_MEM) == (Skein_Bytes * 3));
+		static_assert (sizeof(X_MEM) == Skein_Bytes);
+	/* Instead of implementing Hinit as described in the Catena spec, use Skein's ability to output arbitarily large data.
+	 * flap[ 0, 1, 2 ] <-- layout
+	 */
 		if constexpr (Skein_Bytes == 64) {
+		// For Skein512, pre-compute its initial chaining value and use it directly with UBI_F.
 			alignas(u64_t) _CTIME_CONST (u8_t) Config [Skein_Bytes] = {
 				0x54, 0x5e, 0x7a, 0x4c, 0x78, 0x32, 0xaf, 0xdb,
 				0xc7, 0xab, 0x18, 0xd2, 0x87, 0xd9, 0xe6, 0x2d,
@@ -241,7 +287,7 @@ namespace ssc
 				0xc3, 0x9c, 0xa8, 0x5d, 0x6c, 0xd2, 0x46, 0x71,
 				0xba, 0x1b, 0x58, 0x66, 0x31, 0xa3, 0xfd, 0x33,
 				0x87, 0x69, 0x83, 0x54, 0x3c, 0x17, 0x93, 0x02,
-				0xd7, 0x59, 0x94, 0x61, 0x00, 0xb8, 0xb8, 0x07,
+				0xd7, 0x59, 0x94, 0x61, 0x00, 0xb8, 0xb8, 0x07
 			};
 			std::memcpy( data->ubi_data.key_state,
 				     Config,
@@ -259,97 +305,104 @@ namespace ssc
 				       Skein_Bytes,                  // Input size
 				       (Skein_Bytes * 2) );          // Output size
 		}
-		// flap now holds [ {-1}, {-2}, {**} ]
+	// flap now holds [ {-1}, {-2}, {**} ]
 		HASH_TWO_WORDS (data,
-				INDEX_HASH_WORD (TEMP_MEM,1),  // 1 output hash word
-				INDEX_HASH_WORD (TEMP_MEM,0)); // 2 input  hash words
-		// flap now holds [ {-1}, { 0}, {**} ]
+			// 1 output hash word.
+				INDEX_HASH_WORD (TEMP_MEM,1),
+			// 2 input hash words.
+				INDEX_HASH_WORD (TEMP_MEM,0));
+	// flap now holds [ {-1}, { 0}, {**} ]
 		COPY_HASH_WORD (INDEX_HASH_WORD (TEMP_MEM,2),
 				INDEX_HASH_WORD (TEMP_MEM,0));
-		// flap now holds [ {-1}, { 0}, {-1} ]
+	// flap now holds [ {-1}, { 0}, {-1} ]
 		HASH_TWO_WORDS (data,
 				INDEX_HASH_WORD (TEMP_MEM,0),
 				INDEX_HASH_WORD (TEMP_MEM,1));
-		// flap now holds [ { 1}, { 0}, {-1} ]
+	// flap now holds [ { 1}, { 0}, {-1} ]
 		COPY_HASH_WORD (INDEX_HASH_WORD (GRAPH_MEM,0),
 				INDEX_HASH_WORD (TEMP_MEM,1));
 		COPY_HASH_WORD (INDEX_HASH_WORD (GRAPH_MEM,1),
 				INDEX_HASH_WORD (TEMP_MEM,0));
-		// flap still holds  [ { 1}, { 0}, {-1}   ]
-		// graph_memory now holds [ { 0}, { 1}, {**}...]
+	// flap still holds  [ { 1}, { 0}, {-1}   ]
+	// graph_memory now holds [ { 0}, { 1}, {**}...]
 		u64_t const max_hash_index = (static_cast<u64_t>(1) << garlic) - 1;
 		if( max_hash_index > 1 ) {
-			// max_hash_index is at least 2, meaning we require at least 4 hash words set in data->graph_memory
+		// max_hash_index is at least 2, meaning we require at least 4 hash words set in data->graph_memory
 			HASH_TWO_WORDS (data,
 					INDEX_HASH_WORD (TEMP_MEM,2),
 					INDEX_HASH_WORD (TEMP_MEM,0));
-			// flap now holds      [ { 1}, { 0}, { 2}   ]
-			// graph_memory still holds [ { 0}, { 1}, {**}...]
+		// flap now holds      [ { 1}, { 0}, { 2}   ]
+		// graph_memory still holds [ { 0}, { 1}, {**}...]
 			COPY_HASH_WORD (INDEX_HASH_WORD (GRAPH_MEM,2),
 					INDEX_HASH_WORD (TEMP_MEM,2));
-			// flap still holds    [ { 1}, { 0}, { 2}          ]
-			// graph_memory now holds   [ { 0}, { 1}, { 2}, {**}... ]
+		// flap still holds    [ { 1}, { 0}, { 2}          ]
+		// graph_memory now holds   [ { 0}, { 1}, { 2}, {**}... ]
 			COPY_HASH_WORD (INDEX_HASH_WORD (TEMP_MEM,1),
 					INDEX_HASH_WORD (TEMP_MEM,2));
-			// flap now holds      [ { 1}, { 2}, { 2}          ]
-			// graph_memory still holds [ { 0}, { 1}, { 2}, {**}... ]
+		// flap now holds      [ { 1}, { 2}, { 2}          ]
+		// graph_memory still holds [ { 0}, { 1}, { 2}, {**}... ]
 			COPY_HASH_WORD (INDEX_HASH_WORD (TEMP_MEM,2),
 					INDEX_HASH_WORD (TEMP_MEM,0));
-			// flap now holds      [ { 1}, { 2}, { 1}          ]
-			// graph_memory still holds [ { 0}, { 1}, { 2}, {**}... ]
+		// flap now holds      [ { 1}, { 2}, { 1}          ]
+		// graph_memory still holds [ { 0}, { 1}, { 2}, {**}... ]
 			HASH_TWO_WORDS (data,
 					INDEX_HASH_WORD (TEMP_MEM,0),
 					INDEX_HASH_WORD (TEMP_MEM,1));
-			// flap now holds      [ { 3}, { 2}, { 1}          ]
-			// graph_memory still holds [ { 0}, { 1}, { 2}, {**}... ]
+		// flap now holds      [ { 3}, { 2}, { 1}          ]
+		// graph_memory still holds [ { 0}, { 1}, { 2}, {**}... ]
 			COPY_HASH_WORD (INDEX_HASH_WORD (GRAPH_MEM,3),
 					INDEX_HASH_WORD (TEMP_MEM,0));
-			// flap still holds  [ { 3}, { 2}, { 1}                ]
-			// graph_memory now holds [ { 0}, { 1}, { 2}, { 3}, {**}... ]
+		// flap still holds  [ { 3}, { 2}, { 1}                ]
+		// graph_memory now holds [ { 0}, { 1}, { 2}, { 3}, {**}... ]
 
 		}
 		for( u64_t i = 4; i <= max_hash_index; ++i ) {
-			// flap    holds [ {i-1}, {i-2}, {**}  ]
-			// graph_memory holds [ {...}, {i-2}, {i-1} ]
+		// flap    holds [ {i-1}, {i-2}, {**}  ]
+		// graph_memory holds [ {...}, {i-2}, {i-1} ]
 			HASH_TWO_WORDS (data,
 					INDEX_HASH_WORD (TEMP_MEM,2),
 					INDEX_HASH_WORD (TEMP_MEM,0));
-			// flap    holds [ {i-1}, {i-2}, {  i}  ]
-			// graph_memory holds [ {...}, {i-2}, {i-1} ]
+		// flap    holds [ {i-1}, {i-2}, {  i}  ]
+		// graph_memory holds [ {...}, {i-2}, {i-1} ]
 			COPY_HASH_WORD (INDEX_HASH_WORD (TEMP_MEM,1),
 					INDEX_HASH_WORD (TEMP_MEM,0));
-			// flap    holds [ {i-1}, {i-1}, {  i}  ]
-			// graph_memory holds [ {...}, {i-2}, {i-1} ]
+		// flap    holds [ {i-1}, {i-1}, {  i}  ]
+		// graph_memory holds [ {...}, {i-2}, {i-1} ]
 			COPY_HASH_WORD (INDEX_HASH_WORD (TEMP_MEM,0),
 					INDEX_HASH_WORD (TEMP_MEM,2));
-			// flap    holds [ {  i}, {i-1}, {  i}  ]
-			// graph_memory holds [ {...}, {i-2}, {i-1} ]
+		// flap    holds [ {  i}, {i-1}, {  i}  ]
+		// graph_memory holds [ {...}, {i-2}, {i-1} ]
 			COPY_HASH_WORD (INDEX_HASH_WORD (GRAPH_MEM,i),
 					INDEX_HASH_WORD (TEMP_MEM,0));
 		}
-		// Optional Gamma-function call.
+	/* Optional Gamma-function call.
+	 */
 		if constexpr (Use_Gamma) {
 			gamma_( data,
 				garlic );
 		}
-		// Memory-hard-function call.
+	/* Memory-hard function call.
+	 */
 		MHF_f::call( &(data->ubi_data),
 			     data->temp.mhf,
 			     GRAPH_MEM,
 			     garlic,
 			     lambda );
-		// Phi function call.
 		if constexpr (Use_Phi) {
+		/* Optional Phi-function call.
+		 */
 			phi_( data,
 			      garlic );
 		} else {
+		/* When Phi is not used, copy the last word of the hash array into x buffer.
+		 */
 			COPY_HASH_WORD (INDEX_HASH_WORD (X_MEM    ,0),
 					INDEX_HASH_WORD (GRAPH_MEM,max_hash_index));
 		}
 #undef X_MEM
 #undef GRAPH_MEM
 #undef TEMP_MEM
-	}
+	}// ~ void flap_ (Data*,u8_t const,u8_t const)
 
 	TEMPLATE_ARGS
 	void CLASS::gamma_ (Data *data,
@@ -363,13 +416,13 @@ namespace ssc
 		static_assert (sizeof(TEMP_MEM.rng) >= Salt_And_Garlic_Size);
 		static_assert (sizeof(TEMP_MEM.rng) >= RNG_Output_Size);
 
-		// Copy the salt into the rng buffer.
+	// Copy the salt into the rng buffer.
 		std::memcpy( TEMP_MEM.rng,
 			     data->salt,
 			     sizeof(data->salt) );
-		// Append the garlic to the end of the copied-in salt.
+	// Append the garlic to the end of the copied-in salt.
 		*(TEMP_MEM.rng + sizeof(data->salt)) = garlic;
-		// Hash the combined salt/garlic into a suitable initialization vector.
+	// Hash the combined salt/garlic into a suitable initialization vector.
 		Skein_f::hash_native( &(data->ubi_data),     // UBI Data
 				      TEMP_MEM.rng,          // output
 				      TEMP_MEM.rng,          // input
@@ -377,7 +430,7 @@ namespace ssc
 		u64_t const count = static_cast<u64_t>(1) << (((3 * garlic) + 3) / 4);
 		for( u64_t i = 0; i < count; ++i ) {
 			if constexpr (Skein_Bytes == 64) {
-				_CTIME_CONST (u8_t) Config [64] = {
+				alignas(u64_t) _CTIME_CONST (u8_t) Config [64] = {
 					0xf0, 0xef, 0xcb, 0xca, 0xbf, 0xd0, 0x04, 0x7b,
 					0xc0, 0x5d, 0x3e, 0x3a, 0x1d, 0x53, 0xe4, 0x9f,
 					0x07, 0xbf, 0x4f, 0xf5, 0xce, 0x67, 0x53, 0x53,
@@ -425,7 +478,7 @@ namespace ssc
 		}
 #undef GRAPH_MEM
 #undef TEMP_MEM
-	}/* ~ void gamma_(Data*,u8_t const) */
+	}// ~ void gamma_(Data*,u8_t const)
 	TEMPLATE_ARGS
 	void CLASS::phi_ (Data       *data,
 			  u8_t const garlic)
@@ -466,9 +519,9 @@ namespace ssc
 		}
 		COPY_HASH_WORD (INDEX_HASH_WORD (X_MEM    ,0              ),
 				INDEX_HASH_WORD (GRAPH_MEM,last_word_index));
-	}/* ~ void phi_(Data *,u8_t const) */
+	}// ~ void phi_(Data *,u8_t const)
 
-}/* ~ namespace ssc */
+}// ~ namespace ssc
 #undef X_MEM
 #undef GRAPH_MEM
 #undef TEMP_MEM

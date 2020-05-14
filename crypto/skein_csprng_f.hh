@@ -18,11 +18,15 @@ namespace ssc
 	class Skein_CSPRNG_F
 	{
 	public:
-		static_assert (CHAR_BIT == 8);
-		static_assert (Bits == 256 || Bits == 512 || Bits == 1024);
+		static_assert (CHAR_BIT == 8,
+			       "Bytes must be 8-bits.");
+		static_assert (Bits == 256 || Bits == 512 || Bits == 1024,
+			       "Skein only specified for 256,512,1024 bits.");
 		using Skein_f = Skein_F<Bits>;
-		_CTIME_CONST (int) State_Bits = Bits;
-		_CTIME_CONST (int) State_Bytes = State_Bits / CHAR_BIT;
+		enum Int_Constants : int {
+			State_Bits = Bits,
+			State_Bytes = State_Bits / CHAR_BIT
+		};
 
 		struct Data {
 			typename Skein_f::Data_t skein_data;
@@ -81,6 +85,6 @@ namespace ssc
 		std::memcpy( data->seed, data->buffer                , State_Bytes );
 		std::memcpy( output    , (data->buffer + State_Bytes), requested_bytes );
 	}
-}/* ~ namespace ssc */
+}// ~ namespace ssc
 #undef CLASS
 #undef TEMPLATE_ARGS

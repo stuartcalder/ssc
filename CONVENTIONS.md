@@ -84,5 +84,5 @@ if constexpr (sizeof(example_array) == 5) {
 }
 ```
 #Function Classes
-* All the classes postfixed with _F represent function classes, where all the functions in the class are static.
-* Type aliases of Function Classes are postfixed with _f, as type aliases of other types are postfixed with _t.
+* All the classes postfixed with \_F represent function classes, where all the functions in the class are static.
+* Type aliases of Function Classes are postfixed with \_f, as type aliases of other types are postfixed with \_t.

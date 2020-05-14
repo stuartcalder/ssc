@@ -131,7 +131,7 @@ namespace ssc
 		UBI_f::chain_message( ubi_data, bytes_in, num_bytes_in );
 		UBI_f::chain_output( ubi_data, bytes_out, num_bytes_out );
 	}
-}/* ~ namespace ssc */          
+}// ~ namespace ssc
                                 
 #undef CLASS
 #undef TEMPLATE_ARGS

@@ -24,8 +24,10 @@ namespace ssc
 		static_assert (Bits == 256 || Bits == 512 || Bits == 1024);
 		using Threefish_f = Threefish_F<Bits,Key_Schedule_E::Stored>;
 
-		_CTIME_CONST (int) Block_Bits = Bits;
-		_CTIME_CONST (int) Block_Bytes = Block_Bits / CHAR_BIT;
+		enum Int_Constants : int {
+			Block_Bits = Bits,
+			Block_Bytes = Block_Bits / CHAR_BIT
+		};
 
 		Cipher_Block_Chaining_F (void) = delete;
 
@@ -69,21 +71,7 @@ namespace ssc
 		}
 		errx( "Error: Invalid CBC padding\n" );
 		return 1;
-	}
-#if 0
-	TEMPLATE_ARGS
-	int CLASS::count_iso_iec_7816_padding_bytes (_RESTRICT (u8_t const *) last_block)
-	{
-		int count = 1;
-		u8_t mask = 0x00;
-		static_assert (CHAR_BIT == 8);
-		for( int i = Block_Bytes - 1; i >= 0; --i ) {
-			mask |= static_cast<u8_t>(static_cast<i8_t>(last_block[ i ]) >> (CHAR_BIT - 1));
-			count += (mask & 0b0000'0001);
-		}
-		return count;
-	}
-#endif
+	}// ~ size_t count_iso_iec_7816_padding_bytes (...)
 
 	TEMPLATE_ARGS
 	size_t CLASS::encrypt (_RESTRICT (Data *)       data,
@@ -137,6 +125,6 @@ namespace ssc
 		}
 		return num_bytes_in - count_iso_iec_7816_padding_bytes( out_bytes, num_bytes_in );
 	}
-}/* ~ namespace ssc */
+}// ~ namespace ssc
 #undef CLASS
 #undef TEMPLATE_ARGS

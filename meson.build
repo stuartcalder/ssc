@@ -37,8 +37,13 @@ cpp_flags = []
 inc_dir   = []
 # Determine flags to pass to gcc-compatible compilers.
 gcc_compatible_flags = [
-	'-fvisibility=hidden', '-fno-exceptions', '-fstrict-aliasing',
-	'-Wall', '-funroll-loops', '-fno-rtti'
+	'-fvisibility=hidden', # Only include symbols that are explicitly needed.
+	'-fno-exceptions',     # Disable exceptions.
+	'-fstrict-aliasing',   # Enable strict aliasing rules.
+	'-Wall',               # Give us all the compile-time warnings.
+	'-funroll-loops',      # Unroll loops to optimize for speed.
+	'-fno-rtti',           # We don't use run-time type info, so disable it.
+	'-flto'		       # Enable link-time optimizations.
 ]
 
 # On OSX we require __STDC_WANT_LIB_EXT1__ to be defined as 1, for access to memset_s.

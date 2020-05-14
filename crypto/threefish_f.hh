@@ -4,15 +4,19 @@
  */
 #pragma once
 
-/* C++ Standard Headers */
+/* C++ Std
+ */
 #include <type_traits>
-/* SSC General Headers */
+/* SSC General
+ */
 #include <ssc/general/integers.hh>
 #include <ssc/general/macros.hh>
-/* SSC Crypto Headers */
+/* SSC Crypto
+ */
 #include <ssc/crypto/operations.hh>
 #include <ssc/crypto/constants.hh>
-/* C Standard Headers */
+/* C Std
+ */
 #include <climits>
 #include <cstdlib>
 #include <cstring>
@@ -37,11 +41,13 @@ namespace ssc
 			       Bits == 512 ||
 			       Bits == 1024,
 			       "The Threefish block cipher is defined only for 256, 512, 1024 bits.");
-	/* Key Schedule Control Constants */
+	/* Key Schedule Control Constants
+	 */
 		static_assert (Key_Schedule_Gen == Key_Schedule_E::Stored ||
 			       Key_Schedule_Gen == Key_Schedule_E::On_Demand);
 		Threefish_F (void) = delete;
-	/* Constants */
+	/* Constants
+	 */
 		enum Int_Constants : int {
 			Block_Bits    = Bits,
 			Block_Bytes   = Block_Bits / CHAR_BIT,
@@ -67,17 +73,22 @@ namespace ssc
 		};
 
 		struct Stored_Data {
-			// When we pre-compute all the subkeys of the key schedule, we store them in `key_schedule`.
+		/* When we compute once then store all the subkeys of the key schedule, we store them in $key_schedule.
+		 */
 			u64_t key_schedule [Block_Words * Number_Subkeys];
 			u64_t state        [Block_Words];
-		};/* ~ struct Precomputed_Data */
+		};// ~ struct Precomputed_Data
 		struct On_Demand_Data {
-			// When we compute the subkeys at runtime, we store pointers to the input key and tweak.
+		/* When we compute the subkeys at runtime, we store pointers to the input key and tweak.
+		 */
 			u64_t state        [Block_Words];
 			u64_t *stored_key;  // -> [External_Key_Words]
 			u64_t *stored_tweak;// -> [External_Tweak_Words]
-		};/* ~ struct Runtime_Data */
+		};// ~ struct Runtime_Data
 
+	/* Data_t refers to Stored_Data or Runtime_Data depending on which
+	 * alias is selected.
+	 */
 		using Data_t = typename std::conditional<(Key_Schedule_Gen == Key_Schedule_E::Stored),Stored_Data,On_Demand_Data>::type;
 		static_assert (std::is_same<Data_t,Stored_Data>::value || std::is_same<Data_t,On_Demand_Data>::value);
 
@@ -95,7 +106,7 @@ namespace ssc
 	private:
 		template <int round,int index>
 		static constexpr int rotate_const_ (void);
-	};/* ~ class Threefish_F */
+	};// ~ class Threefish_F
 
 	TEMPLATE_ARGS
 	void CLASS::rekey (_RESTRICT (Data_t *) data,
@@ -148,7 +159,8 @@ namespace ssc
 			SET_WORD       (subkey,15) + subkey; \
 		} \
 	_MACRO_SHIELD_EXIT
-	// Setup the key.
+	/* Setup the key.
+	 */
 		key[ Block_Words ] = Constant_240;
 		static_assert (Block_Words == 4 || Block_Words == 8 || Block_Words == 16);
 		if constexpr (Block_Words == 4) {
@@ -162,10 +174,11 @@ namespace ssc
 					    ^ key[  8 ] ^ key[  9 ] ^ key[ 10 ] ^ key[ 11 ]
 					    ^ key[ 12 ] ^ key[ 13 ] ^ key[ 14 ] ^ key[ 15 ];
 		}
-	// Setup the tweak.
+	/* Setup the tweak.
+	 */
 		tweak[ 2 ] = tweak[ 0 ] ^ tweak[ 1 ];
 		if constexpr (Key_Schedule_Gen == Key_Schedule_E::Stored) {
-			// A pre-computed key-schedule has been asked for.. Generate all the subkeys and stored them in `key_schedule`.
+		// A pre-computed key-schedule has been asked for.. Generate all the subkeys and stored them in $key_schedule.
 			static_assert (Number_Subkeys == 19 || Number_Subkeys == 21);
 			MAKE_SUBKEY  (0);
 			MAKE_SUBKEY  (1);
@@ -191,11 +204,11 @@ namespace ssc
 				MAKE_SUBKEY (20);
 			}
 		} else if constexpr (Key_Schedule_Gen == Key_Schedule_E::On_Demand) {
-			// A runtime-computed key-schedule has been asked for.. Store pointers to the key and tweak for accessing later.
+		// An On-Demand-computed key-schedule has been asked for.. Store pointers to the key and tweak for accessing later.
 			data->stored_key = key;
 			data->stored_tweak = tweak;
 		}
-	}/* ~ void rekey (...) */
+	}// ~ void rekey (...)
 
 	TEMPLATE_ARGS
 	void CLASS::cipher (_RESTRICT (Data_t *)     data,
@@ -241,9 +254,9 @@ namespace ssc
 	_MACRO_SHIELD \
 		_CTIME_CONST (int) Subkey_Index = round / 4; \
 		if constexpr (Key_Schedule_Gen == Key_Schedule_E::Stored) { \
-			/* The key-schedule has been pre-computed, thus we can modify the state by directly accessing
-			 * the keyschedule, where operation is += or -= for adding or subtracting the subkey from the state
-			 * words.*/ \
+		/* The key-schedule has been pre-computed, thus we can modify the state by directly accessing
+		 * the keyschedule, where operation is += or -= for adding or subtracting the subkey from the state
+		 * words.*/ \
 			_CTIME_CONST (int) Subkey_Offset = Subkey_Index * Block_Words; \
 			if constexpr (Block_Words == 4) { \
 				data->state[ 0 ] operation data->key_schedule[ Subkey_Offset + 0 ]; \
@@ -278,8 +291,8 @@ namespace ssc
 				data->state[ 15 ] operation data->key_schedule[ Subkey_Offset + 15 ]; \
 			} \
 		} else if constexpr (Key_Schedule_Gen == Key_Schedule_E::On_Demand) { \
-			/* The key-schedule is computed at runtime. For each += or -= operation, we compute
-			 * the subkeys on-demand. */ \
+		/* The key-schedule is computed on-demand. For each += or -= operation, we compute
+		 * the subkeys on-demand. */ \
 			if constexpr (Block_Words == 4) { \
 				data->state[ 0 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,0)); \
 				data->state[ 1 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,1) + data->stored_tweak[ Subkey_Index % 3 ]); \
@@ -479,7 +492,7 @@ namespace ssc
 		USE_SUBKEY (+=,Number_Rounds);
 		std::memcpy( ctext, data->state, sizeof(data->state) );
 
-	}/* ~ void cipher (...) */
+	}// ~ void cipher (...)
 
 	TEMPLATE_ARGS
 	void CLASS::inverse_cipher (_RESTRICT (Data_t *)     data,
@@ -501,7 +514,7 @@ namespace ssc
 		EIGHT_DEC_ROUNDS (15);
 		EIGHT_DEC_ROUNDS (7);
 		std::memcpy( ptext, data->state, sizeof(data->state) );
-	}/* ~ void inverse_cipher (...) */
+	}// ~ void inverse_cipher (...)
 
 	TEMPLATE_ARGS template <int round,int index>
 	constexpr int CLASS::rotate_const_ (void)
@@ -547,8 +560,8 @@ namespace ssc
 			};
 			return rc[ round % 8 ][ index ];
 		}
-	}/* ~ constexpr int rotate_const_ (...) */
-}/* ~ namespace ssc */
+	}// ~ constexpr int rotate_const_ (...)
+}// ~ namespace ssc
 #undef EIGHT_DEC_ROUNDS
 #undef EIGHT_ENC_ROUNDS
 #undef DEC_ROUND

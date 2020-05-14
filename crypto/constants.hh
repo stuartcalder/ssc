@@ -11,4 +11,4 @@ namespace ssc
 		Stored,
 		On_Demand
 	};
-}/* ~ namespace ssc */
+}// ~ namespace ssc

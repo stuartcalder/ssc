@@ -3,20 +3,24 @@
  * See accompanying LICENSE file for licensing information.
  */
 #pragma once
-/* SSC General Headers */
+/* SSC General
+ */
 #include <ssc/general/macros.hh>
 #include <ssc/general/integers.hh>
 #include <ssc/general/error_conditions.hh>
-/* SSC Crypto Headers */
+/* SSC Crypto
+ */
 #include <ssc/crypto/operations.hh>
 #include <ssc/crypto/threefish_f.hh>
-/* C Standard Headers */
+/* C Std
+ */
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <cstdio>
 #include <climits>
-/* C++ Standard Headers */
+/* C++ Std
+ */
 #include <utility>
 
 #if    defined (TEMPLATE_ARGS) || defined (CLASS)
@@ -31,11 +35,15 @@ namespace ssc
 	class Counter_Mode_F
 	{
 	public:
-		static_assert (CHAR_BIT == 8);
-		static_assert ((Block_Bits % CHAR_BIT) == 0);
-		static_assert ((Block_Bits >= 128), "Modern block ciphers have blocks of at least 128 bits.");
+		static_assert (CHAR_BIT == 8,
+			       "A byte must be 8 bits.");
+		static_assert ((Block_Bits % CHAR_BIT) == 0,
+			       "The number of bits must be divisible into bytes.");
+		static_assert ((Block_Bits >= 128),
+			       "Modern block ciphers have blocks of at least 128 bits.");
 		_CTIME_CONST (int) Block_Bytes = Block_Bits / CHAR_BIT;
-		static_assert ((Block_Bytes % 2) == 0, "Block bytes must be evenly divisible in half.");
+		static_assert ((Block_Bytes % 2) == 0,
+			       "Block bytes must be evenly divisible in half.");
 		_CTIME_CONST (int) Nonce_Bytes = Block_Bytes / 2;
 		using Threefish_f = Threefish_F<Block_Bits,Key_Schedule_E::Stored>;
 		using Threefish_Data_t = typename Threefish_f::Data_t;
@@ -130,6 +138,6 @@ namespace ssc
 			std::memcpy( output, data->buffer, input_size );
 		}
 	}
-}/* ~ namespace ssc */
+}// ~ namespace ssc
 #undef CLASS
 #undef TEMPLATE_ARGS
