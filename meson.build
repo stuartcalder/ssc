@@ -2,7 +2,8 @@
 project('ssc', 'cpp',
 	default_options: ['cpp_std=c++17', 'buildtype=release',
                           'optimization=3', 'strip=true',
-			  'cpp_eh=none'])
+			  'cpp_eh=none'],
+	version: '1.0')
 # Determine compiler, operating system.
 cc = meson.get_compiler('cpp')
 os = host_machine.system() # Get the operating system.
