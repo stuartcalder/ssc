@@ -95,20 +95,17 @@
 
 /* OpenBSD-specific mitigations */
 #ifdef	__OpenBSD__
-#	ifdef _OPENBSD_UNVEIL
-#		error '_OPENBSD_UNVEIL Already Defined'
+#	if    defined (_OPENBSD_UNVEIL) || defined (_OPENBSD_PLEDGE)
+#		error '_OPENBSD_UNVEIL or _OPENBSD_PLEDGE already defined'
 #	endif
 #	include <ssc/general/error_conditions.hh>
 #	include <unistd.h>
 #	define _OPENBSD_UNVEIL(path,permissions) \
 		if( unveil( path, permissions ) != 0 ) \
 			errx( "Failed to unveil()\n" )
-#	ifdef _OPENBSD_PLEDGE
-#		error '_OPENBSD_PLEDGE Already Defined'
-#	endif
 #	define _OPENBSD_PLEDGE(promises,execpromises) \
 		if( pledge( promises, execpromises ) != 0 ) \
-			errx( "Pledge() failed\n" )
+			errx( "pledge() failed\n" )
 #else
 #	define _OPENBSD_UNVEIL(null0,null1)  // Define as nothing on Non-OpenBSD systems.
 #	define _OPENBSD_PLEDGE(null0,null1)  // Define as nothing on Non-OpenBSD systems.
