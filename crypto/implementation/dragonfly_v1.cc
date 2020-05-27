@@ -80,7 +80,7 @@ namespace ssc::crypto_impl::dragonfly_v1
 			// Threefish tweak buffer; large enough to store the parity word during generation of the Threefish keyschedule.
 			u64_t               tf_tweak    [Threefish_f::External_Tweak_Words];
 			// Enough bytes to copy into the nonce portion of the counter-mode's keystream buffer.
-			alignas(u64_t) u8_t ctr_nonce   [CTR_f::Nonce_Bytes];
+			alignas(u64_t) u8_t ctr_nonce   [CTR_f::IV_Bytes];
 			// Enough salt bytes to harden CATENA against adversaries with dedicated hardware.
 			alignas(u64_t) u8_t catena_salt [Salt_Bytes];
 		} pub;
@@ -188,13 +188,13 @@ namespace ssc::crypto_impl::dragonfly_v1
 		out += Tweak_Bytes;
 		memcpy( out, pub.catena_salt, Salt_Bytes );              // Copy the CATENA salt in.
 		out += Salt_Bytes;
-		memcpy( out, pub.ctr_nonce, CTR_f::Nonce_Bytes );        // Copy the CTR mode nonce in.
-		out += CTR_f::Nonce_Bytes;
+		memcpy( out, pub.ctr_nonce, CTR_f::IV_Bytes);        // Copy the CTR mode nonce in.
+		out += CTR_f::IV_Bytes;
 		{
 			u64_t crypt_header [2] = { 0 };
 			crypt_header[ 0 ] = catena_input.padding_bytes;
-			CTR_f::set_nonce( &(secret.ctr_data),
-					  pub.ctr_nonce );
+			CTR_f::set_iv( &(secret.ctr_data),
+				       pub.ctr_nonce );
 			CTR_f::xorcrypt( &(secret.ctr_data),
 					 out,
 					 reinterpret_cast<u8_t*>(crypt_header),
@@ -243,7 +243,7 @@ namespace ssc::crypto_impl::dragonfly_v1
 		struct {
 			u64_t               tweak       [Threefish_f::External_Key_Words];
 			alignas(u64_t) u8_t catena_salt [Salt_Bytes];
-			alignas(u64_t) u8_t ctr_nonce   [CTR_f::Nonce_Bytes];
+			alignas(u64_t) u8_t ctr_nonce   [CTR_f::IV_Bytes];
 			u64_t               header_size;
 			u8_t                header_id   [sizeof(Dragonfly_V1_ID)];
 			u8_t                g_low;
@@ -265,8 +265,8 @@ namespace ssc::crypto_impl::dragonfly_v1
 			in += Tweak_Bytes;
 			memcpy( pub.catena_salt, in, Salt_Bytes );
 			in += Salt_Bytes;
-			memcpy( pub.ctr_nonce, in, CTR_f::Nonce_Bytes );
-			in += CTR_f::Nonce_Bytes;
+			memcpy( pub.ctr_nonce, in, CTR_f::IV_Bytes);
+			in += CTR_f::IV_Bytes;
 		}
 		if( memcmp( pub.header_id, Dragonfly_V1_ID, sizeof(Dragonfly_V1_ID) ) != 0 ) {
 			unmap_file( input_map );
@@ -373,8 +373,8 @@ namespace ssc::crypto_impl::dragonfly_v1
 		}
 		{
 			// Set the nonce.
-			CTR_f::set_nonce( &(secret.ctr_data),
-					  pub.ctr_nonce );
+			CTR_f::set_iv( &(secret.ctr_data),
+				       pub.ctr_nonce );
 			u64_t padding_bytes;
 			// Decrypt the padding bytes.
 			CTR_f::xorcrypt( &secret.ctr_data,
@@ -414,7 +414,7 @@ namespace ssc::crypto_impl::dragonfly_v1
 			u8_t  use_phi;
 			u8_t  tweak [Tweak_Bytes];
 			u8_t  salt  [Salt_Bytes];
-			u8_t  nonce [CTR_f::Nonce_Bytes];
+			u8_t  nonce [CTR_f::IV_Bytes];
 		} header;
 		u8_t mac [MAC_Bytes];
 		{

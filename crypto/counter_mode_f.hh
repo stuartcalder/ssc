@@ -44,7 +44,7 @@ namespace ssc
 		_CTIME_CONST (int) Block_Bytes = Block_Bits / CHAR_BIT;
 		static_assert ((Block_Bytes % 2) == 0,
 			       "Block bytes must be evenly divisible in half.");
-		_CTIME_CONST (int) Nonce_Bytes = Block_Bytes / 2;
+		_CTIME_CONST (int) IV_Bytes = Block_Bytes / 2;
 		using Threefish_f = Threefish_F<Block_Bits,Key_Schedule_E::Stored>;
 		using Threefish_Data_t = typename Threefish_f::Data_t;
 		struct Data {
@@ -55,8 +55,8 @@ namespace ssc
 
 		Counter_Mode_F (void) = delete;
 
-		static inline void set_nonce (_RESTRICT (Data       *) data,
-				              _RESTRICT (u8_t const *) nonce);
+		static inline void set_iv (_RESTRICT (Data*)       data,
+				           _RESTRICT (u8_t const*) iv);
 		static void xorcrypt (_RESTRICT (Data *) data,
 			              u8_t               *output,
 			              u8_t const         *input,
@@ -65,16 +65,16 @@ namespace ssc
 	};
 
 	TEMPLATE_ARGS
-	void CLASS::set_nonce (_RESTRICT (Data       *) data,
-			       _RESTRICT (u8_t const *) nonce)
+	void CLASS::set_iv (_RESTRICT (Data*)       data,
+			    _RESTRICT (u8_t const*) iv)
 	{
-		static_assert (Block_Bytes == (Nonce_Bytes * 2));
-		static_assert (sizeof(u64_t) <= Nonce_Bytes);
-		if constexpr (sizeof(u64_t) != Nonce_Bytes)
-			std::memset( (data->keystream + sizeof(u64_t)), 0, (Nonce_Bytes - sizeof(u64_t)) );
-		std::memcpy( (data->keystream + Nonce_Bytes),
-			     nonce,
-			     Nonce_Bytes );
+		static_assert (Block_Bytes == (IV_Bytes *2));
+		static_assert (sizeof(u64_t) <= IV_Bytes);
+		if constexpr (sizeof(u64_t) != IV_Bytes)
+			std::memset( (data->keystream + sizeof(u64_t)), 0, (IV_Bytes - sizeof(u64_t)) );
+		std::memcpy( (data->keystream + IV_Bytes),
+			     iv,
+			     IV_Bytes );
 	}
 
 	TEMPLATE_ARGS

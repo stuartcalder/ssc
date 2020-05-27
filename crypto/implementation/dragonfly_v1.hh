@@ -45,16 +45,18 @@ namespace ssc::crypto_impl::dragonfly_v1
 	using CTR_f      = Counter_Mode_F<Block_Bits>;
 	using CTR_Data_t = typename CTR_f::Data;
 	_CTIME_CONST (auto&) Dragonfly_V1_ID    = "SSC_DRAGONFLY_V1";
-	_CTIME_CONST (int)   Block_Bits         = 512;
-	_CTIME_CONST (int)   Block_Bytes        = Block_Bits / CHAR_BIT;
+	enum Int_Constants : int {
+		Block_Bits = 512,
+		Block_Bytes = Block_Bits / CHAR_BIT,
+		Salt_Bits  = 256,
+		Salt_Bytes = Salt_Bits / CHAR_BIT,
+		Max_Password_Bits = (Max_Password_Chars * CHAR_BIT),
+		Plaintext_Header_Bytes = sizeof(Dragonfly_V1_ID) + sizeof(u64_t) + (4 * sizeof(u8_t)) + Tweak_Bytes + Salt_Bytes + CTR_f::IV_Bytes,
+		Ciphertext_Header_Bytes = (sizeof(u64_t) * 2),
+		Total_Header_Bytes = Plaintext_Header_Bytes + Ciphertext_Header_Bytes,
+		Visible_Metadata_Bytes = Total_Header_Bytes + MAC_Bytes
+	};
 	static_assert (Block_Bytes == MAC_Bytes);
-	_CTIME_CONST (int)   Salt_Bits          = 256;
-	_CTIME_CONST (int)   Salt_Bytes         = Salt_Bits / CHAR_BIT;
-	_CTIME_CONST (int)   Max_Password_Bits  = (Max_Password_Chars * CHAR_BIT);
-	_CTIME_CONST (int)   Plaintext_Header_Bytes = sizeof(Dragonfly_V1_ID) + sizeof(u64_t) + (4 * sizeof(u8_t)) + Tweak_Bytes + Salt_Bytes + CTR_f::Nonce_Bytes;
-	_CTIME_CONST (int)   Ciphertext_Header_Bytes = (sizeof(u64_t) * 2);
-	_CTIME_CONST (int)   Total_Header_Bytes = Plaintext_Header_Bytes + Ciphertext_Header_Bytes;
-	_CTIME_CONST (int)   Visible_Metadata_Bytes = Total_Header_Bytes + MAC_Bytes;
 	using BRG_f = Generic_Graph_Hash_F<Block_Bits,
 	                                   Bit_Reversal_Graph_F>;
 	struct Catena_Safe_Metadata {
