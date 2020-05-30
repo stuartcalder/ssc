@@ -20,15 +20,15 @@
 #include <type_traits>
 /* OS-Specific
  */
-#if    defined (__UnixLike__)
+#if    defined (SSC_OS_UNIXLIKE)
 #	include <unistd.h>
-#elif  defined (__Win64__)
+#elif  defined (SSC_OS_WIN64)
 #	include <windows.h>
 #	include <ntstatus.h>
 #	include <bcrypt.h>
 #else
 #	error 'Unsupported OS'
-#endif// ~ #if defined (__UnixLike__)
+#endif// ~ #if defined (SSC_OS_UNIXLIKE)
 /* Byte-swapping OS-Specific
  */
 #if    defined (__OpenBSD__)
@@ -37,18 +37,19 @@
 #	include <sys/endian.h>
 #elif  defined (__gnu_linux__)
 #	include <byteswap.h>
-#elif  defined (__Win64__)
+#elif  defined (SSC_OS_WIN64)
 #	include <stdlib.h>
-#elif !defined (__Mac_OSX__)
+#elif !defined (SSC_OS_OSX)
 #	error 'Unsupported OS'
 #endif// ~ #if defined (unixlikes...)
-#if    defined (__Mac_OSX__)
+
+#if    defined (SSC_OS_OSX)
 #	if   !defined (__STDC_WANT_LIB_EXT1__) || (__STDC_WANT_LIB_EXT1__ != 1)
 #		error 'The macro __STDC_WANT_LIB_EXT1__ must be be #defined to 1 for access to memset_s.'
 #	endif
 #	include <string.h>
 #	include <ssc/files/files.hh>
-#endif// ~ #if defined (__Mac_OSX__)
+#endif// ~ #if defined (SSC_OS_OSX)
 /* Ensure that the template functions below that expect unsigned integral
  * types can ONLY be used with unsigned integral types, to prevent any
  * unexpectedly nasty behavior.
@@ -66,13 +67,12 @@
 		)
 #endif// ~ #if defined (STATIC_ENFORCE_UNSIGNED_INTEGRAL)
 
-namespace ssc
-{
+namespace ssc {
 /* rotate_left (Uint_t) -> Uint_t
  * 	Bitwise rotation left of an unsigned integer of type `Uint_t` by a constant, $Count.
  */
-	template <unsigned int Count, typename Uint_t>
-	[[nodiscard]] constexpr Uint_t rotate_left (Uint_t value)
+	template <unsigned int Count, typename Uint_t> [[nodiscard]] constexpr Uint_t
+	rotate_left (Uint_t value)
 	{
 		STATIC_ENFORCE_UNSIGNED_INTEGRAL (Uint_t);
 
@@ -85,8 +85,8 @@ namespace ssc
 /* rotate_right (Uint_t) -> Uint_t
  * 	Bitwise rotation right of an unsigned integer of type `Uint_t` by a constant, $Count.
  */
-	template <unsigned int Count, typename Uint_t>
-	[[nodiscard]] constexpr Uint_t rotate_right (Uint_t value)
+	template <unsigned int Count, typename Uint_t> [[nodiscard]] constexpr Uint_t
+	rotate_right (Uint_t value)
 	{
 		STATIC_ENFORCE_UNSIGNED_INTEGRAL (Uint_t);
 
@@ -96,21 +96,21 @@ namespace ssc
 	}
 
 
-/* xor_block (_RESTRICT(void*),_RESTRICT(void const*)) -> void
+/* xor_block (SSC_RESTRICT(void*),SSC_RESTRICT(void const*)) -> void
  * 	XOR two blocks of data, $block and $add, both $Block_Bits large, storing the result pointed to by $block.
  */
 	template <int Block_Bits>
-	void xor_block (_RESTRICT (void *)       block,
-			_RESTRICT (void const *) add)
+	void xor_block (SSC_RESTRICT (void *)       block,
+			SSC_RESTRICT (void const *) add)
 	{
 		static_assert (CHAR_BIT == 8,
 			       "One byte must be 8 bits.");
 		static_assert ((Block_Bits % CHAR_BIT == 0),
 			       "Bits must be a multiple of bytes");
-		_CTIME_CONST (int) Block_Bytes = Block_Bits / CHAR_BIT;
+		static constexpr int Block_Bytes = Block_Bits / CHAR_BIT;
 		for( int i = 0; i < Block_Bytes; ++i )
 			reinterpret_cast<u8_t*>(block)[ i ] ^= reinterpret_cast<u8_t const*>(add)[ i ];
-	}// ~ xor_block(_RESTRICT(void*),_RESTRICT(void const*))
+	}// ~ xor_block(SSC_RESTRICT(void*),SSC_RESTRICT(void const*))
 
 	
 /* bit_hamming_weight (Uint_t) -> int
@@ -122,10 +122,10 @@ namespace ssc
 		STATIC_ENFORCE_UNSIGNED_INTEGRAL(Uint_t);
 
 	// $Number_Bytes represents the number of bytes in one Uint_t.
-		_CTIME_CONST(int)  Number_Bytes = sizeof(Uint_t);
+		static constexpr int Number_Bytes = sizeof(Uint_t);
 		static_assert (CHAR_BIT == 8);
 	// $Number_Bits represents the number of bits to check for 1's to determine the bit hamming weight.
-		_CTIME_CONST(int)  Number_Bits = Number_Bytes * CHAR_BIT;
+		static constexpr int Number_Bits = Number_Bytes * CHAR_BIT;
 
 		int hamming_weight = 0;
 
@@ -163,21 +163,22 @@ namespace ssc
  * 	Obtain $num_bytes pseudorandom bytes from the operating-system, storing them at the
  * 	byte address pointed to by $buffer.
  */
-	inline void obtain_os_entropy (u8_t *buffer, size_t num_bytes)
+	inline void
+	obtain_os_entropy (u8_t *buffer, size_t num_bytes)
 	{
                 using namespace std;
 	/* It doesn't appear there is an OSX-specific function for obtaining entropy, like getentropy().
 	 * Get it manually by reading from /dev/random
 	 */
-#if    defined (__Mac_OSX__)
+#if    defined (SSC_OS_OSX)
 		OS_File_t random_dev = open_existing_os_file( "/dev/random", true );
 		if( read( random_dev, buffer, num_bytes ) != static_cast<ssize_t>(num_bytes) )
 			errx( "Error: Failed to read from /dev/random!\n" );
 		close_os_file( random_dev );
 	/* For OpenBSD, FreeBSD, and GNU/Linux, we can use getentropy() to obtain OS entropy.
 	 */
-#elif  defined (__UnixLike__)
-		_CTIME_CONST (int) Max_Bytes = 256;
+#elif  defined (SSC_OS_UNIXLIKE)
+		static constexpr int Max_Bytes = 256;
                 while( num_bytes > Max_Bytes ) {
                         if( getentropy( buffer, Max_Bytes ) != 0 )
 				errx( "Error: Failed to getentropy()\n" );
@@ -188,7 +189,7 @@ namespace ssc
 			errx( "Error: Failed to getentropy()\n" );
 	/* For Win64, use the newer crypto functions from bcrypt.dll
 	 */
-#elif  defined (__Win64__)
+#elif  defined (SSC_OS_WIN64)
 		BCRYPT_ALG_HANDLE cng_provider_handle;
 		// Open algorithm provider.
 		if( BCryptOpenAlgorithmProvider( &cng_provider_handle, L"RNG", nullptr, 0 ) != STATUS_SUCCESS )
@@ -209,21 +210,22 @@ namespace ssc
  * 	Write $num_bytes null bytes to the buffer pointed to by $buffer.
  * 	Prevent the compiler from optimizing away this call.
  */
-	inline void zero_sensitive (void *buffer, size_t num_bytes)
+	inline void
+	zero_sensitive (void *buffer, size_t num_bytes)
 	{
 		using namespace std;
 	/* It seems OSX doesn't support explicit_bzero, but it does support memset_s.
 	 * Use memset_s since it's there.
 	 */
-#if    defined (__Mac_OSX__)
+#if    defined (SSC_OS_OSX)
 		memset_s( buffer, num_bytes, 0, num_bytes );
 	/* It appears OpenBSD, FreeBSD, and GNU/Linux all support the explicit_bzero call.
 	 */
-#elif  defined (__UnixLike__)
+#elif  defined (SSC_OS_UNIXLIKE)
 		explicit_bzero( buffer, num_bytes );
 	/* SecureZeroMemory is the only function I could find on Win64 that fulfills this purpose.
 	 */
-#elif  defined (__Win64__)
+#elif  defined (SSC_OS_WIN64)
 		SecureZeroMemory( buffer, num_bytes );
 #else
 #	error 'Unsupported OS'
@@ -235,41 +237,41 @@ namespace ssc
  * 	Reverse the byte order of the unsigned integer $u, of type `Uint_t`.
  * 	i.e. little-endian -> big-endian, or big-endian -> little-endian.
  */
-	template <typename Uint_t>
-	[[nodiscard]] Uint_t reverse_byte_order (Uint_t u)
+	template <typename Uint_t> [[nodiscard]] Uint_t
+	reverse_byte_order (Uint_t u)
 	{
 		STATIC_ENFORCE_UNSIGNED_INTEGRAL (Uint_t);
 
 		// Disallow Uint_t to be u8_t, since it cannot be reversed.
 		static_assert (!std::is_same<Uint_t,u8_t>::value, "u8_t is not byte reversible.");
 
-#if    defined (SWAP_F) || defined (SWAP_F__) || defined (SIZE)
-#	error 'SWAP_F, SWAP_F__, or SIZE macro already defined'
+#if    defined (SWAP_F) || defined (SWAP_F_IMPL) || defined (SIZE)
+#	error 'SWAP_F, SWAP_F_IMPL, or SIZE macro already defined'
 #endif
 
-#define SWAP_F(size,u)	SWAP_F__ (size,u)
+#define SWAP_F(size,u)	SWAP_F_IMPL (size,u)
 
 #if    defined (__OpenBSD__)
-#	define SWAP_F__(size,u)	swap##size( u )
+#	define SWAP_F_IMPL(size,u)	swap##size( u )
 #elif  defined (__FreeBSD__)
-#	define SWAP_F__(size,u)	bswap##size( u )
+#	define SWAP_F_IMPL(size,u)	bswap##size( u )
 #elif  defined (__gnu_linux__)
-#	define SWAP_F__(size,u)	bswap_##size( u )
-#elif  defined (__Win64__)
-#	define SWAP_F__(size,u)	_byteswap_##size( u );
-#elif !defined (__Mac_OSX__)
+#	define SWAP_F_IMPL(size,u)	bswap_##size( u )
+#elif  defined (SSC_OS_WIN64)
+#	define SWAP_F_IMPL(size,u)	_byteswap_##size( u );
+#elif !defined (SSC_OS_OSX)
 #	error 'Unsupported OS'
 #endif
 
-#if    defined (__UnixLike__)
+#if    defined (SSC_OS_UNIXLIKE) && !defined(SSC_OS_OSX)
 #	define SIZE(unixlike,win64) unixlike
-#elif  defined (__Win64__)
+#elif  defined (SSC_OS_WIN64)
 #	define SIZE(unixlike,win64) win64
-#elif !defined (__Mac_OSX__)
+#elif !defined (SSC_OS_OSX)
 #	error 'Unsupported OS'
 #endif
 
-#ifdef __Mac_OSX__
+#ifdef SSC_OS_OSX
 	/* It seems there are no native calls for swapping byte order on OSX;
 	 * implement it ourselves.
 	 */
@@ -308,21 +310,22 @@ namespace ssc
 		}
 #endif// ~ #ifdef __Mac_OSX__
 #undef SIZE
-#undef SWAP_F__
+#undef SWAP_F_IMPL
 #undef SWAP_F
 	}// ~ Uint_t reverse_byte_order (Uint_t)
 
 
-/* constant_time_memcmp (_RESTRICT(void const*),_RESTRICT(void const*),size_t const) -> int
+/* constant_time_memcmp (SSC_RESTRICT(void const*),SSC_RESTRICT(void const*),size_t const) -> int
  * 	Return the number of different bytes between the two buffers $left and $right.
  * 	Take the same amount of time, no matter how many of those bytes are or are not different.
  */
-	[[nodiscard]] inline int constant_time_memcmp (_RESTRICT (void const *) left,
-			                               _RESTRICT (void const *) right,
-					               size_t const             size)
+	[[nodiscard]] inline int
+	constant_time_memcmp (SSC_RESTRICT (void const*) left,
+			      SSC_RESTRICT (void const*) right,
+			      size_t const               size)
 	{
 		int non_equal_bytes = 0;
-		_CTIME_CONST (u8_t) One_Mask = 0b0000'0001;
+		static constexpr u8_t One_Mask = 0b0000'0001;
 		for( size_t i = 0; i < size; ++i ) {
 			u8_t const b = reinterpret_cast<u8_t const*>( left)[ i ] ^
 				       reinterpret_cast<u8_t const*>(right)[ i ];

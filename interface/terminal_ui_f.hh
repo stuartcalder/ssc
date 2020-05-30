@@ -5,16 +5,16 @@
 #pragma once
 #include <ssc/general/macros.hh>
 #include <ssc/crypto/operations.hh>
-#if    defined (__UnixLike__) || defined (__Win64__)
-#	ifndef __SSC_Terminal_UI_F__
-#		define __SSC_Terminal_UI_F__
+#if    defined (SSC_OS_UNIXLIKE) || defined (SSC_OS_WIN64)
+#	ifndef SSC_FEATURE_TERMINAL_UI_F
+#		define SSC_FEATURE_TERMINAL_UI_F
 #	else
-#		error '__SSC_Terminal_UI_F__ Already Defined'
+#		error 'SSC_FEATURE_TERMINAL_UI_F Already Defined'
 #	endif
-#	if    defined (__UnixLike__)
+#	if    defined (SSC_OS_UNIXLIKE)
 #		include <ncurses.h>
 #		define NEWLINE "\n"
-#	elif  defined (__Win64__)
+#	elif  defined (SSC_OS_WIN64)
 #		include <ssc/general/error_conditions.hh>
 #		include <windows.h>
 #		include <conio.h>
@@ -29,67 +29,72 @@
 #	include <utility>
 namespace ssc
 {
-	TEMPLATE_ARGS
-	struct Terminal_UI_F
+	TEMPLATE_ARGS struct
+	Terminal_UI_F
 	{
 		Terminal_UI_F () = delete;
 
-		static void init ();
+		static void
+		init ();
 
-		static void end ();
+		static void
+		end ();
 
-		[[nodiscard]] static int get_sensitive_string (_RESTRICT (Char_t *)     buffer,
-				                               _RESTRICT (char const *) prompt);
+		[[nodiscard]] static int
+		get_sensitive_string (SSC_RESTRICT (Char_t *)     buffer,
+				      SSC_RESTRICT (char const *) prompt);
 
-		static void notify (char const *notice);
+		static void
+		notify (char const *notice);
 
-		[[nodiscard]] static int obtain_password (_RESTRICT (Char_t *)     password_buffer,
-				                          _RESTRICT (char const *) entry_prompt,
-					                  int const                min_pw_size = 1,
-					                  int const                max_pw_size = Max_Buffer_Size - 1);
+		[[nodiscard]] static int
+		obtain_password (SSC_RESTRICT (Char_t *)     password_buffer,
+				 SSC_RESTRICT (char const *) entry_prompt,
+				 int const                   min_pw_size = 1,
+				 int const                   max_pw_size = Max_Buffer_Size - 1);
 
-		[[nodiscard]] static int obtain_password (_RESTRICT (Char_t *)     password_buffer,
-				                          _RESTRICT (Char_t *)     check_buffer,
-					                  _RESTRICT (char const *) entry_prompt,
-					                  _RESTRICT (char const *) reentry_prompt,
-					                  int const                min_pw_size = 1,
-					                  int const                max_ps_size = Max_Buffer_Size - 1);
-#	ifdef __UnixLike__
+		[[nodiscard]] static int obtain_password (SSC_RESTRICT (Char_t *)     password_buffer,
+				                          SSC_RESTRICT (Char_t *)     check_buffer,
+					                  SSC_RESTRICT (char const *) entry_prompt,
+					                  SSC_RESTRICT (char const *) reentry_prompt,
+					                  int const                   min_pw_size = 1,
+					                  int const                   max_ps_size = Max_Buffer_Size - 1);
+#	ifdef SSC_OS_UNIXLIKE
 		using Window_t = WINDOW;
 		using Coord_Pair_t = std::pair<int,int>;
 		static Coord_Pair_t get_cursor_position (Window_t *window = stdscr);
 #	endif
 	};
 
-	TEMPLATE_ARGS
-	void CLASS::init ()
+	TEMPLATE_ARGS void
+	CLASS::init ()
 	{
-#	if    defined (__UnixLike__)
+#	if    defined (SSC_OS_UNIXLIKE)
 		initscr();
 		clear();
-#	elif  defined (__Win64__)
+#	elif  defined (SSC_OS_WIN64)
 		system( "cls" );
 #	endif
 	}
 
-	TEMPLATE_ARGS
-	void CLASS::end ()
+	TEMPLATE_ARGS void
+	CLASS::end ()
 	{
-#	if    defined (__UnixLike__)
+#	if    defined (SSC_OS_UNIXLIKE)
 		endwin();
-#	elif  defined (__Win64__)
+#	elif  defined (SSC_OS_WIN64)
 		system( "cls" );
 #	endif
 	}
 
-	TEMPLATE_ARGS
-	int CLASS::get_sensitive_string (_RESTRICT (Char_t *)     buffer,
-			                 _RESTRICT (char const *) prompt)
+	TEMPLATE_ARGS int
+	CLASS::get_sensitive_string (SSC_RESTRICT (Char_t *)     buffer,
+			             SSC_RESTRICT (char const *) prompt)
 	{
 		using namespace std;
 		static_assert (Max_Buffer_Size >= 2);
-		_CTIME_CONST (int) Max_Password_Size = Max_Buffer_Size - 1;
-#	if    defined (__UnixLike__)
+		static constexpr int Max_Password_Size = Max_Buffer_Size - 1;
+#	if    defined (SSC_OS_UNIXLIKE)
 		cbreak(); // Disable line buffering.
 		noecho(); // Disables echoing input.
 		keypad( stdscr, TRUE ); // Enable keypad of the user's terminal.
@@ -144,7 +149,7 @@ namespace ssc
 		int const password_size = strlen( reinterpret_cast<char*>(buffer) ); // Get the size of the null-terminated C-string in the buffer.
 		delwin( w ); // Delete the window `w`.
 		return password_size; // Return the number of non-null characters of the C-string in the buffer.
-#	elif  defined (__Win64__)
+#	elif  defined (SSC_OS_WIN64)
 		int index = 0;
 		bool repeat_ui, repeat_input;
 		repeat_ui = true;
@@ -192,7 +197,7 @@ namespace ssc
 	void CLASS::notify (char const *notice)
 	{
 		using namespace std;
-#	if    defined (__UnixLike__)
+#	if    defined (SSC_OS_UNIXLIKE)
 		Window_t *w = newwin( 1, strlen( notice ) + 1, 0, 0 );
 		wclear( w );
 		wmove( w, 0, 0 );
@@ -200,7 +205,7 @@ namespace ssc
 		wrefresh( w );
 		wgetch( w );
 		delwin( w );
-#	elif  defined (__Win64__)
+#	elif  defined (SSC_OS_WIN64)
 		system( "cls" );
 		if( _cputs( notice ) != 0 )
 			errx( "Error: Failed to _cputs()\n" );
@@ -210,11 +215,11 @@ namespace ssc
 #		error 'Unsupported OS'
 #	endif
 	}
-	TEMPLATE_ARGS
-	int CLASS::obtain_password (_RESTRICT (Char_t *)     password_buffer,
-			            _RESTRICT (char const *) entry_prompt,
-				    int const                min_pw_size,
-				    int const                max_pw_size)
+	TEMPLATE_ARGS int
+	CLASS::obtain_password (SSC_RESTRICT (Char_t *)     password_buffer,
+			        SSC_RESTRICT (char const *) entry_prompt,
+				int const                   min_pw_size,
+				int const                   max_pw_size)
 	{
 		int size;
 		while( true ) {
@@ -228,13 +233,13 @@ namespace ssc
 		}
 		return size;
 	}
-	TEMPLATE_ARGS
-	int CLASS::obtain_password (_RESTRICT (Char_t *)     password_buffer,
-			            _RESTRICT (Char_t *)     check_buffer,
-				    _RESTRICT (char const *) entry_prompt,
-				    _RESTRICT (char const *) reentry_prompt,
-				    int const                min_pw_size,
-				    int const                max_pw_size)
+	TEMPLATE_ARGS int
+	CLASS::obtain_password (SSC_RESTRICT (Char_t *)     password_buffer,
+			        SSC_RESTRICT (Char_t *)     check_buffer,
+				SSC_RESTRICT (char const *) entry_prompt,
+				SSC_RESTRICT (char const *) reentry_prompt,
+				int const                   min_pw_size,
+				int const                   max_pw_size)
 	{
 		int size;
 		while( true ) {
@@ -255,17 +260,17 @@ namespace ssc
 		}
 		return size;
 	}
-#	ifdef __UnixLike__
-	TEMPLATE_ARGS
-	typename CLASS::Coord_Pair_t CLASS::get_cursor_position (Window_t *window)
+#	ifdef SSC_OS_UNIXLIKE
+	TEMPLATE_ARGS typename CLASS::Coord_Pair_t
+	CLASS::get_cursor_position (Window_t *window)
 	{
 		Coord_Pair_t coordinates; // Declare a coordinates object.
 		getmaxyx (window,coordinates.second,coordinates.first); // Use the getmaxyx macro to get the coordinates.
 		return coordinates; // Return the coordinates.
 	}
-#	endif
-}/* ~ namespace ssc */
+#	endif // ~ #ifdef SSC_OS_UNIXLIKE
+}// ~ namespace ssc
 #	undef NEWLINE
 #	undef CLASS
 #	undef TEMPLATE_ARGS
-#endif/* ~ #if defined (__UnixLike__) || defined (__Win64__) */
+#endif// ~ #if defined (SSC_OS_UNIXLIKE) || defined (SSC_OS_WIN64)

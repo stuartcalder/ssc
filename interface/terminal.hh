@@ -13,9 +13,9 @@ See accompanying LICENSE file for licensing information.
 #include <ssc/general/macros.hh>
 #include <ssc/crypto/operations.hh>
 /* OS-Conditional Libraries */
-#if    defined (__UnixLike__)
+#if    defined (SSC_OS_UNIXLIKE)
 #	include <ncurses.h>
-#elif  defined (__Win64__)
+#elif  defined (SSC_OS_WIN64)
 #	include <ssc/general/error_conditions.hh>
 #	include <windows.h>
 #	include <conio.h>
@@ -23,44 +23,46 @@ See accompanying LICENSE file for licensing information.
 #	error 'Unsupported OS'
 #endif
 
-namespace ssc
-{
-	class _PUBLIC Terminal
+namespace ssc {
+	class SSC_PUBLIC
+	Terminal
 	{
-		public:
-			using Char_t = u8_t;
-			Terminal()
-			{
-#if    defined (__UnixLike__)
-				initscr();
-				getmaxyx( stdscr, std_height, std_width );
-				clear();
-#elif  defined (__Win64__)
-				system( "cls" );
+	public:
+		using Char_t = u8_t;
+		Terminal() {
+#if    defined (SSC_OS_UNIXLIKE)
+			initscr();
+			getmaxyx( stdscr, std_height, std_width );
+			clear();
+#elif  defined (SSC_OS_WIN64)
+			system( "cls" );
 #else
 #	error 'Unsupported OS'
 #endif
-			} /* Terminal() */
-			~Terminal()
-			{
-#if    defined (__UnixLike__)
-				endwin();
-#elif  defined (__Win64__)
-				system( "cls" );
+		} // Terminal{}
+
+		~Terminal() {
+#if    defined (SSC_OS_UNIXLIKE)
+			endwin();
+#elif  defined (SSC_OS_WIN64)
+			system( "cls" );
 #else
 #	error 'Unsupported OS'
 #endif
-			} /* ~Terminal() */
-			template <int Buffer_Size>
-			int get_sensitive_string (_RESTRICT (Char_t *)     buffer,
-					          _RESTRICT (char const *) prompt);
-			inline void notify (char const *notice);
-		private:
-#ifdef __UnixLike__
-			int std_height;
-			int std_width;
+		} // ~Terminal{}
+
+		template <int Buffer_Size> int
+		get_sensitive_string (SSC_RESTRICT (Char_t *)     buffer,
+				      SSC_RESTRICT (char const *) prompt);
+
+		inline void
+		notify (char const *notice);
+	private:
+#ifdef SSC_OS_UNIXLIKE
+		int std_height;
+		int std_width;
 #endif
-	}; /*class ssc::Terminal*/
+	};// ~ class ssc::Terminal
 
 	/* template <int>
 	 * get_sensitive_string (buffer,prompt)
@@ -68,14 +70,14 @@ namespace ssc
 	 * 	Get a string as user input from the keyboard, and do not echo the user's input to the screen.
 	 * 	The size of the string (minus the null terminator) is returned as an int.
 	 */
-	template <int Buffer_Size>
-	int Terminal::get_sensitive_string (_RESTRICT (Char_t *)     buffer,
-					    _RESTRICT (char const *) prompt)
+	template <int Buffer_Size> int
+	Terminal::get_sensitive_string (SSC_RESTRICT (Char_t *)     buffer,
+				        SSC_RESTRICT (char const *) prompt)
 	{
 		using namespace std;
 		static_assert (Buffer_Size >= 2);
-		_CTIME_CONST(int) Max_Password_Size = Buffer_Size - 1; // Password can be at most the size of the buffer minus one, to not include the null terminator.
-#if    defined (__UnixLike__)
+		static constexpr int Max_Password_Size = Buffer_Size - 1; // Password can be at most the size of the buffer minus one, to not include the null terminator.
+#if    defined (SSC_OS_UNIXLIKE)
 		cbreak(); // Disable line buffering.
 		noecho(); // Disables echoing input.
 		keypad( stdscr, TRUE ); // Enable keypad of the user's terminal.
@@ -130,7 +132,7 @@ namespace ssc
 		int const password_size = strlen( reinterpret_cast<char*>(buffer) ); // Get the size of the null-terminated C-string in the buffer.
 		delwin( w ); // Delete the window `w`.
 		return password_size; // Return the number of non-null characters of the C-string in the buffer.
-#elif  defined (__Win64__)
+#elif  defined (SSC_OS_WIN64)
 		int index = 0;
 		bool repeat_ui, repeat_input;
 		repeat_ui = true;
@@ -177,7 +179,7 @@ namespace ssc
 	void Terminal::notify (char const *notice)
 	{
 		using namespace std;
-#if    defined (__UnixLike__)
+#if    defined (SSC_OS_UNIXLIKE)
 		WINDOW *w = newwin( 1, strlen( notice ) + 1, 0, 0 );
 		wclear( w );
 		wmove( w, 0, 0 );
@@ -185,7 +187,7 @@ namespace ssc
 		wrefresh( w );
 		wgetch( w );
 		delwin( w );
-#elif  defined (__Win64__)
+#elif  defined (SSC_OS_WIN64)
 		system( "cls" );
 		if (_cputs( notice ) != 0)
 			errx( "Error: Failed to _cputs()\n" );
@@ -196,44 +198,43 @@ namespace ssc
 #endif
 	} /* notify(notice) */
 
-#if    defined (__UnixLike__)
+#if    defined (SSC_OS_UNIXLIKE)
 #	define NEW_LINE "\n"
-#elif  defined (__Win64__)
+#elif  defined (SSC_OS_WIN64)
 #	define NEW_LINE "\n\r"
 #else
 #	error 'Unsupported OS'
 #endif
-	template <int Buffer_Size>
-	int obtain_password (_RESTRICT (u8_t *)       password_buffer,
-			     _RESTRICT (char const *) entry_prompt,
-			     int const                min_pw_size = 1,
-			     int const                max_pw_size = Buffer_Size - 1)
+	template <int Buffer_Size> int
+	obtain_password (SSC_RESTRICT (u8_t *)       password_buffer,
+			 SSC_RESTRICT (char const *) entry_prompt,
+			 int const                   min_pw_size = 1,
+			 int const                   max_pw_size = Buffer_Size - 1)
 	{
 		int size;
-		while (true) {
+		for( ;; ) {
 			Terminal term;
 			size = term.get_sensitive_string<Buffer_Size>( password_buffer, entry_prompt );
-			if (size < min_pw_size) {
+			if( size < min_pw_size )
 				term.notify( "Password is not long enough." NEW_LINE );
-			} else if (size > max_pw_size) {
+			else if( size > max_pw_size )
 				term.notify( "Password is too long." NEW_LINE );
-			} else {
+			else
 				break;
-			}
 		}
 		return size;
-	}
-	template <int Buffer_Size>
-	int obtain_password (_RESTRICT (u8_t *)       password_buffer,
-			     _RESTRICT (u8_t *)       check_buffer,
-			     _RESTRICT (char const *) entry_prompt,
-			     _RESTRICT (char const *) reentry_prompt,
-			     int const                min_pw_size = 1,
-			     int const                max_pw_size = Buffer_Size - 1)
+	}// ~ int obtain_password (...)
+	template <int Buffer_Size> int
+	obtain_password (SSC_RESTRICT (u8_t *)       password_buffer,
+			 SSC_RESTRICT (u8_t *)       check_buffer,
+			 SSC_RESTRICT (char const *) entry_prompt,
+			 SSC_RESTRICT (char const *) reentry_prompt,
+			 int const                   min_pw_size = 1,
+			 int const                   max_pw_size = Buffer_Size - 1)
 	{
 		using namespace std;
 		int size;
-		while (true) {
+		for( ;; ) {
 			Terminal term;
 			size = term.get_sensitive_string<Buffer_Size>( password_buffer, entry_prompt );
 			if (size < min_pw_size) {
@@ -250,5 +251,5 @@ namespace ssc
 		}
 		return size;
 	}
-} /*namespace ssc*/
+}// ~ namespace ssc
 #undef NEW_LINE

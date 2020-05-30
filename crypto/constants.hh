@@ -4,8 +4,7 @@
  */
 #pragma once
 
-namespace ssc
-{
+namespace ssc {
 	enum class Key_Schedule_E
 	{
 		Stored,

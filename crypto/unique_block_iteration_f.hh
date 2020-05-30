@@ -25,24 +25,31 @@
 #define CLASS		Unique_Block_Iteration_F<Bits,Key_Sch>
 
 #define REKEY_CIPHER_XOR(dat_ptr) \
-	Threefish_f::rekey( &(dat_ptr->threefish_data), dat_ptr->key_state, dat_ptr->tweak_state ); \
-	Threefish_f::cipher( &(dat_ptr->threefish_data), reinterpret_cast<u8_t*>(dat_ptr->key_state), dat_ptr->msg_state ); \
-	xor_block<State_Bits>( dat_ptr->key_state, dat_ptr->msg_state )
+	/*Rekey our Threefish cipher.*/ \
+	Threefish_f::rekey( &dat_ptr->threefish_data,	/*Threefish Data struct.*/ \
+			    dat_ptr->key_state,		/*Process our key state.*/ \
+			    dat_ptr->tweak_state );	/*Process our tweak state.*/ \
+	/*Encipher our message block as plaintext into our key state as ciphertext.*/ \
+	Threefish_f::cipher( &dat_ptr->threefish_data, 				/*Threefish Data struct.*/ \
+			     reinterpret_cast<u8_t*>(dat_ptr->key_state), 	/*Output ciphertext into key state.*/ \
+			     dat_ptr->msg_state ); 				/*Input message block as plaintext.*/ \
+	xor_block<State_Bits>( dat_ptr->key_state, dat_ptr->msg_state )		/*XOR msg and key states, stored in the key state.*/
 
 #define MODIFY_TWEAK_FLAGS(dat_ptr,operation,value) \
+	/*Modify the tweak flags. (i.e. first block flag, last block flag)*/ \
 	reinterpret_cast<u8_t*>(dat_ptr->tweak_state)[ Tweak_Bytes - 1 ] operation value
 
 #define MODIFY_TWEAK_POSITION(dat_ptr,operation,value) \
 	dat_ptr->tweak_state[ 0 ] operation static_cast<u64_t>(value)
 
 #define INIT_TWEAK(dat_ptr,init_bitwise_or) \
+	/*Initialize the tweak as before any calls to UBI.*/ \
 	std::memset( dat_ptr->tweak_state, 0, Tweak_Bytes ); \
 	MODIFY_TWEAK_FLAGS (dat_ptr,|=,(Tweak_First_Bit|init_bitwise_or))
 
-namespace ssc
-{
-	DEFAULT_ARGS
-	class Unique_Block_Iteration_F
+namespace ssc {
+	DEFAULT_ARGS class
+	Unique_Block_Iteration_F
 	{
 	public:
 	/* Compile-Time checks, Constants, and Aliases */
@@ -58,7 +65,7 @@ namespace ssc
 			Tweak_Bits  = Threefish_f::Tweak_Bits,
 			Tweak_Bytes = Tweak_Bits / CHAR_BIT
 		};
-		_CTIME_CONST (Key_Schedule_E) Threefish_KS = Key_Sch;
+		static constexpr Key_Schedule_E Threefish_KS = Key_Sch;
 
 		Unique_Block_Iteration_F (void) = delete;
 
@@ -72,9 +79,9 @@ namespace ssc
 			Msg = 48,
 			Out = 63
 		};
-		_CTIME_CONST (u8_t) Tweak_First_Bit = 0b0100'0000;
-		_CTIME_CONST (u8_t) Tweak_Last_Bit  = 0b1000'0000;
-		_CTIME_CONST (u8_t) Tweak_First_Mask = ~Tweak_First_Bit;
+		static constexpr u8_t Tweak_First_Bit = 0b0100'0000;
+		static constexpr u8_t Tweak_Last_Bit  = 0b1000'0000;
+		static constexpr u8_t Tweak_First_Mask = ~Tweak_First_Bit;
 
 		static_assert (static_cast<int>(State_Bytes) == static_cast<int>(Threefish_f::Block_Bytes));
 		struct Data {
@@ -84,28 +91,32 @@ namespace ssc
 			u64_t                        tweak_state [Threefish_f::External_Tweak_Words];
 		};
 
-		static void chain_config        (Data *data, u64_t const num_out_bits);
+		static void
+		chain_config (Data *data, u64_t const num_out_bits);
 
-		static void chain_native_output (_RESTRICT (Data *) data,
-				                 _RESTRICT (u8_t *) output);
+		static void
+		chain_native_output (SSC_RESTRICT (Data*) data,
+				     SSC_RESTRICT (u8_t*) output);
 
-		static void chain_message       (_RESTRICT (Data *)       data,
-				                 _RESTRICT (u8_t const *) input,
-						 u64_t                    num_in_bytes);
+		static void
+		chain_message (SSC_RESTRICT (Data *)       data,
+			       SSC_RESTRICT (u8_t const *) input,
+			       u64_t                   num_in_bytes);
 
-		static void chain_output        (_RESTRICT (Data *) data,
-				                 _RESTRICT (u8_t *) output,
-						 u64_t              num_out_bytes);
+		static void
+		chain_output (SSC_RESTRICT (Data *) data,
+			      SSC_RESTRICT (u8_t *) output,
+			      u64_t             num_out_bytes);
 
-		template <Type_Mask_E Type,int Input_Bytes>
-		static void chain_type (_RESTRICT (Data *)       data,
-				        _RESTRICT (u8_t const *) input);
+		template <Type_Mask_E Type,int Input_Bytes> static void
+		chain_type (SSC_RESTRICT (Data*)       data,
+			    SSC_RESTRICT (u8_t const*) input);
 	/* Constructors / Destructors
 	 */
 	};// ~ class Unique_Block_Iteration_F
 
-	TEMPLATE_ARGS
-	void CLASS::chain_config (Data *data, u64_t const num_out_bits)
+	TEMPLATE_ARGS void
+	CLASS::chain_config (Data *data, u64_t const num_out_bits)
 	{
 		INIT_TWEAK            (data,(Tweak_Last_Bit | static_cast<u8_t>(Type_Mask_E::Cfg)));
 		MODIFY_TWEAK_POSITION (data,=,32);
@@ -130,88 +141,104 @@ namespace ssc
 		0x00, 0x00, 0x00, 0x00
 	   };
 	*/
-		_CTIME_CONST (u8_t) first_5_config_bytes [5] = {
+		static constexpr u8_t First_5_Config_Bytes [5] = {
 			0x53, 0x48, 0x41, 0x33, // Schema identifier "SHA3"
 			0x01 // Version number (1)
 		};
-	// Only copy in the first 5 bytes of the config string since the rest are zeroes.
-		std::memcpy( data->msg_state, first_5_config_bytes, sizeof(first_5_config_bytes) );
-	// Manually zero over the rest of the config string.
-		std::memset( (data->msg_state + 5), 0, (sizeof(data->msg_state) - 5) );
-	// Set the "output length" portion of the config string.
-		std::memcpy( data->msg_state + 8, &num_out_bits, sizeof(num_out_bits) );
+		// Only copy in the first 5 bytes of the config string since the rest are zeroes.
+		std::memcpy( data->msg_state,
+			     First_5_Config_Bytes,
+			     sizeof(First_5_Config_Bytes) );
+		// Manually zero over the rest of the config string.
+		std::memset( data->msg_state + sizeof(First_5_Config_Bytes),
+			     0,
+			     sizeof(data->msg_state) - sizeof(First_5_Config_Bytes) );
+		// Set the "output length" portion of the config string.
+		std::memcpy( data->msg_state + 8,
+			     &num_out_bits,
+			     sizeof(num_out_bits) );
+		// Rekey the cipher, encrypt the message into the key buffer, xor the two buffers together and store the result in the key buffer.
 		REKEY_CIPHER_XOR (data);
 	}
 
-	TEMPLATE_ARGS
-	void CLASS::chain_native_output (_RESTRICT (Data *) data,
-			                 _RESTRICT (u8_t *) output)
+	TEMPLATE_ARGS void
+	CLASS::chain_native_output (SSC_RESTRICT (Data*) data,
+			            SSC_RESTRICT (u8_t*) output)
 	{
-	// Set the tweak first bit, last bit, and the type to Out.
+		// Set the tweak first bit, last bit, and the type to Out.
 		INIT_TWEAK            (data,(Tweak_Last_Bit | static_cast<u8_t>(Type_Mask_E::Out)));
-	// Set the tweak position to State_Bytes.
+		// Set the tweak position to State_Bytes.
 		MODIFY_TWEAK_POSITION (data,=,sizeof(u64_t));
-	// Zero over the message state.
+		// Zero over the message state.
 		std::memset( data->msg_state, 0, sizeof(data->msg_state) );
+		// Rekey the cipher, encrypt the message into the key buffer, xor the two buffers together and store the result in the key buffer.
 		REKEY_CIPHER_XOR (data);
-	// Copy the key state into the output buffer.
+		// Copy the key state into the output buffer.
 		std::memcpy( output, data->key_state, State_Bytes );
 	}
 
-	TEMPLATE_ARGS
-	void CLASS::chain_message (_RESTRICT (Data *)       data,
-			           _RESTRICT (u8_t const *) input,
-				   u64_t                    num_in_bytes)
+	TEMPLATE_ARGS void
+	CLASS::chain_message (SSC_RESTRICT (Data*)       data,
+			      SSC_RESTRICT (u8_t const*) input,
+			      u64_t                      num_in_bytes)
 	{
-	// Set the tweak first bit and the type to Msg.
+		// Set the tweak first bit and the type to Msg.
 		INIT_TWEAK (data,static_cast<u8_t>(Type_Mask_E::Msg));
-		if( num_in_bytes <= State_Bytes ) { // If there is one or less blocks worth of input...
-		// Set the tweak last bit.
+		// If there are one or less blocks worth of input...
+		if( num_in_bytes <= State_Bytes ) {
+			// Set the tweak last bit.
 			MODIFY_TWEAK_FLAGS    (data,|=,Tweak_Last_Bit);
-		// Set the tweak position to the number of input bytes.
+			// Set the tweak position to the number of input bytes.
 			MODIFY_TWEAK_POSITION (data,=,num_in_bytes);
-		// Copy the whole input into the message state.
+			// Copy the whole input into the message state.
 			std::memcpy( data->msg_state, input, num_in_bytes );
-		// If the input was not an entire block, zero over the rest of the message state.
+			// If the input was not an entire block, zero over the rest of the message state.
 			std::memset( (data->msg_state + num_in_bytes), 0, (sizeof(data->msg_state) - num_in_bytes) );
+			// Rekey the cipher, encrypt the message into the key buffer, xor the two buffers together and store the result in the key buffer.
 			REKEY_CIPHER_XOR (data);
+			// Early return.
 			return;
-		} else { // If there is more than one block worth of input to begin with...
-		// Set the tweak position to the number of state bytes.
+		// ...else there is more than one block worth of input to begin with...
+		} else { 
+			// Set the tweak position to the number of state bytes.
 			MODIFY_TWEAK_POSITION (data,=,State_Bytes);
-		// Copy a block worth of input into the message state.
+			// Copy a block worth of input into the message state.
 			std::memcpy( data->msg_state, input, State_Bytes );
+			// Rekey the cipher, encrypt the message into the key buffer, xor the two buffers together and store the result in the key buffer.
 			REKEY_CIPHER_XOR   (data);
-		// Clear the tweak first bit.
+			// Clear the tweak first bit.
 			MODIFY_TWEAK_FLAGS (data,&=,Tweak_First_Mask);
-		// Decrement bytes left, increment input pointer.
+			// Decrement bytes left, increment input pointer.
 			num_in_bytes -= State_Bytes;
 			input        += State_Bytes;
 		}
-		while( num_in_bytes > State_Bytes ) { // While there is more than one block of input left to process...
-		// Increment the tweak position by State_Bytes.
+		// While there is more than one block of input left to process..
+		while( num_in_bytes > State_Bytes ) {
+			// Increment the tweak position by State_Bytes.
 			MODIFY_TWEAK_POSITION (data,+=,State_Bytes);
-		// Copy a block worth of input into the message state.
+			// Copy a block worth of input into the message state.
 			std::memcpy( data->msg_state, input, State_Bytes );
+			// Rekey the cipher, encrypt the message into the key buffer, xor the two buffers together and store the result in the key buffer.
 			REKEY_CIPHER_XOR (data);
-		// Decrement bytes left, increment input pointer.
+			// Decrement bytes left, increment input pointer.
 			num_in_bytes -= State_Bytes;
 			input        += State_Bytes;
 		}
-	// Set the tweak last bit.
+		// Set the tweak last bit.
 		MODIFY_TWEAK_FLAGS    (data,|=,Tweak_Last_Bit);
-	// Increment the tweak position by the number of bytes left, for the last block.
+		// Increment the tweak position by the number of bytes left, for the last block.
 		MODIFY_TWEAK_POSITION (data,+=,num_in_bytes);
-	// Copy the remaining input bytes into the message state.
+		// Copy the remaining input bytes into the message state.
 		std::memcpy( data->msg_state, input, num_in_bytes );
-	// If less than 1 block of input was left, zero over the remaining bytes of the message state.
+		// If less than 1 block of input was left, zero over the remaining bytes of the message state.
 		std::memset( (data->msg_state + num_in_bytes), 0, (sizeof(data->msg_state) - num_in_bytes) );
+		// Rekey the cipher, encrypt the message into the key buffer, xor the two buffers together and store the result in the key buffer.
 		REKEY_CIPHER_XOR (data);
 	}// ~ void chain_message(...)
-	TEMPLATE_ARGS
-	void CLASS::chain_output (_RESTRICT (Data *) data,
-			          _RESTRICT (u8_t *) output,
-				  u64_t              num_out_bytes)
+	TEMPLATE_ARGS void
+	CLASS::chain_output (SSC_RESTRICT (Data*) data,
+			     SSC_RESTRICT (u8_t*) output,
+			     u64_t                num_out_bytes)
 	{
 		INIT_TWEAK (data,static_cast<u8_t>(Type_Mask_E::Out));
 		std::memset( data->msg_state, 0, sizeof(data->msg_state) );
@@ -253,9 +280,9 @@ namespace ssc
 			std::memcpy( output, data->key_state, num_out_bytes );
 		}
 	}
-	TEMPLATE_ARGS template <typename CLASS::Type_Mask_E Type,int Input_Bytes>
-	void CLASS::chain_type (_RESTRICT (Data *)       data,
-			        _RESTRICT (u8_t const *) input)
+	TEMPLATE_ARGS template <typename CLASS::Type_Mask_E Type,int Input_Bytes> void
+	CLASS::chain_type (SSC_RESTRICT (Data*)       data,
+			   SSC_RESTRICT (u8_t const*) input)
 	{
 		static_assert (Type == Type_Mask_E::Key ||
 			       Type == Type_Mask_E::Prs ||

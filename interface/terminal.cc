@@ -13,9 +13,9 @@ See accompanying LICENSE file for licensing information.
 #include <ssc/interface/terminal.hh>
 #include <ssc/memory/os_memory_locking.hh>
 
-#if    defined (__UnixLike__)
+#if    defined (SSC_OS_UNIXLIKE)
 #	include <ncurses.h>
-#elif  defined (__Win64__)
+#elif  defined (SSC_OS_WIN64)
 #	include <windows.h>
 #	include <conio.h>
 #else
@@ -28,7 +28,7 @@ See accompanying LICENSE file for licensing information.
 #	error 'UNLOCK_MEMORY Already Defined'
 #endif
 
-#ifdef __SSC_MemoryLocking__
+#ifdef SSC_FEATURE_MEMORYLOCKING
 #	define   LOCK_MEMORY(address,size)   lock_os_memory( address, size )
 #	define UNLOCK_MEMORY(address,size) unlock_os_memory( address, size )
 #else
@@ -38,20 +38,20 @@ See accompanying LICENSE file for licensing information.
 
 namespace ssc {
 	Terminal::Terminal (void) {
-#if    defined (__UnixLike__)
+#if    defined (SSC_OS_UNIXLIKE)
 		initscr();
 		getmaxyx( stdscr, std_height, std_width );
 		clear();
-#elif  defined (__Win64__)
+#elif  defined (SSC_OS_WIN64)
 		system( "cls" );
 #else
 #	error 'Unsupported OS'
 #endif
 	}/*ssc::Terminal::Terminal{}*/
 	Terminal::~Terminal (void) {
-#if    defined (__UnixLike__)
+#if    defined (SSC_OS_UNIXLIKE)
 		endwin();
-#elif  defined (__Win64__)
+#elif  defined (SSC_OS_WIN64)
 		system( "cls" );
 #else
 #	error 'Unsupported OS'

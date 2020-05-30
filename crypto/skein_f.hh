@@ -16,8 +16,8 @@
 
 namespace ssc
 {
-	DEFAULT_ARGS
-	class Skein_F
+	DEFAULT_ARGS class
+	Skein_F
 	{
 	public:
 		using UBI_f = Unique_Block_Iteration_F<Bits,Tf_Key_Sch>;
@@ -31,47 +31,58 @@ namespace ssc
 
 		Skein_F (void) = delete;
 
-		static void hash (_RESTRICT (Data_t *) ubi_data,
-				  u8_t                 *bytes_out,
-				  u8_t  const          *bytes_in,
-				  u64_t const          num_bytes_in,
-				  u64_t const          num_bytes_out);
+		/* Generic hashing. Hash the input bytes and output $num_bytes_out bytes into $bytes_out.
+		 */
+		static void
+		hash (SSC_RESTRICT (Data_t*) ubi_data,
+		      u8_t                   *bytes_out,
+		      u8_t  const            *bytes_in,
+		      u64_t const            num_bytes_in,
+		      u64_t const            num_bytes_out);
 		
-		static void hash_native (_RESTRICT (Data_t *) ubi_data,
-				         u8_t                 *bytes_out,
-					 u8_t const           *bytes_in,
-					 u64_t const          num_bytes_in);
+		/* Native hashing. Hash the input bytes and output $State_Bytes bytes into $bytes_out.
+		 */
+		static void 
+		hash_native (SSC_RESTRICT (Data_t*) ubi_data,
+			     u8_t                   *bytes_out,
+		             u8_t const             *bytes_in,
+		             u64_t const            num_bytes_in);
 
-		static void mac (_RESTRICT (Data_t *)     ubi_data,
-				 u8_t                     *bytes_out,
-				 u8_t const               *bytes_in,
-				 _RESTRICT (u8_t const *) key_in,
-				 u64_t const              num_bytes_out,
-				 u64_t const              num_bytes_in);
+		/* Message Auth Code hashing. Hash the input bytes and the key and output $State_Bytes bytes into $bytes_out.
+		 */
+		static void
+		mac (SSC_RESTRICT (Data_t*)     ubi_data,
+		     u8_t                       *bytes_out,
+		     u8_t const                 *bytes_in,
+		     SSC_RESTRICT (u8_t const*) key_in,
+		     u64_t const                num_bytes_out,
+		     u64_t const                num_bytes_in);
 				         
 	};
 
-	TEMPLATE_ARGS
-	void CLASS::hash (_RESTRICT (Data_t *) ubi_data,
-	 	          u8_t                 *bytes_out,
-		          u8_t  const          *bytes_in,
-		          u64_t const          num_bytes_in,
-		          u64_t const          num_bytes_out)
+	TEMPLATE_ARGS void
+	CLASS::hash (SSC_RESTRICT (Data_t*) ubi_data,
+	 	     u8_t                   *bytes_out,
+		     u8_t  const            *bytes_in,
+		     u64_t const            num_bytes_in,
+		     u64_t const            num_bytes_out)
 	{
-		std::memset( ubi_data->key_state, 0, State_Bytes );
-		UBI_f::chain_config( ubi_data, (num_bytes_out * CHAR_BIT) );
-		UBI_f::chain_message( ubi_data, bytes_in, num_bytes_in );
-		UBI_f::chain_output( ubi_data, bytes_out, num_bytes_out );
+		std::memset( ubi_data->key_state, 0, State_Bytes );		// Zero over $State_Bytes bytes of UBI's key state.
+		UBI_f::chain_config( ubi_data, (num_bytes_out * CHAR_BIT) );	// Process the configuration string with the requested output size.
+		UBI_f::chain_message( ubi_data, bytes_in, num_bytes_in );	// Process the message into UBI's state.
+		UBI_f::chain_output( ubi_data, bytes_out, num_bytes_out );	// Chain the output out of the function.
 	}
-	TEMPLATE_ARGS
-	void CLASS::hash_native (_RESTRICT (Data_t *) ubi_data,
-                                 u8_t                 *bytes_out,
-                                 u8_t const           *bytes_in,
-                                 u64_t const          num_bytes_in)
+
+	TEMPLATE_ARGS void
+	CLASS::hash_native (SSC_RESTRICT (Data_t*) ubi_data,
+                            u8_t                   *bytes_out,
+                            u8_t const             *bytes_in,
+                            u64_t const        num_bytes_in)
 	{
 		static_assert (State_Bits == 256 || State_Bits == 512 || State_Bits == 1024);
+		// Copy initial pre-computed chaining value into UBI's key state.
 		if constexpr (State_Bits == 256) {
-			_CTIME_CONST (u64_t) init [4] = {
+			static constexpr u64_t init [4] = {
 				0xfc'9d'a8'60'd0'48'b4'49,
                                 0x2f'ca'66'47'9f'a7'd8'33,
                                 0xb3'3b'c3'89'66'56'84'0f,
@@ -79,7 +90,7 @@ namespace ssc
 			};
 			std::memcpy( ubi_data->key_state, init, sizeof(init) );
 		} else if constexpr (State_Bits == 512) {
-			_CTIME_CONST (u64_t) init [8] = {
+			static constexpr u64_t init [8] = {
 				0x49'03'ad'ff'74'9c'51'ce,
                                 0x0d'95'de'39'97'46'df'03,
                                 0x8f'd1'93'41'27'c7'9b'ce,
@@ -91,7 +102,7 @@ namespace ssc
 			};
 			std::memcpy( ubi_data->key_state, init, sizeof(init) );
 		} else if constexpr (State_Bits == 1024) {
-			_CTIME_CONST (u64_t) init [16] = {
+			static constexpr u64_t init [16] = {
 				0xd5'93'da'07'41'e7'23'55, // 0
                                 0x15'b5'e5'11'ac'73'e0'0c, // 1
                                 0x51'80'e5'ae'ba'f2'c4'f0, // 2
@@ -111,24 +122,32 @@ namespace ssc
 			};
 			std::memcpy( ubi_data->key_state, init, sizeof(init) );
 		}
+		// Process the message into UBI's state.
 		UBI_f::chain_message( ubi_data, bytes_in, num_bytes_in );
+		// Process the output, outputting outside the function.
 		UBI_f::chain_native_output( ubi_data, bytes_out );
 	}
 
-	TEMPLATE_ARGS
-	void CLASS::mac (_RESTRICT (Data_t *)     ubi_data,
-			 u8_t                     *bytes_out,
-			 u8_t const               *bytes_in,
-			 _RESTRICT (u8_t const *) key_in,
-			 u64_t const              num_bytes_out,
-			 u64_t const              num_bytes_in)
+	TEMPLATE_ARGS void
+	CLASS::mac (SSC_RESTRICT (Data_t*)     ubi_data,
+		    u8_t                       *bytes_out,
+		    u8_t const                 *bytes_in,
+		    SSC_RESTRICT (u8_t const*) key_in,
+		    u64_t const                num_bytes_out,
+		    u64_t const                num_bytes_in)
 	{
+		// We chain a key type value.
 		using T_Mask_e = typename UBI_f::Type_Mask_E;
 
+		// Zero over UBI's key state.
 		std::memset( ubi_data->key_state, 0, State_Bytes );
+		// Chain the key into UBI's key state.
 		UBI_f::template chain_type<T_Mask_e::Key,State_Bytes>( ubi_data, key_in );
+		// Process the configuration string, given the number of output bytes requested.
 		UBI_f::chain_config( ubi_data, (num_bytes_out * CHAR_BIT) );
+		// Process the message into UBI's key state.
 		UBI_f::chain_message( ubi_data, bytes_in, num_bytes_in );
+		// Chain the output outside the function.
 		UBI_f::chain_output( ubi_data, bytes_out, num_bytes_out );
 	}
 }// ~ namespace ssc

@@ -11,10 +11,10 @@
 /* SSC File I/O Headers */
 #include <ssc/files/files.hh>
 
-#if    defined (__UnixLike__)
+#if    defined (SSC_OS_UNIXLIKE)
 /* Unix-like Headers */
 #	include <sys/mman.h>
-#elif  defined (__Win64__)
+#elif  defined (SSC_OS_WIN64)
 /* Windows Headers */
 #	include <windows.h>
 #	include <memoryapi.h>
@@ -22,28 +22,30 @@
 #	error 'Unsupported OS'
 #endif
 
-namespace ssc
-{
-	struct _PUBLIC OS_Map
+namespace ssc {
+
+	struct SSC_PUBLIC
+	OS_Map
 	{
 		u8_t	  *ptr;
 		u64_t     size;
 		OS_File_t os_file;
-#ifdef __Win64__
+#ifdef SSC_OS_WIN64 
 		OS_File_t win64_filemapping;
 #endif
-	};/* ~ struct OS_Map */
+	};// ~ struct OS_Map
 
-	inline void map_file (OS_Map &os_map, bool const readonly)
+	inline void
+	map_file (OS_Map &os_map, bool const readonly)
 	{
 		using namespace std;
-#if    defined (__UnixLike__)
+#if    defined (SSC_OS_UNIXLIKE)
 		using Map_Read_Write_t = decltype(PROT_READ);
 		Map_Read_Write_t const readwrite_flag = (readonly ? PROT_READ : (PROT_READ|PROT_WRITE));
 		os_map.ptr = static_cast<u8_t *>(mmap( nullptr, os_map.size, readwrite_flag, MAP_SHARED, os_map.os_file, 0 ));
 		if( os_map.ptr == MAP_FAILED )
 			errx( "Error: Failed to mmap() the file descriptor %d\n", os_map.os_file );
-#elif  defined (__Win64__)
+#elif  defined (SSC_OS_WIN64)
 		using Page_Read_Write_t = decltype(PAGE_READONLY);
 		using Map_Read_Write_t  = decltype(FILE_MAP_READ);
 		Page_Read_Write_t page_readwrite_flag;
@@ -69,44 +71,47 @@ namespace ssc
 #else
 #	error 'Unsupported OS'
 #endif
-	}/* ~ void map_file (OS_Map&,bool const) */
+	}// ~ void map_file (OS_Map&,bool const)
 
-	inline void unmap_file (OS_Map const &os_map)
+	inline void
+	unmap_file (OS_Map const &os_map)
 	{
 		using namespace std;
-#if    defined (__UnixLike__)
+#if    defined (SSC_OS_UNIXLIKE)
 		if( munmap( os_map.ptr, os_map.size ) == -1 )
 			errx( "Error: Failed to munmap()\n" );
-#elif  defined (__Win64__)
+#elif  defined (SSC_OS_WIN64)
 		if( UnmapViewOfFile( static_cast<LPCVOID>(os_map.ptr) ) == 0 )
 			errx( "Error: Failed to UnmapViewOfFile()\n" );
 		close_os_file( os_map.win64_filemapping );
 #else
 #	error 'Unsupported OS'
 #endif
-	}/* ~ void unmap_file (OS_Map const &) */
+	}// ~ void unmap_file (OS_Map const &)
 
-	inline void sync_map (OS_Map const &os_map)
+	inline void
+	sync_map (OS_Map const &os_map)
 	{
-#if    defined (__UnixLike__)
+#if    defined (SSC_OS_UNIXLIKE)
 		if( msync( os_map.ptr, os_map.size, MS_SYNC ) == -1 )
 			errx( "Error: Failed to msync()\n" );
-#elif  defined (__Win64__)
+#elif  defined (SSC_OS_WIN64)
 		if( FlushViewOfFile( static_cast<LPCVOID>(os_map.ptr), os_map.size ) == 0 )
 			errx( "Error: Failed to FlushViewOfFile()\n" );
 #else
 #	error 'Unsupported OS'
 #endif
-	}/* ~ void sync_map (OS_Map const &) */
+	}// ~ void sync_map (OS_Map const &)
 
-	inline void nullify_map (OS_Map &os_map)
+	inline void
+	nullify_map (OS_Map &os_map)
 	{
 		os_map.ptr = nullptr;
 		os_map.size = 0;
 		os_map.os_file = Null_OS_File;
-#ifdef __Win64__
+#ifdef SSC_OS_WIN64
 		os_map.win64_filemapping = Null_OS_File;
 #endif
-	}
+	}// ~ void nullify_map (OS_Map &)
 
-}/* ~ namespace ssc */
+}// ~ namespace ssc

@@ -11,7 +11,7 @@ using namespace std;
 #	error 'Some MACRO we need was already defined'
 #endif
 
-#ifdef __SSC_MemoryLocking__
+#ifdef SSC_FEATURE_MEMORYLOCKING
 #	define LOCK_MEMORY(address,size)	lock_os_memory( address, size )
 #	define UNLOCK_MEMORY(address,size)	unlock_os_memory( address, size )
 #else
@@ -19,9 +19,10 @@ using namespace std;
 #	define UNLOCK_MEMORY(non_0,none_1)
 #endif
 
-namespace ssc::crypto_impl::cbc_v2
-{
-	static u64_t calculate_encrypted_size (u64_t const pre_encryption_size)
+namespace ssc::crypto_impl::cbc_v2 {
+
+	static u64_t
+	calculate_encrypted_size (u64_t const pre_encryption_size)
 	{
 		u64_t s = pre_encryption_size;
 		if( s < Block_Bytes )
@@ -30,7 +31,9 @@ namespace ssc::crypto_impl::cbc_v2
 			s += (Block_Bytes - (s % Block_Bytes));
 		return s + Metadata_Bytes;
 	}
-	static void cleanup_map (OS_Map &os_map)
+
+	static void
+	cleanup_map (OS_Map &os_map)
 	{
 		unmap_file( os_map );
 		close_os_file( os_map.os_file );
@@ -140,15 +143,16 @@ namespace ssc::crypto_impl::cbc_v2
 		cleanup_map( output_map );
 		cleanup_map( input_map );
 	}
-	void decrypt (OS_Map &input_map,
-		      OS_Map &output_map,
-		      char const *output_filename)
+	void
+	decrypt (OS_Map &input_map,
+		 OS_Map &output_map,
+		 char const *output_filename)
 	{
 		using namespace std;
 
 		output_map.size = input_map.size - Metadata_Bytes;
 
-		_CTIME_CONST (int) Minimum_Possible_File_Size = Metadata_Bytes + Block_Bytes; 
+		static constexpr int Minimum_Possible_File_Size = Metadata_Bytes + Block_Bytes; 
 		if( input_map.size < Minimum_Possible_File_Size ) {
 			close_os_file( output_map.os_file );
 			remove( output_filename );
@@ -263,12 +267,13 @@ namespace ssc::crypto_impl::cbc_v2
 
 	}
 
-	void dump_header (OS_Map &os_map,
-			  char const *filename)
+	void
+	dump_header (OS_Map &os_map,
+		     char const *filename)
 	{
 		using std::memcpy, std::fprintf, std::fputs, std::putchar, std::exit;
 
-		_CTIME_CONST (int) Minimum_Size = Metadata_Bytes + Block_Bytes;
+		static constexpr int Minimum_Size = Metadata_Bytes + Block_Bytes;
 		if (os_map.size < Minimum_Size) {
 			unmap_file( os_map );
 			close_os_file( os_map.os_file );

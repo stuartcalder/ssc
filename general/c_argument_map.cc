@@ -42,16 +42,18 @@ C_Argument_Map::~C_Argument_Map ()
 	std::free( sizes );
 }
 
-bool C_Argument_Map::argument_cmp (int const                index,
-		                   _RESTRICT (char const *) c_str,
-		                   size_t const             c_str_size)
+bool
+C_Argument_Map::argument_cmp (int const                   index,
+		              SSC_RESTRICT (char const *) c_str,
+		              size_t const                c_str_size)
 {
 	if( sizes[ index ] != c_str_size )
 		return false;
 	return std::strcmp( c_strings[ index ], c_str ) == 0;
 }
 
-bool C_Argument_Map::next_string_is_valid (int const index)
+bool
+C_Argument_Map::next_string_is_valid (int const index)
 {
 	return ((index + 1) < count) && c_strings[ index + 1 ];
 }

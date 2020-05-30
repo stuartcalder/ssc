@@ -13,10 +13,9 @@
 #define TEMPLATE_ARGS	template <int Bits>
 #define CLASS		Cipher_Block_Chaining_F<Bits>
 
-namespace ssc
-{
-	TEMPLATE_ARGS
-	class Cipher_Block_Chaining_F
+namespace ssc {
+	TEMPLATE_ARGS class
+	Cipher_Block_Chaining_F
 	{
 	public:
 		static_assert (CHAR_BIT == 8);
@@ -37,30 +36,36 @@ namespace ssc
 			alignas(u64_t)          u8_t temp  [Block_Bytes];
 		};
 
-		static inline size_t padded_ciphertext_size (size_t const unpadded_plaintext_size);
-		static size_t        count_iso_iec_7816_padding_bytes (_RESTRICT (u8_t const *) bytes, size_t padded_size);
+		static inline size_t
+		padded_ciphertext_size (size_t const unpadded_plaintext_size);
 
-		static size_t encrypt (_RESTRICT (Data *)       data,
-				       _RESTRICT (u8_t *)       out_bytes,
-				       _RESTRICT (u8_t const *) in_bytes,
-				       _RESTRICT (u8_t const *) init_vec,
-				       size_t                   num_bytes_in);
+		static size_t
+		count_iso_iec_7816_padding_bytes (SSC_RESTRICT (u8_t const *) bytes, size_t padded_size);
 
-		static size_t decrypt (_RESTRICT (Data *)       data,
-				       _RESTRICT (u8_t *)       out_bytes,
-				       _RESTRICT (u8_t const *) in_bytes,
-				       _RESTRICT (u8_t const *) init_vec,
-				       size_t const             num_bytes_in);
+		static size_t
+		encrypt (SSC_RESTRICT (Data *)       data,
+		         SSC_RESTRICT (u8_t *)       out_bytes,
+		         SSC_RESTRICT (u8_t const *) in_bytes,
+		         SSC_RESTRICT (u8_t const *) init_vec,
+		         size_t                      num_bytes_in);
+
+		static size_t
+		decrypt (SSC_RESTRICT (Data *)       data,
+		         SSC_RESTRICT (u8_t *)       out_bytes,
+		         SSC_RESTRICT (u8_t const *) in_bytes,
+		         SSC_RESTRICT (u8_t const *) init_vec,
+		         size_t const                num_bytes_in);
 	};
 
-	TEMPLATE_ARGS
-	size_t CLASS::padded_ciphertext_size (size_t const unpadded_plaintext_size)
+	TEMPLATE_ARGS size_t
+	CLASS::padded_ciphertext_size (size_t const unpadded_plaintext_size)
 	{
 		return unpadded_plaintext_size + (Block_Bytes - (unpadded_plaintext_size % Block_Bytes));
 	} 
 
-	TEMPLATE_ARGS
-	size_t CLASS::count_iso_iec_7816_padding_bytes (_RESTRICT (u8_t const *) bytes, size_t padded_size)
+	TEMPLATE_ARGS size_t
+	CLASS::count_iso_iec_7816_padding_bytes (SSC_RESTRICT (u8_t const *) bytes,
+			                         size_t                      padded_size)
 	{
 		using namespace std;
 		size_t i = padded_size - 1, count = 0;
@@ -73,12 +78,12 @@ namespace ssc
 		return 1;
 	}// ~ size_t count_iso_iec_7816_padding_bytes (...)
 
-	TEMPLATE_ARGS
-	size_t CLASS::encrypt (_RESTRICT (Data *)       data,
-		               _RESTRICT (u8_t *)       out_bytes,
-			       _RESTRICT (u8_t const *) in_bytes,
-			       _RESTRICT (u8_t const *) init_vec,
-			       size_t const             num_bytes_in)
+	TEMPLATE_ARGS size_t
+	CLASS::encrypt (SSC_RESTRICT (Data *)       data,
+		        SSC_RESTRICT (u8_t *)       out_bytes,
+			SSC_RESTRICT (u8_t const *) in_bytes,
+			SSC_RESTRICT (u8_t const *) init_vec,
+			size_t const                num_bytes_in)
 	{
 		using std::memcpy;
 		memcpy( data->state, init_vec, Block_Bytes );
@@ -102,12 +107,12 @@ namespace ssc
 		return padded_ciphertext_size( num_bytes_in );
 	}
 
-	TEMPLATE_ARGS
-	size_t CLASS::decrypt (_RESTRICT (Data *)       data,
-		               _RESTRICT (u8_t *)       out_bytes,
-			       _RESTRICT (u8_t const *) in_bytes,
-			       _RESTRICT (u8_t const *) init_vec,
-			       size_t const             num_bytes_in)
+	TEMPLATE_ARGS size_t
+	CLASS::decrypt (SSC_RESTRICT (Data *)       data,
+		        SSC_RESTRICT (u8_t *)       out_bytes,
+			SSC_RESTRICT (u8_t const *) in_bytes,
+			SSC_RESTRICT (u8_t const *) init_vec,
+			size_t const                num_bytes_in)
 	{
 		using std::memcpy;
 		memcpy( data->state, init_vec, Block_Bytes );

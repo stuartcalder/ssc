@@ -69,7 +69,7 @@ elif os == 'linux'
 	include_install = '/usr/include'
 # On Win64, define __BUILD_STATIC and use bcrypt.dll for access to the newer Microsoft crypto API. Use C:/include as the 'include_install' directory.
 elif os == 'windows'
-	_flag      = _Define_Flag_Prefix + '__BUILD_STATIC'
+	_flag      = _Define_Flag_Prefix + 'SSC_BUILD_STATIC'
 	cpp_flags += _flag
 	lib_deps += cc.find_library('bcrypt')
 	include_install = 'C:/include'
@@ -79,12 +79,12 @@ inc_dir += '..'
 
 # If specified, do not lock memory to try to prevent sensitive data from swapping.
 if get_option('disable_memorylocking')
-	_flag = _Define_Flag_Prefix + '__SSC_DISABLE_MEMORYLOCKING'
+	_flag = _Define_Flag_Prefix + 'SSC_EXT_DISABLE_MEMORYLOCKING'
 	cpp_flags += _flag
 endif
 # If specified, disable certain correctness checks.
 if get_option('disable_runtime_checks')
-	_flag = _Define_Flag_Prefix + '__SSC_DISABLE_RUNTIME_CHECKS'
+	_flag = _Define_Flag_Prefix + 'SSC_EXT_DISABLE_RUNTIME_CHECKS'
 	cpp_flags += _flag
 endif
 # If specified, enable the SSC_DRAGONFLY_V1 encryption method.

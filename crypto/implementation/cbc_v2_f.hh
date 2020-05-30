@@ -4,10 +4,10 @@
  */
 #pragma once
 
-#if   !defined (__SSC_CBC_V2__)
-#	define  __SSC_CBC_V2__
+#if   !defined (SSC_FEATURE_CBC_V2)
+#	define  SSC_FEATURE_CBC_V2
 #else
-#	error '__SSC_CBC_V2__ Already Defined'
+#	error 'SSC_FEATURE_CBC_V2 already defined!'
 #endif
 
 #if    defined (OS_PROMPT) || defined (NEW_LINE)
@@ -22,28 +22,30 @@
 
 #include "common.hh"
 
-namespace ssc::crypto_impl::cbc_v2
-{
+namespace ssc::crypto_impl::cbc_v2 {
 	using CBC_f = Cipher_Block_Chaining_F<Block_Bits>;
-	_CTIME_CONST (auto&) CBC_V2_ID = "3CRYPT_CBC_V2";
-	_CTIME_CONST (int) Salt_Bits = 128;
-	_CTIME_CONST (int) Salt_Bytes = Salt_Bits / CHAR_BIT;
-	_CTIME_CONST (int) Block_Bits = 512;
-	_CTIME_CONST (int) Block_Bytes = Block_Bits / CHAR_BIT;
-	_CTIME_CONST (int) Header_Bytes = sizeof(CBC_V2_ID) + sizeof(u64_t) + Tweak_Bytes
-		                        + Salt_Bytes        + Block_Bytes   + sizeof(u32_t)
-				        + sizeof(u32_t);
-	_CTIME_CONST (int) Metadata_Bytes = Header_Bytes + MAC_Bytes;
+	static constexpr auto &CBC_V2_ID = "3CRYPT_CBC_V2";
+	enum Int_Constants: int {
+		Salt_Bits = 128,
+		Salt_Bytes = Salt_Bits / CHAR_BIT,
+		Block_Bits = 512,
+		Block_Bytes = Block_Bits / CHAR_BIT,
+		Header_Bytes = sizeof(CBC_V2_ID) + sizeof(u64_t) + Tweak_Bytes + Salt_Bytes + Block_Bytes + (2 * sizeof(u32_t)),
+		Metadata_Bytes = Header_Bytes + MAC_Bytes
+	};
 
-
-	void _PUBLIC encrypt (SSPKDF_Input &sspkdf_input,
+	void SSC_PUBLIC
+	encrypt (SSPKDF_Input &sspkdf_input,
 			      OS_Map &input_map,
 			      OS_Map &output_map);
-	void _PUBLIC decrypt (OS_Map     &input_map,
-			      OS_Map     &output_map,
-			      char const *output_filename);
-	void _PUBLIC dump_header (OS_Map &input_map,
-			          char const *filename);
+	void SSC_PUBLIC
+	decrypt (OS_Map &input_map,
+		 OS_Map &output_map,
+		 char const *output_filename);
+
+	void SSC_PUBLIC
+	dump_header (OS_Map &input_map,
+		     char const *filename);
 }/* ~ namespace ssc::crypto_impl */
 #undef OS_PROMPT
 #undef NEW_LINE

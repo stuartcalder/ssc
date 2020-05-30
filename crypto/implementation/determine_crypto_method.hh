@@ -8,7 +8,7 @@
 #include <ssc/general/integers.hh>
 #include <ssc/files/os_map.hh>
 
-#if    (!defined (__SSC_DRAGONFLY_V1__) && !defined (__SSC_CBC_V2__))
+#if    (!defined (SSC_FEATURE_DRAGONFLY_V1) && !defined (SSC_FEATURE_CBC_V2))
 #	error 'Crypto implementations must be #included before this file.'
 #endif
 
@@ -16,51 +16,52 @@ namespace ssc::crypto_impl
 {
 
 	// Enums
-	enum class Crypto_Method_E {
+	enum class Crypto_Method_E{
 		None,
-#ifdef __SSC_DRAGONFLY_V1__
+#ifdef SSC_FEATURE_DRAGONFLY_V1
 		Dragonfly_V1,
 #endif
-#ifdef __SSC_CBC_V2__
+#ifdef SSC_FEATURE_CBC_V2
 		CBC_V2,
 #endif
 		Terminating_Enum
 	};/*enum class Crypto_Method_E*/
 	static_assert (static_cast<int>(Crypto_Method_E::Terminating_Enum) > 1);
-	_CTIME_CONST (int) Number_Crypto_Methods = static_cast<int>(Crypto_Method_E::Terminating_Enum) - 1;
+	static constexpr int Number_Crypto_Methods = static_cast<int>(Crypto_Method_E::Terminating_Enum) - 1;
 
 	// Compile-Time constants
-	_CTIME_CONST (int) Biggest_ID_String_Size = []() {
+	static constexpr int Biggest_ID_String_Size = []() {
 		int s = 0;
-#ifdef __SSC_DRAGONFLY_V1__
-		if( sizeof(dragonfly_v1::Dragonfly_V1_ID) > s )
+#ifdef SSC_FEATURE_DRAGONFLY_V1
+		if (sizeof(dragonfly_v1::Dragonfly_V1_ID) > s)
 			s = sizeof(dragonfly_v1::Dragonfly_V1_ID);
 #endif
-#ifdef __SSC_CBC_V2__
-		if( sizeof(cbc_v2::CBC_V2_ID) > s )
+#ifdef SSC_FEATURE_CBC_V2
+		if (sizeof(cbc_v2::CBC_V2_ID) > s)
 			s = sizeof(cbc_v2::CBC_V2_ID);
 #endif
 		return s;
 	}();
-	_CTIME_CONST (int) Smallest_ID_String_Size = []() {
+	static constexpr int Smallest_ID_String_Size = []() {
 		int s = Biggest_ID_String_Size;
-#ifdef __SSC_DRAGONFLY_V1__
-		if( sizeof(dragonfly_v1::Dragonfly_V1_ID) < s )
+#ifdef SSC_FEATURE_DRAGONFLY_V1
+		if (sizeof(dragonfly_v1::Dragonfly_V1_ID) < s)
 			s = sizeof(dragonfly_v1::Dragonfly_V1_ID);
 #endif
-#ifdef __SSC_CBC_V2__
-		if( sizeof(cbc_v2::CBC_V2_ID) < s )
+#ifdef SSC_FEATURE_CBC_V2
+		if (sizeof(cbc_v2::CBC_V2_ID) < s)
 			s = sizeof(cbc_v2::CBC_V2_ID);
 #endif
 		return s;
 	}();
 
-	inline Crypto_Method_E determine_crypto_method (OS_Map &os_map)
+	inline Crypto_Method_E
+	determine_crypto_method (OS_Map &os_map)
 	{
 		if( os_map.size < Smallest_ID_String_Size ) {
 			return Crypto_Method_E::None;
 		}
-#ifdef __SSC_DRAGONFLY_V1__
+#ifdef SSC_FEATURE_DRAGONFLY_V1
 		{
 			using namespace dragonfly_v1;
 			static_assert (sizeof(Dragonfly_V1_ID) >= Smallest_ID_String_Size);
@@ -70,7 +71,7 @@ namespace ssc::crypto_impl
 			}
 		}
 #endif
-#ifdef __SSC_CBC_V2__
+#ifdef SSC_FEATURE_CBC_V2
 		{
 			using namespace cbc_v2;
 			static_assert (sizeof(CBC_V2_ID) >= Smallest_ID_String_Size);

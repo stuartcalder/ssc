@@ -6,14 +6,15 @@
 #include <ssc/general/integers.hh>
 #include <ssc/crypto/operations.hh>
 
-namespace ssc
-{
-	struct Bit_Reversal_Graph_F
+namespace ssc {
+	struct
+	Bit_Reversal_Graph_F
 	{
 	/* index (u64_t,u8_t const) -> u64_t
 	 * 	Bit reversal graph generic indexing function for Catena.
 	 */
-		static inline u64_t index (u64_t i,u8_t const garlic) {
+		static inline u64_t
+		index (u64_t i,u8_t const garlic) {
 			i = reverse_byte_order( i );
 			i = ((i & static_cast<u64_t>(0x0f'0f'0f'0f'0f'0f'0f'0f)) << 4) |
 			    ((i & static_cast<u64_t>(0xf0'f0'f0'f0'f0'f0'f0'f0)) >> 4);

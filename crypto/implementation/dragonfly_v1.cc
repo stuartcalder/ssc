@@ -13,7 +13,7 @@ using namespace std;
 #       error 'Some MACRO we need was already defined'
 #endif
 
-#ifdef __SSC_MemoryLocking__
+#ifdef SSC_FEATURE_MEMORYLOCKING
 #       define LOCK_MEMORY(address,size)	  lock_os_memory( address, size )
 #       define UNLOCK_MEMORY(address,size)	unlock_os_memory( address, size )
 #else
@@ -41,13 +41,15 @@ using namespace std;
 
 namespace ssc::crypto_impl::dragonfly_v1
 {
-	void encrypt (Catena_Input const &catena_input,
-		      OS_Map             &input_map,
-		      OS_Map             &output_map,
-		      char const         *output_filename)
+	void
+	encrypt (Catena_Input const &catena_input,
+		 OS_Map             &input_map,
+		 OS_Map             &output_map,
+		 char const         *output_filename)
 	{
 		{// Setup the output map.
-			output_map.size = input_map.size + Visible_Metadata_Bytes + catena_input.padding_bytes;// Assume the output file's size to be the plaintext size with a visible header.
+			// Assume the output file's size to be the plaintext size with a visible header.
+			output_map.size = input_map.size + Visible_Metadata_Bytes + catena_input.padding_bytes;
 			set_os_file_size( output_map.os_file, output_map.size );// Set the output file's size.
 			map_file( output_map, false ); // Memory-map the output file, not readonly.
 		}
@@ -226,13 +228,14 @@ namespace ssc::crypto_impl::dragonfly_v1
 		}
 		CLEANUP_SUCCESS (secret);
 	}/* ~ void encrypt (...) */
-	void decrypt (OS_Map &input_map,
-		      OS_Map &output_map,
-		      char const *output_filename)
+	void
+	decrypt (OS_Map &input_map,
+		 OS_Map &output_map,
+		 char const *output_filename)
 	{
 		output_map.size = input_map.size - Visible_Metadata_Bytes;
 
-		_CTIME_CONST (int) Minimum_Possible_File_Size = Visible_Metadata_Bytes + 1;
+		static constexpr int Minimum_Possible_File_Size = Visible_Metadata_Bytes + 1;
 		if( input_map.size < Minimum_Possible_File_Size ) {
 			close_os_file( output_map.os_file );
 			remove( output_filename );
@@ -397,10 +400,11 @@ namespace ssc::crypto_impl::dragonfly_v1
 		CLEANUP_MAP (output_map);
 		CLEANUP_MAP (input_map);
 	}/* ~ void decrypt (...) */
-	void dump_header (OS_Map &input_map,
-			  char const *input_filename)
+	void
+	dump_header (OS_Map     &input_map,
+		     char const *input_filename)
 	{
-		_CTIME_CONST (int) Minimum_Size = Visible_Metadata_Bytes + 1;
+		static constexpr int Minimum_Size = Visible_Metadata_Bytes + 1;
 		if( input_map.size < Minimum_Size ) {
 			CLEANUP_MAP (input_map);
 			errx( "File `%s` looks too small to be SSC_Dragonfly_V1 encrypted\n", input_filename );
@@ -421,7 +425,7 @@ namespace ssc::crypto_impl::dragonfly_v1
 			u8_t const *p = input_map.ptr;
 			memcpy( header.id, p, sizeof(header.id) );
 			p += sizeof(header.id);
-			std::memcpy( &header.total_size, p, sizeof(header.total_size) );
+			memcpy( &header.total_size, p, sizeof(header.total_size) );
 			p += sizeof(header.total_size);
 			header.g_low   = (*p++);
 			header.g_high  = (*p++);

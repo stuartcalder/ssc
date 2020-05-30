@@ -31,8 +31,8 @@
 namespace ssc
 {
 
-	DEFAULT_ARGS
-	class Threefish_F
+	DEFAULT_ARGS class
+	Threefish_F
 	{
 	public:
 		static_assert (CHAR_BIT      == 8,"This code assumes 8-bit bytes.");
@@ -72,46 +72,49 @@ namespace ssc
 			Constant_240 = 0x1b'd1'1b'da'a9'fc'1a'22
 		};
 
-		struct Stored_Data {
 		/* When we compute once then store all the subkeys of the key schedule, we store them in $key_schedule.
 		 */
+		struct Stored_Data {
 			u64_t key_schedule [Block_Words * Number_Subkeys];
 			u64_t state        [Block_Words];
 		};// ~ struct Precomputed_Data
-		struct On_Demand_Data {
 		/* When we compute the subkeys at runtime, we store pointers to the input key and tweak.
 		 */
+		struct On_Demand_Data {
 			u64_t state        [Block_Words];
 			u64_t *stored_key;  // -> [External_Key_Words]
 			u64_t *stored_tweak;// -> [External_Tweak_Words]
 		};// ~ struct Runtime_Data
 
-	/* Data_t refers to Stored_Data or Runtime_Data depending on which
-	 * alias is selected.
-	 */
+		/* Data_t refers to Stored_Data or Runtime_Data depending on which
+		 * alias is selected.
+		 */
 		using Data_t = typename std::conditional<(Key_Schedule_Gen == Key_Schedule_E::Stored),Stored_Data,On_Demand_Data>::type;
 		static_assert (std::is_same<Data_t,Stored_Data>::value || std::is_same<Data_t,On_Demand_Data>::value);
 
-		static void rekey          (_RESTRICT (Data_t *) data,
-				            _RESTRICT (u64_t *)  key,
-					    _RESTRICT (u64_t *)  tweak);
+		static void
+		rekey (SSC_RESTRICT (Data_t*) data,
+		       SSC_RESTRICT (u64_t*)  key,
+		       SSC_RESTRICT (u64_t*)  tweak);
 
-		static void cipher         (_RESTRICT (Data_t *)     data,
-				            _RESTRICT (u8_t *)       ctext,
-					    _RESTRICT (u8_t const *) ptext);
+		static void
+		cipher (SSC_RESTRICT (Data_t*)     data,
+			SSC_RESTRICT (u8_t*)       ctext,
+			SSC_RESTRICT (u8_t const*) ptext);
 
-		static void inverse_cipher (_RESTRICT (Data_t *)     data,
-				            _RESTRICT (u8_t *)       ptext,
-					    _RESTRICT (u8_t const *) ctext);
+		static void
+		inverse_cipher (SSC_RESTRICT (Data_t*)     data,
+				SSC_RESTRICT (u8_t*)       ptext,
+				SSC_RESTRICT (u8_t const*) ctext);
 	private:
-		template <int round,int index>
-		static constexpr int rotate_const_ (void);
+		template <int round,int index> static constexpr int
+		Rotate_Const_ ();
 	};// ~ class Threefish_F
 
-	TEMPLATE_ARGS
-	void CLASS::rekey (_RESTRICT (Data_t *) data,
-                           _RESTRICT (u64_t *)  key,
-                           _RESTRICT (u64_t *)  tweak)
+	TEMPLATE_ARGS void
+	CLASS::rekey (SSC_RESTRICT (Data_t*) data,
+                      SSC_RESTRICT (u64_t*)  key,
+                      SSC_RESTRICT (u64_t*)  tweak)
 	{
 #if    defined (MAKE_WORD) || defined (SET_WORDS) || defined (SET_FOUR_WORDS) || defined (SET_EIGHT_WORDS) || defined (MAKE_SUBKEY)
 #	error 'A macro name we need was already defined'
@@ -124,19 +127,19 @@ namespace ssc
 		       "Ensure the subkey is an integer, and within the range of valid subkeys."); \
 	static_assert (std::is_same<decltype(i),int>::value && i >= 0 && i < Block_Words, \
 		       "Ensure the index i is an integer, and within the range of valid indices"); \
-	static_assert (Key_Schedule_Gen == Key_Schedule_E::Stored|| Key_Schedule_Gen == Key_Schedule_E::On_Demand, \
+	static_assert (Key_Schedule_Gen == Key_Schedule_E::Stored || Key_Schedule_Gen == Key_Schedule_E::On_Demand, \
 		       "Ensure the key schedule is precisely specified as precomputed, or runtime computed."); \
 	data->key_schedule[ (subkey * Block_Words) + i ] = MAKE_WORD (key,subkey,i)
 
 #define SET_FOUR_WORDS(subkey,start_i) \
-	SET_WORD (subkey,start_i); SET_WORD (subkey,(start_i + 1)); \
+	SET_WORD (subkey,start_i)      ; SET_WORD (subkey,(start_i + 1)); \
 	SET_WORD (subkey,(start_i + 2)); SET_WORD (subkey,(start_i + 3))
 
 #define SET_EIGHT_WORDS(subkey,start_i) \
 	SET_FOUR_WORDS (subkey,start_i); SET_FOUR_WORDS (subkey,(start_i + 4))
 
 #define MAKE_SUBKEY(subkey) \
-	_MACRO_SHIELD \
+	SSC_MACRO_SHIELD \
 		static_assert (std::is_same<decltype(subkey),int>::value && subkey >= 0 && subkey < Number_Subkeys, \
 			       "Ensure the subkey is an integer, and within the valid range of subkey values."); \
 		if constexpr (Block_Words == 4) { \
@@ -158,11 +161,13 @@ namespace ssc
 			SET_WORD       (subkey,14) + tweak[ (subkey + 1) % 3 ]; /* 14 */ \
 			SET_WORD       (subkey,15) + subkey; \
 		} \
-	_MACRO_SHIELD_EXIT
+	SSC_MACRO_SHIELD_EXIT
 	/* Setup the key.
 	 */
+		// Initialize the parity word of the key to our Constant_240 unsigned 64-bit integer constant.
 		key[ Block_Words ] = Constant_240;
 		static_assert (Block_Words == 4 || Block_Words == 8 || Block_Words == 16);
+		// XOR all the other words of the key into the parity word.
 		if constexpr (Block_Words == 4) {
 			key[ Block_Words ] ^= key[ 0 ] ^ key[ 1 ] ^ key[ 2 ] ^ key[ 3 ];
 		} else if constexpr (Block_Words == 8) {
@@ -176,10 +181,12 @@ namespace ssc
 		}
 	/* Setup the tweak.
 	 */
+		// Comput the parity word of the weak as the XOR of the two words of the tweak.
 		tweak[ 2 ] = tweak[ 0 ] ^ tweak[ 1 ];
 		if constexpr (Key_Schedule_Gen == Key_Schedule_E::Stored) {
-		// A pre-computed key-schedule has been asked for.. Generate all the subkeys and stored them in $key_schedule.
-			static_assert (Number_Subkeys == 19 || Number_Subkeys == 21);
+			// A pre-computed key-schedule has been asked for.. Generate all the subkeys and stored them in $key_schedule.
+			static_assert (Number_Subkeys == 19 || Number_Subkeys == 21,
+				       "There may only be 19 subkeys or 21 subkeys.");
 			MAKE_SUBKEY  (0);
 			MAKE_SUBKEY  (1);
 			MAKE_SUBKEY  (2);
@@ -204,16 +211,16 @@ namespace ssc
 				MAKE_SUBKEY (20);
 			}
 		} else if constexpr (Key_Schedule_Gen == Key_Schedule_E::On_Demand) {
-		// An On-Demand-computed key-schedule has been asked for.. Store pointers to the key and tweak for accessing later.
+			// An On-Demand-computed key-schedule has been asked for.. Store pointers to the key and tweak for accessing later.
 			data->stored_key = key;
 			data->stored_tweak = tweak;
 		}
 	}// ~ void rekey (...)
 
-	TEMPLATE_ARGS
-	void CLASS::cipher (_RESTRICT (Data_t *)     data,
-                            _RESTRICT (u8_t *)       ctext,
-                            _RESTRICT (u8_t const *) ptext)
+	TEMPLATE_ARGS void
+	CLASS::cipher (SSC_RESTRICT (Data_t *)     data,
+                       SSC_RESTRICT (u8_t *)       ctext,
+                       SSC_RESTRICT (u8_t const *) ptext)
 	{
 #if    defined (MIX) || defined (CALL_MIX) || defined (INVERSE_MIX) || defined (CALL_INVERSE_MIX) || \
        defined (USE_SUBKEY) || defined (PERMUTE) || defined (INVERSE_PERMUTE) || defined (ENC_ROUND) || \
@@ -232,7 +239,7 @@ namespace ssc
 		       "index must be an integer."); \
 	word_0 += word_1; \
 	word_1 = rotate_left< \
-			rotate_const_<round,index>(), \
+			Rotate_Const_<round,index>(), \
 			u64_t \
 		> (word_1) ^ word_0
 
@@ -242,7 +249,7 @@ namespace ssc
 #	define INVERSE_MIX(word_0,word_1,round,index) \
 	word_1 ^= word_0; \
 	word_1 = rotate_right< \
-			rotate_const_<round,index>(), \
+			Rotate_Const_<round,index>(), \
 			u64_t \
 		> (word_1); \
 	word_0 -= word_1
@@ -251,13 +258,13 @@ namespace ssc
 	INVERSE_MIX (data->state[ index * 2 ],data->state[ (index * 2) + 1 ],round,index)
 
 #	define USE_SUBKEY(operation,round) \
-	_MACRO_SHIELD \
-		_CTIME_CONST (int) Subkey_Index = round / 4; \
+	SSC_MACRO_SHIELD \
+		static constexpr int Subkey_Index = round / 4; \
 		if constexpr (Key_Schedule_Gen == Key_Schedule_E::Stored) { \
-		/* The key-schedule has been pre-computed, thus we can modify the state by directly accessing
-		 * the keyschedule, where operation is += or -= for adding or subtracting the subkey from the state
-		 * words.*/ \
-			_CTIME_CONST (int) Subkey_Offset = Subkey_Index * Block_Words; \
+			/* The key-schedule has been pre-computed, thus we can modify the state by directly accessing
+			 * the keyschedule, where operation is += or -= for adding or subtracting the subkey from the state
+			 * words.*/ \
+			static constexpr int Subkey_Offset = Subkey_Index * Block_Words; \
 			if constexpr (Block_Words == 4) { \
 				data->state[ 0 ] operation data->key_schedule[ Subkey_Offset + 0 ]; \
 				data->state[ 1 ] operation data->key_schedule[ Subkey_Offset + 1 ]; \
@@ -291,8 +298,8 @@ namespace ssc
 				data->state[ 15 ] operation data->key_schedule[ Subkey_Offset + 15 ]; \
 			} \
 		} else if constexpr (Key_Schedule_Gen == Key_Schedule_E::On_Demand) { \
-		/* The key-schedule is computed on-demand. For each += or -= operation, we compute
-		 * the subkeys on-demand. */ \
+			/* The key-schedule is computed on-demand. For each += or -= operation, we compute
+			 * the subkeys on-demand. */ \
 			if constexpr (Block_Words == 4) { \
 				data->state[ 0 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,0)); \
 				data->state[ 1 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,1) + data->stored_tweak[ Subkey_Index % 3 ]); \
@@ -326,10 +333,10 @@ namespace ssc
 				data->state[ 15 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,15) + Subkey_Index); \
 			} \
 		} \
-	_MACRO_SHIELD_EXIT
+	SSC_MACRO_SHIELD_EXIT
 
 #	define PERMUTE \
-		_MACRO_SHIELD \
+		SSC_MACRO_SHIELD \
 			if constexpr (Block_Bits == 256) { \
 				u64_t w = data->state[ 1 ]; \
 				data->state[ 1 ] = data->state[ 3 ]; \
@@ -373,10 +380,10 @@ namespace ssc
 				data->state[ 10 ] = w1; \
 				data->state[ 8 ] = w0; \
 			} \
-		_MACRO_SHIELD_EXIT
+		SSC_MACRO_SHIELD_EXIT
 
 #	define INVERSE_PERMUTE \
-		_MACRO_SHIELD \
+		SSC_MACRO_SHIELD \
 			if constexpr (Block_Bits == 256) { \
 				PERMUTE ; \
 			} else if constexpr (Block_Bits == 512) { \
@@ -418,7 +425,7 @@ namespace ssc
 				data->state[ 14 ] = w1; \
 				data->state[ 8 ] = w0; \
 			} \
-		_MACRO_SHIELD_EXIT
+		SSC_MACRO_SHIELD_EXIT
 
 #	define ENC_ROUND(round) \
 	static_assert (std::is_same<decltype(round),int>::value && round >= 0 && round < Number_Rounds, \
@@ -476,7 +483,9 @@ namespace ssc
 	DEC_ROUND (start      ); DEC_ROUND ((start - 1)); DEC_ROUND ((start - 2)); DEC_ROUND ((start - 3)); \
 	DEC_ROUND ((start - 4)); DEC_ROUND ((start - 5)); DEC_ROUND ((start - 6)); DEC_ROUND ((start - 7))
 
+		// Copy the plaintext block into the state buffer.
 		std::memcpy( data->state, ptext, sizeof(data->state) );
+		// Perform all our encryption rounds; add the last subkey.
 		EIGHT_ENC_ROUNDS (0);
 		EIGHT_ENC_ROUNDS (8);
 		EIGHT_ENC_ROUNDS (16);
@@ -490,16 +499,19 @@ namespace ssc
 			EIGHT_ENC_ROUNDS (72);
 		}
 		USE_SUBKEY (+=,Number_Rounds);
+		// Copy the state out of the function, as a ciphertext block.
 		std::memcpy( ctext, data->state, sizeof(data->state) );
 
 	}// ~ void cipher (...)
 
-	TEMPLATE_ARGS
-	void CLASS::inverse_cipher (_RESTRICT (Data_t *)     data,
-			            _RESTRICT (u8_t *)       ptext,
-				    _RESTRICT (u8_t const *) ctext)
+	TEMPLATE_ARGS void
+	CLASS::inverse_cipher (SSC_RESTRICT (Data_t*)     data,
+			       SSC_RESTRICT (u8_t*)       ptext,
+			       SSC_RESTRICT (u8_t const*) ctext)
 	{
+		// Copy the ciphertext block into the state buffer.
 		std::memcpy( data->state, ctext, sizeof(data->state) );
+		// Subtract the last subkey; perform all our decryption rounds.
 		USE_SUBKEY (-=,Number_Rounds);
 		if constexpr (Number_Rounds == 80) {
 			EIGHT_DEC_ROUNDS (79);
@@ -513,13 +525,15 @@ namespace ssc
 		EIGHT_DEC_ROUNDS (23);
 		EIGHT_DEC_ROUNDS (15);
 		EIGHT_DEC_ROUNDS (7);
+		// Copy the state out of the function, as a plaintext block.
 		std::memcpy( ptext, data->state, sizeof(data->state) );
 	}// ~ void inverse_cipher (...)
 
-	TEMPLATE_ARGS template <int round,int index>
-	constexpr int CLASS::rotate_const_ (void)
+	TEMPLATE_ARGS template <int round,int index> constexpr int
+	CLASS::Rotate_Const_ ()
 	{
-		static_assert (Block_Bits == 256 || Block_Bits == 512 || Block_Bits == 1024);
+		static_assert (Block_Bits == 256 || Block_Bits == 512 || Block_Bits == 1024,
+			       "Enforce a valid Threefish block size.");
 		if constexpr (Block_Bits == 256) {
 			static_assert (index == 0 || index == 1);
 			constexpr int rc [8][2] = {

@@ -31,8 +31,8 @@
 
 namespace ssc
 {
-	TEMPLATE_ARGS
-	class Counter_Mode_F
+	TEMPLATE_ARGS class
+	Counter_Mode_F
 	{
 	public:
 		static_assert (CHAR_BIT == 8,
@@ -41,10 +41,10 @@ namespace ssc
 			       "The number of bits must be divisible into bytes.");
 		static_assert ((Block_Bits >= 128),
 			       "Modern block ciphers have blocks of at least 128 bits.");
-		_CTIME_CONST (int) Block_Bytes = Block_Bits / CHAR_BIT;
+		static constexpr int Block_Bytes = Block_Bits / CHAR_BIT;
 		static_assert ((Block_Bytes % 2) == 0,
 			       "Block bytes must be evenly divisible in half.");
-		_CTIME_CONST (int) IV_Bytes = Block_Bytes / 2;
+		static constexpr int IV_Bytes = Block_Bytes / 2;
 		using Threefish_f = Threefish_F<Block_Bits,Key_Schedule_E::Stored>;
 		using Threefish_Data_t = typename Threefish_f::Data_t;
 		struct Data {
@@ -55,18 +55,21 @@ namespace ssc
 
 		Counter_Mode_F (void) = delete;
 
-		static inline void set_iv (_RESTRICT (Data*)       data,
-				           _RESTRICT (u8_t const*) iv);
-		static void xorcrypt (_RESTRICT (Data *) data,
-			              u8_t               *output,
-			              u8_t const         *input,
-			              u64_t              input_size,
-			              u64_t              starting_byte = 0);
+		static inline void
+		set_iv (SSC_RESTRICT (Data*)       data,
+		        SSC_RESTRICT (u8_t const*) iv);
+
+		static void
+		xorcrypt (SSC_RESTRICT (Data *) data,
+			  u8_t                  *output,
+			  u8_t const            *input,
+			  u64_t                 input_size,
+			  u64_t                 starting_byte = 0);
 	};
 
-	TEMPLATE_ARGS
-	void CLASS::set_iv (_RESTRICT (Data*)       data,
-			    _RESTRICT (u8_t const*) iv)
+	TEMPLATE_ARGS void
+	CLASS::set_iv (SSC_RESTRICT (Data*)       data,
+		       SSC_RESTRICT (u8_t const*) iv)
 	{
 		static_assert (Block_Bytes == (IV_Bytes *2));
 		static_assert (sizeof(u64_t) <= IV_Bytes);
@@ -77,12 +80,12 @@ namespace ssc
 			     IV_Bytes );
 	}
 
-	TEMPLATE_ARGS
-	void CLASS::xorcrypt (_RESTRICT (Data *) data,
-			      u8_t               *output,
-			      u8_t const         *input,
-			      u64_t              input_size,
-			      u64_t              starting_byte)
+	TEMPLATE_ARGS void
+	CLASS::xorcrypt (SSC_RESTRICT (Data *) data,
+			 u8_t                  *output,
+			 u8_t const            *input,
+			 u64_t                 input_size,
+			 u64_t                 starting_byte)
 	{
 		if( starting_byte == 0 ) {
 			std::memcpy( data->keystream, &starting_byte, sizeof(starting_byte) );

@@ -59,10 +59,9 @@
 			      src, \
 			      (Skein_Bytes * 2) )
 
-namespace ssc
-{
-	DEFAULT_ARGS
-	class Catena_F
+namespace ssc {
+	DEFAULT_ARGS class
+	Catena_F
 	{
 	public:
 	/* Compile-Time Checks and Constants
@@ -104,8 +103,8 @@ namespace ssc
 	/* conditional_size<bool $b> (int $size) -> int
 	 * 	Returns the size given some constant boolean $b, otherwise 0.
 	 */
-		template <bool b>
-		static constexpr int Conditional_Size (int size)
+		template <bool b> static constexpr int
+		Conditional_Size (int size)
 		{
 			if constexpr (b)
 				return size;
@@ -139,54 +138,59 @@ namespace ssc
 		};/* ~ struct Data */
 
 
-	/* call (_RESTRICT(Data*),
-	 *       _RESTRICT(u8_t*),
-	 *       _RESTRICT(u8_t*),
+	/* call (SSC_RESTRICT(Data*),
+	 *       SSC_RESTRICT(u8_t*),
+	 *       SSC_RESTRICT(u8_t*),
 	 *       int const,
 	 *       u8_t const,
 	 *       u8_t const,
 	 *       u8_t const) -> Return_E
 	 *	 	Invoke Catena.
 	 */
-		[[nodiscard]] static Return_E call (_RESTRICT (Data *) data,
-		                                    _RESTRICT (u8_t *) output,
-	                                            _RESTRICT (u8_t *) password,
-		                                    int const          password_size,
-		                                    u8_t const         g_low,
-		                                    u8_t const         g_high,
-		                                    u8_t const         lambda);
+		[[nodiscard]] static Return_E
+		call (SSC_RESTRICT (Data *) data,
+		      SSC_RESTRICT (u8_t *) output,
+	              SSC_RESTRICT (u8_t *) password,
+		      int const             password_size,
+		      u8_t const            g_low,
+		      u8_t const            g_high,
+		      u8_t const            lambda);
 	private:
 	/* make_tweak_ (Data*,u8_t const) -> void
 	 * 	Compute, then store the tweak for the given value of $lambda.
 	 */
-		static inline void make_tweak_ (Data       *data,
-				                u8_t const lambda);
+		static inline void
+		make_tweak_ (Data       *data,
+		             u8_t const lambda);
 	/* flap_ (Data*,u8_t const,u8_t const) -> void
 	 * 	Compute the flap function for the given $garlic and $lambda.
 	 */
-		static void flap_ (Data       *data,
-				   u8_t const garlic,
-				   u8_t const lambda);
+		static void
+		flap_ (Data       *data,
+		       u8_t const garlic,
+		       u8_t const lambda);
 	/* gamma_ (Data*,u8_t const) -> void
 	 * 	Compute the gamma function for the given $garlic.
 	 */
-		static inline void gamma_ (Data       *data,
-				           u8_t const garlic);
+		static inline void
+		gamma_ (Data       *data,
+		        u8_t const garlic);
 	/* phi_ (Data*,u8_t const) -> void
 	 * 	Compute the phi function for the given $garlic.
 	 */
-		static inline void phi_ (Data       *data,
-				         u8_t const garlic);
-	};/* ~ class Catena_F<...> */
+		static inline void
+		phi_ (Data       *data,
+		      u8_t const garlic);
+	};// ~ class Catena_F<...>
 
-	TEMPLATE_ARGS
-	typename CLASS::Return_E CLASS::call (_RESTRICT (Data *) data,
-			                      _RESTRICT (u8_t *) output,
-			                      _RESTRICT (u8_t *) password,
-			                      int const          password_size,
-			                      u8_t const         g_low,
-			                      u8_t const         g_high,
-			                      u8_t const         lambda)
+	TEMPLATE_ARGS typename CLASS::Return_E
+	CLASS::call (SSC_RESTRICT (Data *) data,
+                     SSC_RESTRICT (u8_t *) output,
+                     SSC_RESTRICT (u8_t *) password,
+	             int const             password_size,
+	             u8_t const            g_low,
+	             u8_t const            g_high,
+	             u8_t const            lambda)
 	{
 	// Dynamically allocate the memory we're going to need.
 		data->graph_memory = static_cast<u8_t*>(std::malloc( (static_cast<u64_t>(1) << g_high) * Skein_Bytes ));
@@ -238,8 +242,8 @@ namespace ssc
 		return Return_E::Success;
 	}// ~ void call(...)
 
-	TEMPLATE_ARGS
-	void CLASS::make_tweak_ (Data *data, u8_t const lambda)
+	TEMPLATE_ARGS void
+	CLASS::make_tweak_ (Data *data, u8_t const lambda)
 	{
 		static_assert (sizeof(Metadata_t::Version_ID_Hash) == Skein_Bytes);
 		static_assert (Output_Bytes <= (std::numeric_limits<u16_t>::max)());
@@ -264,10 +268,10 @@ namespace ssc
 		}
 	}// ~ void make_tweak_(Data*,u8_t const)
 
-	TEMPLATE_ARGS
-	void CLASS::flap_ (Data *data,
-			   u8_t const garlic,
-			   u8_t const lambda)
+	TEMPLATE_ARGS void
+	CLASS::flap_ (Data *data,
+		      u8_t const garlic,
+		      u8_t const lambda)
 	{
 #define TEMP_MEM  data->temp.flap
 #define GRAPH_MEM data->graph_memory
@@ -279,7 +283,7 @@ namespace ssc
 	 */
 		if constexpr (Skein_Bytes == 64) {
 		// For Skein512, pre-compute its initial chaining value and use it directly with UBI_F.
-			alignas(u64_t) _CTIME_CONST (u8_t) Config [Skein_Bytes] = {
+			alignas(u64_t) static constexpr u8_t Config [Skein_Bytes] = {
 				0x54, 0x5e, 0x7a, 0x4c, 0x78, 0x32, 0xaf, 0xdb,
 				0xc7, 0xab, 0x18, 0xd2, 0x87, 0xd9, 0xe6, 0x2d,
 				0x41, 0x08, 0x90, 0x3a, 0xcb, 0xa9, 0xa3, 0xae,
@@ -404,14 +408,14 @@ namespace ssc
 #undef TEMP_MEM
 	}// ~ void flap_ (Data*,u8_t const,u8_t const)
 
-	TEMPLATE_ARGS
-	void CLASS::gamma_ (Data *data,
-	                    u8_t const garlic)
+	TEMPLATE_ARGS void
+	CLASS::gamma_ (Data       *data,
+	               u8_t const garlic)
 	{
 #define GRAPH_MEM data->graph_memory
 #define TEMP_MEM  data->temp.gamma
-		_CTIME_CONST (int) Salt_And_Garlic_Size = (sizeof(data->salt) + sizeof(u8_t));
-		_CTIME_CONST (int) RNG_Output_Size = (Skein_Bytes + (sizeof(u64_t) * 2));
+		static constexpr int Salt_And_Garlic_Size = (sizeof(data->salt) + sizeof(u8_t));
+		static constexpr int RNG_Output_Size      = (Skein_Bytes + (sizeof(u64_t) * 2));
 		static_assert (sizeof(data->salt) == Salt_Bytes);
 		static_assert (sizeof(TEMP_MEM.rng) >= Salt_And_Garlic_Size);
 		static_assert (sizeof(TEMP_MEM.rng) >= RNG_Output_Size);
@@ -430,7 +434,7 @@ namespace ssc
 		u64_t const count = static_cast<u64_t>(1) << (((3 * garlic) + 3) / 4);
 		for( u64_t i = 0; i < count; ++i ) {
 			if constexpr (Skein_Bytes == 64) {
-				alignas(u64_t) _CTIME_CONST (u8_t) Config [64] = {
+				alignas(u64_t) static constexpr u8_t Config [64] = {
 					0xf0, 0xef, 0xcb, 0xca, 0xbf, 0xd0, 0x04, 0x7b,
 					0xc0, 0x5d, 0x3e, 0x3a, 0x1d, 0x53, 0xe4, 0x9f,
 					0x07, 0xbf, 0x4f, 0xf5, 0xce, 0x67, 0x53, 0x53,
@@ -457,8 +461,8 @@ namespace ssc
 					       RNG_Output_Size );// output size
 			}
 
-			_CTIME_CONST (int) J1_Offset = Skein_Bytes;
-			_CTIME_CONST (int) J2_Offset = J1_Offset + sizeof(u64_t);
+			static constexpr int J1_Offset = Skein_Bytes;
+			static constexpr int J2_Offset = J1_Offset + sizeof(u64_t);
 
 			u64_t j1, j2;
 			{
@@ -479,9 +483,9 @@ namespace ssc
 #undef GRAPH_MEM
 #undef TEMP_MEM
 	}// ~ void gamma_(Data*,u8_t const)
-	TEMPLATE_ARGS
-	void CLASS::phi_ (Data       *data,
-			  u8_t const garlic)
+	TEMPLATE_ARGS void
+	CLASS::phi_ (Data       *data,
+		     u8_t const garlic)
 	{
 #define GRAPH_MEM data->graph_memory
 #define TEMP_MEM  data->temp.phi

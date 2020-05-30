@@ -3,10 +3,10 @@
  * See accompanying LICENSE file for licensing information.
  */
 #pragma once
-#if   !defined (__SSC_DRAGONFLY_V1__)
-#	define  __SSC_DRAGONFLY_V1__
+#if   !defined (SSC_FEATURE_DRAGONFLY_V1)
+#	define  SSC_FEATURE_DRAGONFLY_V1
 #else
-#	error '__SSC_DRAGONFLY_V1__ already defined!'
+#	error 'SSC_FEATURE_DRAGONFLY_V1 already defined!'
 #endif
 /* SSC General */
 #include <ssc/general/macros.hh>
@@ -24,8 +24,7 @@
 /* C++ std */
 #include <type_traits>
 
-namespace ssc::crypto_impl::dragonfly_v1
-{
+namespace ssc::crypto_impl::dragonfly_v1 {
 
 	/*  Anatomy of a DRAGONFLY_V1 header
 	 *  |
@@ -44,7 +43,7 @@ namespace ssc::crypto_impl::dragonfly_v1
 	static_assert (CHAR_BIT == 8);
 	using CTR_f      = Counter_Mode_F<Block_Bits>;
 	using CTR_Data_t = typename CTR_f::Data;
-	_CTIME_CONST (auto&) Dragonfly_V1_ID    = "SSC_DRAGONFLY_V1";
+	static constexpr auto &Dragonfly_V1_ID = "SSC_DRAGONFLY_V1";
 	enum Int_Constants : int {
 		Block_Bits = 512,
 		Block_Bytes = Block_Bits / CHAR_BIT,
@@ -61,7 +60,7 @@ namespace ssc::crypto_impl::dragonfly_v1
 	                                   Bit_Reversal_Graph_F>;
 	struct Catena_Safe_Metadata {
 		// Version ID String: Dragonfly_Safe_V1
-		alignas(u64_t) _CTIME_CONST (u8_t) Version_ID_Hash [64] = {
+		alignas(u64_t) static constexpr u8_t Version_ID_Hash [64] = {
 			0x79,0xb5,0x79,0x1e,0x9a,0xac,0x02,0x64,
 			0x2a,0xaa,0x99,0x1b,0xd5,0x47,0xed,0x14,
 			0x74,0x4d,0x72,0xbf,0x13,0x22,0x54,0xc9,
@@ -81,7 +80,7 @@ namespace ssc::crypto_impl::dragonfly_v1
 				       false>;
 	struct Catena_Strong_Metadata {
 		// Version ID String: Dragonfly_Strong_V1
-		alignas(u64_t) _CTIME_CONST (u8_t) Version_ID_Hash [64] = {
+		alignas(u64_t) static constexpr u8_t Version_ID_Hash [64] = {
 			0x1f,0x23,0x89,0x58,0x4a,0x4a,0xbb,0xa5,
 			0x9f,0x09,0xca,0xd4,0xef,0xac,0x43,0x1d,
 			0xde,0x9a,0xb0,0xf8,0x69,0xaa,0x50,0xf3,
@@ -99,13 +98,18 @@ namespace ssc::crypto_impl::dragonfly_v1
 					 Max_Password_Bits,
 					 true,
 					 true>;
-	void _PUBLIC encrypt (Catena_Input const &catena_input,
-			      OS_Map             &input_map,
-			      OS_Map             &output_map,
-			      char const         *output_filename);
-	void _PUBLIC decrypt (OS_Map &input_map,
-			      OS_Map &output_map,
-			      char const *output_filename);
-	void _PUBLIC dump_header (OS_Map &input_map,
-			          char const *filename);
-}/* ~ namespace ssc::crypto_impl::dragonfly_v1 */
+	void SSC_PUBLIC
+	encrypt (Catena_Input const &catena_input,
+		 OS_Map             &input_map,
+		 OS_Map             &output_map,
+		 char const         *output_filename);
+
+	void SSC_PUBLIC
+	decrypt (OS_Map &input_map,
+		 OS_Map &output_map,
+		 char const *output_filename);
+
+	void SSC_PUBLIC
+	dump_header (OS_Map &input_map,
+		     char const *filename);
+}// ~ namespace ssc::crypto_impl::dragonfly_v1

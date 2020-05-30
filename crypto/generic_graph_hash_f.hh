@@ -52,10 +52,9 @@
 			      src, \
 			      (Skein_Bytes * 2) )
 
-namespace ssc
-{
-	TEMPLATE_ARGS
-	class Generic_Graph_Hash_F
+namespace ssc {
+	TEMPLATE_ARGS class
+	Generic_Graph_Hash_F
 	{
 	public:
 		static_assert (CHAR_BIT == 8,
@@ -71,19 +70,21 @@ namespace ssc
 		using Skein_f    = Skein_F<Skein_Bits>;
 		static_assert (std::is_same<UBI_Data_t,typename Skein_f::Data_t>::value,
 			       "UBI_f and Skein_f work on the same Data type.");
-		static inline void call (_RESTRICT (UBI_Data_t *) ubi_data,
-				         _RESTRICT (u8_t *)       temp,
-					 _RESTRICT (u8_t *)       graph_memory,
-					 u8_t const               garlic,
-					 u8_t const               lambda);
+
+		static inline void
+		call (SSC_RESTRICT (UBI_Data_t *) ubi_data,
+		      SSC_RESTRICT (u8_t *)       temp,
+		      SSC_RESTRICT (u8_t *)       graph_memory,
+		      u8_t const                  garlic,
+		      u8_t const                  lambda);
 	};
 
-	TEMPLATE_ARGS
-	void CLASS::call (_RESTRICT (UBI_Data_t *) ubi_data,
-			  _RESTRICT (u8_t *)       temp,
-			  _RESTRICT (u8_t *)       graph_memory,
-			  u8_t const               garlic,
-			  u8_t const               lambda)
+	TEMPLATE_ARGS void
+	CLASS::call (SSC_RESTRICT (UBI_Data_t *) ubi_data,
+		     SSC_RESTRICT (u8_t *)       temp,
+		     SSC_RESTRICT (u8_t *)       graph_memory,
+	             u8_t const                  garlic,
+	             u8_t const                  lambda)
 	{
 		u64_t const garlic_end = (static_cast<u64_t>(1) << garlic) - 1;
 		for( u8_t j = 1; j <= lambda; ++j ) {

@@ -13,14 +13,14 @@
 /* Local Headers */
 #include "common.hh"
 
-namespace ssc::crypto_impl
-{
-	void _PUBLIC sspkdf (typename UBI_f::Data     *ubi_data,
-			     _RESTRICT (u8_t *)       output,
-			     _RESTRICT (u8_t const *) password,
-			     int const                password_size,
-			     _RESTRICT (u8_t const *) salt,
-			     u32_t const              num_iter,
-			     u32_t const              num_concat);
+namespace ssc::crypto_impl {
+	void SSC_PUBLIC
+	sspkdf (typename UBI_f::Data       *ubi_data,
+	 	SSC_RESTRICT (u8_t*)       output,
+	 	SSC_RESTRICT (u8_t const*) password,
+	 	int const                  password_size,
+	 	SSC_RESTRICT (u8_t const*) salt,
+	 	u32_t const                num_iter,
+	 	u32_t const                num_concat);
 			     
 }/* ~ namespace ssc::crypto_impl */

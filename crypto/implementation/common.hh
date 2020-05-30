@@ -27,9 +27,9 @@
 #include <string>
 
 #ifndef NEW_LINE
-#	if    defined (__UnixLike__)
+#	if    defined (SSC_OS_UNIXLIKE)
 #		define NEW_LINE "\n"
-#	elif  defined (__Windows__)
+#	elif  defined (SSC_OS_WINDOWS)
 #		define NEW_LINE "\n\r"
 #	else
 #		error 'Unsupported OS'
@@ -44,37 +44,40 @@
 #	error 'OS_PROMPT Already Defined'
 #endif
 
-namespace ssc::crypto_impl
-{
-	static_assert (CHAR_BIT == 8);
-	_CTIME_CONST (int)	Block_Bits  = 512;
-	_CTIME_CONST (int)	Block_Bytes = Block_Bits / CHAR_BIT;
-	_CTIME_CONST (int)	MAC_Bytes   = Block_Bytes;
-
-	_CTIME_CONST (int)	Tweak_Bits  = 128;
-	_CTIME_CONST (int)	Tweak_Bytes = Tweak_Bits / CHAR_BIT;
-	_CTIME_CONST (int)      Tweak_Words = Tweak_Bytes / sizeof(u64_t);
-
-	_CTIME_CONST (int)	Max_Password_Chars = 120;
-	_CTIME_CONST (int)	Max_Entropy_Chars  = 120;
-	static_assert (Max_Password_Chars == Max_Entropy_Chars);
-	_CTIME_CONST (int)	Password_Buffer_Bytes   = Max_Password_Chars + 1;
-	_CTIME_CONST (int)      Supplement_Entropy_Buffer_Bytes = Max_Entropy_Chars + Block_Bytes + 1;
-	_CTIME_CONST (auto&)	Password_Prompt	        = "Please input a password (max length 120 characters)." OS_PROMPT ;
-	_CTIME_CONST (auto&)	Password_Reentry_Prompt = "Please input the same password again (max length 120 characters)." OS_PROMPT ;
-	_CTIME_CONST (auto&)	Entropy_Prompt		= "Please input up to 120 random characters." OS_PROMPT ;
+namespace ssc::crypto_impl {
+	static_assert (CHAR_BIT == 8,
+		       "We require 8-bit bytes.");
+	enum Int_Constants: int {
+		Block_Bits = 512,
+		Block_Bytes = Block_Bits / CHAR_BIT,
+		MAC_Bytes = Block_Bytes,
+		Tweak_Bits = 128,
+		Tweak_Bytes = Tweak_Bits / CHAR_BIT,
+		Tweak_Words = Tweak_Bytes / sizeof(u64_t),
+		Max_Password_Chars = 120,
+		Max_Entropy_Chars = 120,
+		Password_Buffer_Bytes = Max_Password_Chars + 1,
+		Supplement_Entropy_Buffer_Bytes = Max_Entropy_Chars + 1
+	};
+	static constexpr auto &Password_Prompt = "Please input a password (max length 120 characters)." OS_PROMPT ;
+	static constexpr auto &Password_Reentry_Prompt = "Please input the same password again (max length 120 characters)." OS_PROMPT ;
+	static constexpr auto &Entropy_Prompt = "Please input up to 120 random characters." OS_PROMPT ;
 	using Threefish_f   = Threefish_F<Block_Bits>;              // Precomputed-keyschedule Threefish.
 	using UBI_f         = Unique_Block_Iteration_F<Block_Bits>; // UBI for Skein hashing.
 	using Skein_f       = Skein_F<Block_Bits>;                  // Interface to UBI.
 	using CSPRNG_f      = Skein_CSPRNG_F<Block_Bits>;           // UBI-based PRNG.
 	using Terminal_UI_f = Terminal_UI_F<u8_t,Password_Buffer_Bytes>; // Using u8_t for password bytes, with Password_Buffer_Bytes as the max buffer size.
 
-	struct _PUBLIC SSPKDF_Input {
+	struct SSC_PUBLIC
+	SSPKDF_Input
+	{
 		bool	    supplement_os_entropy; // Whether to supplement entropy in consuming procedure.
 		u32_t	    number_iterations; // Number of times to iterate SSPKDF.
 		u32_t	    number_concatenations; // Number of times to concatenate password together in SSPKDF.
 	};
-	struct _PUBLIC Catena_Input {
+	struct SSC_PUBLIC
+	Catena_Input
+	{
 		u64_t padding_bytes;
 		bool supplement_os_entropy;
 		u8_t g_low;
@@ -83,9 +86,10 @@ namespace ssc::crypto_impl
 		u8_t use_phi;
 	};
 
-	inline void supplement_entropy (_RESTRICT (typename CSPRNG_f::Data *) data,
-			                _RESTRICT (u8_t *)                    hash,
-					_RESTRICT (u8_t *)                    input)
+	inline void
+	supplement_entropy (SSC_RESTRICT (typename CSPRNG_f::Data*) data,
+			    SSC_RESTRICT (u8_t*)                    hash,
+			    SSC_RESTRICT (u8_t*)                    input)
 	{
 		int num_input_chars = Terminal_UI_f::obtain_password( input, Entropy_Prompt );
 		Skein_f::hash_native( &(data->skein_data),

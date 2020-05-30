@@ -5,10 +5,9 @@
 #include <ssc/general/print.hh>
 #include <ssc/general/integers.hh>
 
-namespace ssc
-{
-    void print_binary_buffer (u8_t const * buffer, size_t const num_bytes)
-	{
+namespace ssc {
+	void
+	print_binary_buffer (u8_t const * buffer, size_t const num_bytes) {
 		auto print_4_bits = [](u8_t i){
 			switch( i ) {
 				default:
@@ -72,4 +71,4 @@ namespace ssc
 		}
 		std::putchar( '\n' );
 	} /* ~ void print_binary_buffer (u8_t const *, size_t const) */
-}/* ~ namespace ssc */
+}// ~ namespace ssc

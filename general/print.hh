@@ -8,14 +8,14 @@
 #include <ssc/general/macros.hh>
 #include <ssc/general/integers.hh>
 
-namespace ssc
-{
-	void _PUBLIC print_binary_buffer (const uint8_t * buffer, const size_t num_bytes);
+namespace ssc {
+	void SSC_PUBLIC
+	print_binary_buffer (const uint8_t * buffer, const size_t num_bytes);
     
-	template <typename Uint_t>
-	void print_integral_buffer (Uint_t * const i_buf, const size_t num_elements)
+	template <typename Uint_t> void
+	print_integral_buffer (Uint_t * const i_buf, const size_t num_elements)
 	{
-		_CTIME_CONST(auto &) format_str = [](size_t const size) {
+		static constexpr auto const &format_str = [](size_t const size) {
 			if (size == sizeof(unsigned char))
 				return "%02hhx";
 			else if (size == sizeof(unsigned short))
@@ -31,17 +31,17 @@ namespace ssc
 			else
 				return "";
 		}( sizeof(Uint_t) );
-        using std::printf, std::fputs, std::putchar;
+		using std::printf, std::fputs, std::putchar;
 
-        if (num_elements == 0)
-            return;
-        auto alias = reinterpret_cast<Uint_t const *>(i_buf);
-        
-        auto const backtick_one_index = num_elements - 1;
+		if (num_elements == 0)
+			return;
+		Uint_t const *alias = reinterpret_cast<Uint_t const *>(i_buf);
 
-        for ( size_t i = 0; i < backtick_one_index; ++i ) {
-	    printf( format_str, alias[ i ] );
-        }
-        printf( format_str, alias[ backtick_one_index ] );
-    }/* ~ void print_integral_buffer (Uint_t * const, size_t const) */
-}/* ~ namespace ssc */
+		auto const backtick_one_index = num_elements - 1;
+
+		for( size_t i = 0; i < backtick_one_index; ++i ) {
+			printf( format_str, alias[ i ] );
+		}
+		printf( format_str, alias[ backtick_one_index ] );
+	}// ~ void print_integral_buffer (Uint_t * const, size_t const)
+}// ~ namespace ssc

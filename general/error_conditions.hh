@@ -7,7 +7,7 @@
 #include <cstdio>
 #include <ssc/general/macros.hh>
 
-#ifdef __UnixLike__
+#ifdef SSC_OS_UNIXLIKE
 /* For unix-like operating systems (that provide err.h), we can simply include err.h for error handling functions.
  */
 #	include <err.h>
@@ -16,8 +16,8 @@
  * The replacement is in the global namespace, because for unix-like operating systems, the functions themselves are
  * in the global namespace. 
  */
-template <typename... Arg_Pack>
-inline void errx (int error_code, char const *format, Arg_Pack... args)
+template <typename... Arg_Pack> inline void
+errx (int error_code, char const *format, Arg_Pack... args)
 {
 	if constexpr (sizeof...(args) == 0) {
 		std::fputs( format, stderr );
@@ -26,24 +26,24 @@ inline void errx (int error_code, char const *format, Arg_Pack... args)
 		std::fprintf( stderr, format, args... );
 		std::exit( error_code );
 	}
-}/* ~ void errx (int, char const*, Arg_Pack...) */
-#endif/*#ifdef __UnixLike__*/
+}// ~ void errx (int, char const*, Arg_Pack...)
+#endif// ~ #ifdef SSC_OS_UNIXLIKE
 
 /* This overload allows for not specifying an exit code when it is irrelevant.
  */
-template <typename... Arg_Pack>
-inline void errx (char const *format, Arg_Pack... args)
+template <typename... Arg_Pack> inline void
+errx (char const *format, Arg_Pack... args)
 {
 	if constexpr (sizeof...(args) == 0)
 		errx( static_cast<int>(EXIT_FAILURE), format );
 	else
 		errx( static_cast<int>(EXIT_FAILURE), format, args... );
-}/* ~ void errx (char const*, Arg_map...) */
+}// ~ void errx (char const*, Arg_Map...)
 
-namespace ssc
-{
-	struct Generic_Error
+namespace ssc {
+	struct
+	Generic_Error
 	{
-		_CTIME_CONST (auto&) Alloc_Failure = "Error: Generic Allocation Failure!\n";
-	};
-}
+		static constexpr auto &Alloc_Failure = "Error: Generic Allocation Failure!\n";
+	};// ~ struct Generic_Error
+}// ~ namespace ssc

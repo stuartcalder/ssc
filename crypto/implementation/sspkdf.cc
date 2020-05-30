@@ -13,18 +13,21 @@
 
 namespace ssc::crypto_impl {
 	static_assert (CHAR_BIT == 8);
-	void sspkdf (typename UBI_f::Data     *ubi_data,
-		     _RESTRICT (u8_t *)	      output,
-		     _RESTRICT (u8_t const *) password,
-		     int const		      password_size,
-		     _RESTRICT (u8_t const *) salt,
-		     u32_t const	      num_iter,
-		     u32_t const	      num_concat)
+	void
+	sspkdf (typename UBI_f::Data   *ubi_data,
+		SSC_RESTRICT (u8_t*)       output,
+		SSC_RESTRICT (u8_t const*) password,
+		int const	           password_size,
+		SSC_RESTRICT (u8_t const*) salt,
+		u32_t const	           num_iter,
+		u32_t const	           num_concat)
 	{
-		_CTIME_CONST (int) State_Bits  = 512;
-		_CTIME_CONST (int) State_Bytes = State_Bits / CHAR_BIT;
-		_CTIME_CONST (int) Salt_Bits   = 128;
-		_CTIME_CONST (int) Salt_Bytes  = Salt_Bits / CHAR_BIT;
+		enum {
+			State_Bits = 512,
+			State_Bytes = State_Bits / CHAR_BIT,
+			Salt_Bits = 128,
+			Salt_Bytes = Salt_Bits / CHAR_BIT
+		};
 
 		u64_t const concat_size = (static_cast<u64_t>(password_size) + Salt_Bytes + sizeof(u32_t)) * static_cast<u64_t>(num_concat);
 		u8_t * const concat_buffer = static_cast<u8_t*>(std::malloc( concat_size ));
