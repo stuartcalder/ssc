@@ -258,7 +258,7 @@ namespace ssc {
 #elif  defined (__gnu_linux__)
 #	define SWAP_F_IMPL(size,u)	bswap_##size( u )
 #elif  defined (SSC_OS_WIN64)
-#	define SWAP_F_IMPL(size,u)	_byteswap_##size( u );
+#	define SWAP_F_IMPL(size,u)	_byteswap_##size( u )
 #elif !defined (SSC_OS_OSX)
 #	error 'Unsupported OS'
 #endif
@@ -308,7 +308,7 @@ namespace ssc {
 		} else if constexpr (std::is_same<Uint_t,u64_t>::value) {
 			return SWAP_F (SIZE (64,uint64),u);
 		}
-#endif// ~ #ifdef __Mac_OSX__
+#endif// ~ #ifdef SSC_OS_OSX
 #undef SIZE
 #undef SWAP_F_IMPL
 #undef SWAP_F
