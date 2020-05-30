@@ -16,7 +16,7 @@
 #	error 'ENABLE_MEMORYLOCKING Already Defined'
 #endif
 
-#if    defined (ENABLE_MEMORYLOCKING) && !defined (SSC_FLAG_DISABLE_MEMORYLOCKING)
+#if    defined (ENABLE_MEMORYLOCKING) && !defined (SSC_EXT_DISABLE_MEMORYLOCKING)
 #	ifndef SSC_FEATURE_MEMORYLOCKING
 #		define SSC_FEATURE_MEMORYLOCKING
 #	else
@@ -68,5 +68,5 @@ namespace ssc
 #	endif
 	}// ~ void unlock_os_memory(void const*, size_t const)
 }// ~ namespace ssc
-#endif// ~ #if defined (ENABLE_MEMORYLOCKING) && !defined (SSC_FLAG_DISABLE_MEMORYLOCKING)
+#endif// ~ #if defined (ENABLE_MEMORYLOCKING) && !defined (SSC_EXT_DISABLE_MEMORYLOCKING)
 #undef ENABLE_MEMORYLOCKING

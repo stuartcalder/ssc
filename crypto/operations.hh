@@ -99,9 +99,9 @@ namespace ssc {
 /* xor_block (SSC_RESTRICT(void*),SSC_RESTRICT(void const*)) -> void
  * 	XOR two blocks of data, $block and $add, both $Block_Bits large, storing the result pointed to by $block.
  */
-	template <int Block_Bits>
-	void xor_block (SSC_RESTRICT (void *)       block,
-			SSC_RESTRICT (void const *) add)
+	template <int Block_Bits> void
+	xor_block (SSC_RESTRICT (void *)       block,
+		   SSC_RESTRICT (void const *) add)
 	{
 		static_assert (CHAR_BIT == 8,
 			       "One byte must be 8 bits.");
@@ -116,8 +116,8 @@ namespace ssc {
 /* bit_hamming_weight (Uint_t) -> int
  * 	TODO
  */
-	template <typename Uint_t>
-	int bit_hamming_weight (Uint_t x)
+	template <typename Uint_t> int
+	bit_hamming_weight (Uint_t x)
 	{
 		STATIC_ENFORCE_UNSIGNED_INTEGRAL(Uint_t);
 
@@ -329,7 +329,7 @@ namespace ssc {
 		for( size_t i = 0; i < size; ++i ) {
 			u8_t const b = reinterpret_cast<u8_t const*>( left)[ i ] ^
 				       reinterpret_cast<u8_t const*>(right)[ i ];
-			non_equal_bytes += ( (b >> 7) |
+			non_equal_bytes += ((b >> 7) |
 					    ((b >> 6) & One_Mask) |
 					    ((b >> 5) & One_Mask) |
 					    ((b >> 4) & One_Mask) |

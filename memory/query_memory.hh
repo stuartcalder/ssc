@@ -12,8 +12,7 @@
 #	include <ssc/general/integers.hh>
 #	include <unistd.h>
 #	include <limits>
-namespace ssc
-{
+namespace ssc {
 	static constexpr u64_t Query_Free_Fail = (std::numeric_limits<u64_t>::max)();
 
 	[[nodiscard]] inline u64_t
