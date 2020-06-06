@@ -4,6 +4,10 @@
  */
 #pragma once
 
+#if   !defined (__cplusplus) || (__cplusplus != 201703L)
+#	error 'SSC needs c++17'
+#endif // ~ !defined (__cplusplus) || (__cplusplus != 201703L)
+
 #if    defined (SSC_PUBLIC) || defined (SSC_PRIVATE)
 #	error 'Symbol Macro Already Defined'
 #endif
@@ -41,11 +45,10 @@
 /* Operating System Macros */
 
 #if    defined (__APPLE__) && defined (__MACH__)
-#	ifndef SSC_OS_OSX
-#		define SSC_OS_OSX
-#	else
-#		error 'SSC_OS_OSX Already Defined'
+#	ifdef SSC_OS_OSX
+#		error 'SSC_OS_OSX already defined'
 #	endif
+#	define SSC_OS_OSX
 #endif
 
 /* Define OpenBSD, FreeBSD, GNU/Linux, and Mac OSX as UNIX-like operating systems. */
@@ -53,38 +56,34 @@
        defined (__FreeBSD__)   || \
        defined (__gnu_linux__) || \
        defined (SSC_OS_OSX)
-#	ifndef SSC_OS_UNIXLIKE
-#		define SSC_OS_UNIXLIKE
-#	else
-#		error 'SSC_OS_UNIXLIKE Already Defined'
-#	endif // ~ #ifndef SSC_OS_UNIXLIKE
+#	ifdef SSC_OS_UNIXLIKE
+#		error 'SSC_OS_UNIXLIKE already defined'
+#	endif
+#	define SSC_OS_UNIXLIKE
 /* Define MS Windows, naming scheme consistent with the above. */
 #elif  defined (_WIN32) || defined (_WIN64)
-#	ifndef SSC_OS_WINDOWS
-#		define SSC_OS_WINDOWS
-#	else
-#		error 'SSC_OS_WINDOWS Already Defined'
+#	ifdef SSC_OS_WINDOWS
+#		error 'SSC_OS_WINDOWS already defined'
 #	endif
+#	define SSC_OS_WINDOWS
 #else
 #	error 'Unsupported OS'
 #endif // ~ #if defined (__OpenBSD__) || defined (__FreeBSD__) || defined (__gnu_linux__)
 
 /* Define 32-bit and 64-bit MS Windows, naming scheme consistent with the above. */
 #ifdef SSC_OS_WINDOWS
-#	ifndef	_WIN64
-#		ifndef	SSC_OS_WIN32
-#			define	SSC_OS_WIN32
-#		else
-#			error 'SSC_OS_WIN32 Already Defined'
-#		endif // ~ #ifndef SSC_OS_WIN32
-#	else
-#		ifndef	SSC_OS_WIN64
-#			define	SSC_OS_WIN64
-#		else
-#			error 'SSC_OS_WIN64 Already Defined'
-#		endif // ~ #ifndef SSC_OS_WIN64
+#	ifndef _WIN64 /* 32-bit */
+#		ifdef SSC_OS_WIN32
+#			error 'SSC_OS_WIN32 already defined'
+#		endif
+#		define SSC_OS_WIN32
+#	else /* 64-bit */
+#		ifdef SSC_OS_WIN64
+#			error 'SSC_OS_WIN64 already defined'
+#		endif
+#		define SSC_OS_WIN64
 #	endif // ~ #ifndef _WIN64
-#endif // ~ #ifndef SSC_OS_WINDOWS
+#endif // ~ #ifdef SSC_OS_WINDOWS
 
 /* Compile-Time-Constant short-hand macros. */
 #ifdef SSC_RESTRICT
