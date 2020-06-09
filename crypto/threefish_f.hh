@@ -28,8 +28,7 @@
 #define TEMPLATE_ARGS	template <int Bits,Key_Schedule_E Key_Schedule_Gen>
 #define CLASS Threefish_F<Bits,Key_Schedule_Gen>
 
-namespace ssc
-{
+namespace ssc {
 
 	DEFAULT_ARGS class
 	Threefish_F

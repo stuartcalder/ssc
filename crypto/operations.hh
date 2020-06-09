@@ -22,34 +22,32 @@
  */
 #if    defined (SSC_OS_UNIXLIKE)
 #	include <unistd.h>
+	/* for byte-swapping */
+#	if    defined (__OpenBSD__)
+#		include <endian.h>
+#	elif  defined (__FreeBSD__)
+#		include <sys/endian.h>
+#	elif  defined (__gnu_linux__)
+#		include <byteswap.h>
+	/* for reading from /dev/random, access to memset_s */
+#	elif  defined (SSC_OS_OSX)
+#		if   !defined (__STDC_WANT_LIB_EXT1__) || (__STDC_WANT_LIB_EXT1__ != 1)
+#			error 'The macro __STDC_WANT_LIB_EXT1__ must be #defined to 1 for access to memset_s.'
+#		endif
+#		include <ssc/files/files.hh>
+#		include <string.h>
+#	else
+#		error 'Unsupported Unix-like operating system?'
+#	endif
 #elif  defined (SSC_OS_WIN64)
 #	include <windows.h>
 #	include <ntstatus.h>
 #	include <bcrypt.h>
+#	include <stdlib.h> /* for byte-swapping */
 #else
 #	error 'Unsupported OS'
 #endif// ~ #if defined (SSC_OS_UNIXLIKE)
-/* Byte-swapping OS-Specific
- */
-#if    defined (__OpenBSD__)
-#	include <endian.h>
-#elif  defined (__FreeBSD__)
-#	include <sys/endian.h>
-#elif  defined (__gnu_linux__)
-#	include <byteswap.h>
-#elif  defined (SSC_OS_WIN64)
-#	include <stdlib.h>
-#elif !defined (SSC_OS_OSX)
-#	error 'Unsupported OS'
-#endif// ~ #if defined (unixlikes...)
 
-#if    defined (SSC_OS_OSX)
-#	if   !defined (__STDC_WANT_LIB_EXT1__) || (__STDC_WANT_LIB_EXT1__ != 1)
-#		error 'The macro __STDC_WANT_LIB_EXT1__ must be be #defined to 1 for access to memset_s.'
-#	endif
-#	include <string.h>
-#	include <ssc/files/files.hh>
-#endif// ~ #if defined (SSC_OS_OSX)
 /* Ensure that the template functions below that expect unsigned integral
  * types can ONLY be used with unsigned integral types, to prevent any
  * unexpectedly nasty behavior.
@@ -263,7 +261,7 @@ namespace ssc {
 #	error 'Unsupported OS'
 #endif
 
-#if    defined (SSC_OS_UNIXLIKE) && !defined(SSC_OS_OSX)
+#if    defined (SSC_OS_UNIXLIKE) && !defined (SSC_OS_OSX)
 #	define SIZE(unixlike,win64) unixlike
 #elif  defined (SSC_OS_WIN64)
 #	define SIZE(unixlike,win64) win64
