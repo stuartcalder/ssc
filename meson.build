@@ -6,31 +6,24 @@ project('ssc', 'cpp',
 	version: '1.0')
 # Determine compiler, operating system.
 cc = meson.get_compiler('cpp')
-os = host_machine.system() # Get the operating system.
+os = host_machine.system()
 # Assert that we are building on a supported operating system, with a supported compiler.
-assert (
-	(os == 'openbsd' or os == 'freebsd' or os == 'darwin' or os == 'linux' or os == 'windows'),
-	'You are trying to build SSC with an unsupported operating system!'
-)
-assert (
-	(cc.get_id() == 'gcc' or cc.get_id() == 'clang' or cc.get_id() == 'msvc'),
-	'The only supported compilers are GCC, Clang, And MSVC!'
-)
+assert ( (os == 'openbsd' or os == 'freebsd' or os == 'darwin' or os == 'linux' or os == 'windows'),
+	 'You are trying to build SSC with an unsupported operating system!' )
+assert ( (cc.get_id() == 'gcc' or cc.get_id() == 'clang' or cc.get_id() == 'msvc'),
+	 'The only supported compilers are GCC, Clang, And MSVC!' )
 # Determine what prefix to use when passing macro defines.
 if os == 'windows' and cc.get_id() == 'msvc'
-	_Define_Flag_Prefix = '/D'
+	_D_PREFIX = '/D'
 else
-	_Define_Flag_Prefix = '-D'
+	_D_PREFIX = '-D'
 endif
 # Determine if our compiler will accept gcc-compatible flags.
 is_gcc_compatible = (cc.get_id() == 'gcc' or cc.get_id() == 'clang')
 # Describe the source files we'll be compiling into libssc.
-ssc_src = [
-	# `General` Files
-	#'general/arg_mapping.cc',
-	'general/c_argument_map.cc',
-	'general/print.cc',
-	'general/parse_string.cc',
+ssc_src = [ 'general/c_argument_map.cc',
+	    'general/print.cc',
+	    'general/parse_string.cc',
 	]
 # Setup these empty arrays that we will be appending to depending on OS, etc.
 lib_deps  = []
@@ -48,12 +41,12 @@ gcc_compatible_flags = [
 ]
 
 # On OSX we require __STDC_WANT_LIB_EXT1__ to be defined as 1, for access to memset_s.
-if os   == 'darwin'
-	_flag = _Define_Flag_Prefix + '__STDC_WANT_LIB_EXT1__=1'
+if os == 'darwin'
+	_flag = _D_PREFIX + '__STDC_WANT_LIB_EXT1__=1'
 	cpp_flags += _flag
 endif
 # On OpenBSD, FreeBSD, and OSX, the library dependencies and 'include_install' directory are the same.
-if os   == 'openbsd' or os == 'freebsd' or os == 'darwin'
+if os == 'openbsd' or os == 'freebsd' or os == 'darwin'
 	if is_gcc_compatible
 		cpp_flags += gcc_compatible_flags
 	endif
@@ -69,7 +62,7 @@ elif os == 'linux'
 	include_install = '/usr/include'
 # On Win64, define __BUILD_STATIC and use bcrypt.dll for access to the newer Microsoft crypto API. Use C:/include as the 'include_install' directory.
 elif os == 'windows'
-	_flag      = _Define_Flag_Prefix + 'SSC_BUILD_STATIC'
+	_flag = _D_PREFIX + 'SSC_BUILD_STATIC'
 	cpp_flags += _flag
 	lib_deps += cc.find_library('bcrypt')
 	include_install = 'C:/include'
@@ -79,12 +72,12 @@ inc_dir += '..'
 
 # If specified, do not lock memory to try to prevent sensitive data from swapping.
 if get_option('disable_memorylocking')
-	_flag = _Define_Flag_Prefix + 'SSC_EXT_DISABLE_MEMORYLOCKING'
+	_flag = _D_PREFIX + 'SSC_EXT_DISABLE_MEMORYLOCKING'
 	cpp_flags += _flag
 endif
 # If specified, disable certain correctness checks.
 if get_option('disable_runtime_checks')
-	_flag = _Define_Flag_Prefix + 'SSC_EXT_DISABLE_RUNTIME_CHECKS'
+	_flag = _D_PREFIX + 'SSC_EXT_DISABLE_RUNTIME_CHECKS'
 	cpp_flags += _flag
 endif
 # If specified, enable the SSC_DRAGONFLY_V1 encryption method.
