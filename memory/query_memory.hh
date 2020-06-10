@@ -26,5 +26,5 @@ namespace ssc {
 			return Query_Free_Fail;
 		return static_cast<u64_t>(page_size) * static_cast<u64_t>(number_avail_pages);
 	}
-}// ~ namespace ssc
+} // ~ namespace ssc
 #endif

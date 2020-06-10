@@ -27,6 +27,10 @@
 #		include <endian.h>
 #	elif  defined (__FreeBSD__)
 #		include <sys/endian.h>
+#	elif  defined (__NetBSD__)
+#		include <sys/types.h>
+#		include <machine/bswap.h>
+#		include <string.h>
 #	elif  defined (__gnu_linux__)
 #		include <byteswap.h>
 	/* for reading from /dev/random, access to memset_s */
@@ -173,7 +177,7 @@ namespace ssc {
 		if( read( random_dev, buffer, num_bytes ) != static_cast<ssize_t>(num_bytes) )
 			errx( "Error: Failed to read from /dev/random!\n" );
 		close_os_file( random_dev );
-	/* For OpenBSD, FreeBSD, and GNU/Linux, we can use getentropy() to obtain OS entropy.
+	/* For OpenBSD, FreeBSD, NetBSD, and GNU/Linux, we can use getentropy() to obtain OS entropy.
 	 */
 #elif  defined (SSC_OS_UNIXLIKE)
 		static constexpr int Max_Bytes = 256;
@@ -216,7 +220,12 @@ namespace ssc {
 	 * Use memset_s since it's there.
 	 */
 #if    defined (SSC_OS_OSX)
-		memset_s( buffer, num_bytes, 0, num_bytes );
+		static_cast<void>(memset_s( buffer, num_bytes, 0, num_bytes ));
+	/* NetBSD doesn't seem to support explicit_bzero, but provides its own function
+	 * for destroying buffers.
+	 */
+#elif  defined (__NetBSD__)
+		static_cast<void>(explicit_memset( buffer, 0, num_bytes ));
 	/* It appears OpenBSD, FreeBSD, and GNU/Linux all support the explicit_bzero call.
 	 */
 #elif  defined (SSC_OS_UNIXLIKE)
@@ -251,7 +260,7 @@ namespace ssc {
 
 #if    defined (__OpenBSD__)
 #	define SWAP_F_IMPL(size,u)	swap##size( u )
-#elif  defined (__FreeBSD__)
+#elif  defined (__FreeBSD__) || defined (__NetBSD__)
 #	define SWAP_F_IMPL(size,u)	bswap##size( u )
 #elif  defined (__gnu_linux__)
 #	define SWAP_F_IMPL(size,u)	bswap_##size( u )
@@ -327,14 +336,14 @@ namespace ssc {
 		for( size_t i = 0; i < size; ++i ) {
 			u8_t const b = reinterpret_cast<u8_t const*>( left)[ i ] ^
 				       reinterpret_cast<u8_t const*>(right)[ i ];
-			non_equal_bytes += ((b >> 7) |
+			non_equal_bytes += ( (b >> 7) |
 					    ((b >> 6) & One_Mask) |
 					    ((b >> 5) & One_Mask) |
 					    ((b >> 4) & One_Mask) |
 					    ((b >> 3) & One_Mask) |
 					    ((b >> 2) & One_Mask) |
 					    ((b >> 1) & One_Mask) |
-					    (b & One_Mask)
+					    ((b     ) & One_Mask)
 					   );
 		}
 		return non_equal_bytes;

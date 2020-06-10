@@ -54,6 +54,7 @@
 /* Define OpenBSD, FreeBSD, GNU/Linux, and Mac OSX as UNIX-like operating systems. */
 #if    defined (__OpenBSD__)   || \
        defined (__FreeBSD__)   || \
+       defined (__NetBSD__)    || \
        defined (__gnu_linux__) || \
        defined (SSC_OS_OSX)
 #	ifdef SSC_OS_UNIXLIKE
@@ -61,29 +62,25 @@
 #	endif
 #	define SSC_OS_UNIXLIKE
 /* Define MS Windows, naming scheme consistent with the above. */
-#elif  defined (_WIN32) || defined (_WIN64)
+#elif  defined (_WIN32)
 #	ifdef SSC_OS_WINDOWS
 #		error 'SSC_OS_WINDOWS already defined'
 #	endif
 #	define SSC_OS_WINDOWS
-#else
-#	error 'Unsupported OS'
-#endif // ~ #if defined (__OpenBSD__) || defined (__FreeBSD__) || defined (__gnu_linux__)
-
-/* Define 32-bit and 64-bit MS Windows, naming scheme consistent with the above. */
-#ifdef SSC_OS_WINDOWS
-#	ifndef _WIN64 /* 32-bit */
-#		ifdef SSC_OS_WIN32
-#			error 'SSC_OS_WIN32 already defined'
-#		endif
-#		define SSC_OS_WIN32
-#	else /* 64-bit */
+#	ifdef _WIN64
 #		ifdef SSC_OS_WIN64
 #			error 'SSC_OS_WIN64 already defined'
 #		endif
 #		define SSC_OS_WIN64
-#	endif // ~ #ifndef _WIN64
-#endif // ~ #ifdef SSC_OS_WINDOWS
+#	else
+#		ifdef SSC_OS_WIN32
+#			error 'SSC_OS_WIN32 already defined'
+#		endif
+#		define SSC_OS_WIN32
+#	endif
+#else
+#	error 'Unsupported OS'
+#endif // ~ #if defined (unixlike_os's...)
 
 /* Compile-Time-Constant short-hand macros. */
 #ifdef SSC_RESTRICT
@@ -93,8 +90,10 @@
 
 /* OpenBSD-specific mitigations */
 #ifdef	__OpenBSD__
-#	if    defined (SSC_OPENBSD_UNVEIL) || defined (SSC_OPENBSD_PLEDGE)
-#		error 'SSC_OPENBSD_UNVEIL or SSC_OPENBSD_PLEDGE already defined'
+#	if    defined (SSC_OPENBSD_UNVEIL)
+#		error 'SSC_OPENBSD_UNVEIL already defined'
+#	elif  defined (SSC_OPENBSD_PLEDGE)
+#		error 'SSC_OPENBSD_PLEDGE already defined'
 #	endif
 #	include <ssc/general/error_conditions.hh>
 #	include <unistd.h>
@@ -110,9 +109,10 @@
 #endif // ~ #ifdef __OpenBSD__
 
 /* Simplification Macros */
-#if    defined (SSC_MACRO_SHIELD) || defined (SSC_MACRO_SHIELD_EXIT)
-#	error 'MACRO_SHIELD or MACRO_SHIELD_EXIT Already Defined'
-#else
-#	define SSC_MACRO_SHIELD		do {
-#	define SSC_MACRO_SHIELD_EXIT	} while(0)
+#if    defined (SSC_MACRO_SHIELD)
+#	error 'SSC_MACRO_SHIELD already defined'
+#elif  defined (SSC_MACRO_SHIELD_EXIT)
+#	error 'SSC_MACRO_SHIELD_EXIT already defined'
 #endif
+#define SSC_MACRO_SHIELD	do {
+#define SSC_MACRO_SHIELD_EXIT	} while(0)

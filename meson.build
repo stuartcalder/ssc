@@ -8,7 +8,7 @@ project('ssc', 'cpp',
 cc = meson.get_compiler('cpp')
 os = host_machine.system()
 # Assert that we are building on a supported operating system, with a supported compiler.
-assert ( (os == 'openbsd' or os == 'freebsd' or os == 'darwin' or os == 'linux' or os == 'windows'),
+assert ( (os == 'openbsd' or os == 'freebsd' or os == 'netbsd' or os == 'darwin' or os == 'linux' or os == 'windows'),
 	 'You are trying to build SSC with an unsupported operating system!' )
 assert ( (cc.get_id() == 'gcc' or cc.get_id() == 'clang' or cc.get_id() == 'msvc'),
 	 'The only supported compilers are GCC, Clang, And MSVC!' )
@@ -52,6 +52,13 @@ if os == 'openbsd' or os == 'freebsd' or os == 'darwin'
 	endif
 	lib_deps  += cc.find_library('ncurses')
 	include_install = '/usr/local/include'
+# NetBSD uses different directories than the others, with pkgsrc.
+elif os == 'netbsd'
+	if is_gcc_compatible
+		cpp_flags += gcc_compatible_flags
+	endif
+	lib_deps += cc.find_library('ncurses')
+	include_install = '/usr/pkg/include'
 # On GNU/Linux, we need ncurses as on the BSD's, but we also need tinfo. Use /usr/include for the 'include_install' directory.
 elif os == 'linux'
 	if is_gcc_compatible
@@ -60,7 +67,7 @@ elif os == 'linux'
 	lib_deps  += cc.find_library('ncurses')
 	lib_deps  += cc.find_library('tinfo')
 	include_install = '/usr/include'
-# On Win64, define __BUILD_STATIC and use bcrypt.dll for access to the newer Microsoft crypto API. Use C:/include as the 'include_install' directory.
+# On Win64, define SSC_BUILD_STATIC and use bcrypt.dll for access to the newer Microsoft crypto API. Use C:/include as the 'include_install' directory.
 elif os == 'windows'
 	_flag = _D_PREFIX + 'SSC_BUILD_STATIC'
 	cpp_flags += _flag
