@@ -31,6 +31,7 @@
 #		include <sys/types.h>
 #		include <machine/bswap.h>
 #		include <string.h>
+#		include <sys/param.h>
 #	elif  defined (__gnu_linux__)
 #		include <byteswap.h>
 	/* for reading from /dev/random, access to memset_s */
@@ -170,9 +171,12 @@ namespace ssc {
 	{
                 using namespace std;
 	/* It doesn't appear there is an OSX-specific function for obtaining entropy, like getentropy().
-	 * Get it manually by reading from /dev/random
+	 * Get it manually by reading from /dev/random.
+	 * get_entropy() only supported by NetBSD version 10 and above.
 	 */
-#if    defined (SSC_OS_OSX)
+#if    defined (SSC_OS_OSX) || \
+       (defined (__NetBSD__) && (__NetBSD_Version__ < 1000000000))
+		//TODO
 		OS_File_t random_dev = open_existing_os_file( "/dev/random", true );
 		if( read( random_dev, buffer, num_bytes ) != static_cast<ssize_t>(num_bytes) )
 			errx( "Error: Failed to read from /dev/random!\n" );
