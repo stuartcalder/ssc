@@ -57,7 +57,7 @@ elif os == 'netbsd'
 	if is_gcc_compatible
 		cpp_flags += gcc_compatible_flags
 	endif
-	lib_deps += cc.find_library('ncurses')
+	lib_deps += cc.find_library('ncurses', dirs: '/usr/pkg/lib')
 	include_install = '/usr/pkg/include'
 # On GNU/Linux, we need ncurses as on the BSD's, but we also need tinfo. Use /usr/include for the 'include_install' directory.
 elif os == 'linux'
