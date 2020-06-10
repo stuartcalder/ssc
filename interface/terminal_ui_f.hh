@@ -12,7 +12,13 @@
 #		error 'SSC_FEATURE_TERMINAL_UI_F Already Defined'
 #	endif
 #	if    defined (SSC_OS_UNIXLIKE)
-#		include <ncurses.h>
+#		if    __has_include (<ncurses.h>)
+#			include <ncurses.h>
+#		elif  __has_include (<ncurses/ncurses.h>)
+#			include <ncurses/ncurses.h>
+#		else
+#			error 'No valid ncurses.h header found.'
+#		endif // ~ #if __has_include (<ncurses.h>)
 #		define NEWLINE "\n"
 #	elif  defined (SSC_OS_WIN64)
 #		include <ssc/general/error_conditions.hh>

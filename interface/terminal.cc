@@ -14,7 +14,13 @@ See accompanying LICENSE file for licensing information.
 #include <ssc/memory/os_memory_locking.hh>
 
 #if    defined (SSC_OS_UNIXLIKE)
-#	include <ncurses.h>
+#	if    __has_include(<ncurses.h>)
+#		include <ncurses.h>
+#	elif  __has_include(<ncurses/ncurses.h>)
+#		include <ncurses/ncurses.h>
+#	else
+#		error 'No valid ncurses include was detected.'
+#	endif // ~ #if __has_include(<ncurses.h>)
 #elif  defined (SSC_OS_WIN64)
 #	include <windows.h>
 #	include <conio.h>
