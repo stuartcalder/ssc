@@ -39,7 +39,7 @@ gcc_compatible_flags = [
 	'-fno-rtti',           # We don't use run-time type info, so disable it.
 ]
 if os != 'netbsd'
-	gcc_compatible_flags += '-flto' # Link-time optimizations
+	gcc_compatible_flags += '-flto' # Link-time optimizations (Disabled by default on NetBSD)
 endif
 
 # On OSX we require __STDC_WANT_LIB_EXT1__ to be defined as 1, for access to memset_s.
@@ -60,7 +60,7 @@ elif os == 'netbsd'
 		cpp_flags += gcc_compatible_flags
 	endif
 	lib_deps += cc.find_library('ncurses', dirs: '/usr/pkg/lib')
-	include_install = '/usr/pkg/include'
+	include_install = '/usr/local/include'
 	inc_dir += '/usr/pkg/include'
 # On GNU/Linux, we need ncurses as on the BSD's, but we also need tinfo. Use /usr/include for the 'include_install' directory.
 elif os == 'linux'

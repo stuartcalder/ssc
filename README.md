@@ -29,7 +29,7 @@ SSC implements the following algorithms:
 -	Minimum __Windows Vista/Server 2008__
 -	Visual Studio 2019
 ## Building ssc with meson
-### Building on Mac OSX, OpenBSD, and FreeBSD systems
+### Building on Mac OSX, OpenBSD, FreeBSD, NetBSD systems
 1. git clone [ssc](https://github.com/stuartcalder/ssc) and cd into it.
 2. Execute the following:
 ```
