@@ -170,18 +170,23 @@ namespace ssc {
 	obtain_os_entropy (u8_t *buffer, size_t num_bytes)
 	{
                 using namespace std;
-	/* It doesn't appear there is an OSX-specific function for obtaining entropy, like getentropy().
-	 * Get it manually by reading from /dev/random.
-	 * get_entropy() only supported by NetBSD version 10 and above.
+	/* It appears that reading from /dev/random is consistent on OSX, but blocks often on NetBSD.
+	 * Read from /dev/urandom by default on NetBSD and /dev/random on OSX.
 	 */
-#if    defined (SSC_OS_OSX) || \
-       (defined (__NetBSD__) && (__NetBSD_Version__ < 1000000000))
-		//TODO
-		OS_File_t random_dev = open_existing_os_file( "/dev/random", true );
+#if    defined (SSC_OS_OSX) || (defined (__NetBSD__) && (__NetBSD_Version__ < 1000000000))
+#	if    defined (SSC_OS_OSX)
+#		define RANDOM_DEVICE "/dev/random"
+#	elif  defined (__NetBSD__)
+#		define RANDOM_DEVICE "/dev/urandom"
+#	else
+#		error 'This should be impossibe.'
+#	endif
+		OS_File_t random_dev = open_existing_os_file( RANDOM_DEVICE, true );
 		if( read( random_dev, buffer, num_bytes ) != static_cast<ssize_t>(num_bytes) )
-			errx( "Error: Failed to read from /dev/random!\n" );
+			errx( "Error: Failed to read from " RANDOM_DEVICE "\n" );
 		close_os_file( random_dev );
-	/* For OpenBSD, FreeBSD, NetBSD, and GNU/Linux, we can use getentropy() to obtain OS entropy.
+#	undef RANDOM_DEVICE
+	/* For OpenBSD, FreeBSD, GNU/Linux, and NetBSD >= 10.0, we can use getentropy() to obtain OS entropy.
 	 */
 #elif  defined (SSC_OS_UNIXLIKE)
 		static constexpr int Max_Bytes = 256;
@@ -340,15 +345,14 @@ namespace ssc {
 		for( size_t i = 0; i < size; ++i ) {
 			u8_t const b = reinterpret_cast<u8_t const*>( left)[ i ] ^
 				       reinterpret_cast<u8_t const*>(right)[ i ];
-			non_equal_bytes += ( (b >> 7) |
+			non_equal_bytes += (((b >> 7)           ) |
 					    ((b >> 6) & One_Mask) |
 					    ((b >> 5) & One_Mask) |
 					    ((b >> 4) & One_Mask) |
 					    ((b >> 3) & One_Mask) |
 					    ((b >> 2) & One_Mask) |
 					    ((b >> 1) & One_Mask) |
-					    ((b     ) & One_Mask)
-					   );
+					    ((b     ) & One_Mask));
 		}
 		return non_equal_bytes;
 	}
