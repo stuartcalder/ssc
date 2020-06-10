@@ -37,8 +37,10 @@ gcc_compatible_flags = [
 	'-Wall',               # Give us all the compile-time warnings.
 	'-funroll-loops',      # Unroll loops to optimize for speed.
 	'-fno-rtti',           # We don't use run-time type info, so disable it.
-	'-flto'		       # Enable link-time optimizations.
 ]
+if os != 'netbsd'
+	gcc_compatible_flags += '-flto' # Link-time optimizations
+endif
 
 # On OSX we require __STDC_WANT_LIB_EXT1__ to be defined as 1, for access to memset_s.
 if os == 'darwin'
