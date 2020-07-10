@@ -189,7 +189,7 @@ namespace ssc {
 	/* For OpenBSD, FreeBSD, GNU/Linux, and NetBSD >= 10.0, we can use getentropy() to obtain OS entropy.
 	 */
 #elif  defined (SSC_OS_UNIXLIKE)
-		static constexpr int Max_Bytes = 256;
+		static constexpr size_t Max_Bytes = 256;
                 while( num_bytes > Max_Bytes ) {
                         if( getentropy( buffer, Max_Bytes ) != 0 )
 				errx( "Error: Failed to getentropy()\n" );

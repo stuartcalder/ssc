@@ -51,7 +51,7 @@
 #	define SSC_OS_OSX
 #endif
 
-/* Define OpenBSD, FreeBSD, GNU/Linux, and Mac OSX as UNIX-like operating systems. */
+/* Define the BSDs, GNU/Linux, and Mac OSX as UNIX-like operating systems. */
 #if    defined (__OpenBSD__)   || \
        defined (__FreeBSD__)   || \
        defined (__NetBSD__)    || \
@@ -102,10 +102,12 @@
 			errx( "Failed to unveil()\n" )
 #	define SSC_OPENBSD_PLEDGE(promises,execpromises) \
 		if( pledge( promises, execpromises ) != 0 ) \
-			errx( "pledge() failed\n" )
+			errx( "Failed to pledge()\n" )
 #else
-#	define SSC_OPENBSD_UNVEIL(null0,null1)  // Define as nothing on Non-OpenBSD systems.
-#	define SSC_OPENBSD_PLEDGE(null0,null1)  // Define as nothing on Non-OpenBSD systems.
+/* These macros define to nothing on non-OpenBSD operating systems.
+ */
+#	define SSC_OPENBSD_UNVEIL(null0,null1)
+#	define SSC_OPENBSD_PLEDGE(null0,null1)
 #endif // ~ #ifdef __OpenBSD__
 
 /* Simplification Macros */

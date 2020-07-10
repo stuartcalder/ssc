@@ -7,19 +7,18 @@ project('ssc', 'cpp',
 # Determine compiler, operating system.
 cc = meson.get_compiler('cpp')
 os = host_machine.system()
+_SUPPORTED_OPERATING_SYSTEMS = ['openbsd', 'freebsd', 'netbsd', 'darwin', 'linux', 'windows']
+_SUPPORTED_COMPILERS         = ['gcc', 'clang', 'msvc']
+_GCC_COMPATIBLE_COMPILERS    = ['gcc', 'clang']
 # Assert that we are building on a supported operating system, with a supported compiler.
-assert ( (os == 'openbsd' or os == 'freebsd' or os == 'netbsd' or os == 'darwin' or os == 'linux' or os == 'windows'),
-	 'You are trying to build SSC with an unsupported operating system!' )
-assert ( (cc.get_id() == 'gcc' or cc.get_id() == 'clang' or cc.get_id() == 'msvc'),
-	 'The only supported compilers are GCC, Clang, And MSVC!' )
+assert (os in _SUPPORTED_OPERATING_SYSTEMS,  'You are trying to build SSC using an unsupported operating system!')
+assert (cc.get_id() in _SUPPORTED_COMPILERS, 'You are tryingt o build SSC using an unsupported compiler!')
 # Determine what prefix to use when passing macro defines.
 if os == 'windows' and cc.get_id() == 'msvc'
 	_D_PREFIX = '/D'
 else
 	_D_PREFIX = '-D'
 endif
-# Determine if our compiler will accept gcc-compatible flags.
-is_gcc_compatible = (cc.get_id() == 'gcc' or cc.get_id() == 'clang')
 # Describe the source files we'll be compiling into libssc.
 ssc_src = [ 'general/c_argument_map.cc',
 	    'general/print.cc',
@@ -49,14 +48,14 @@ if os == 'darwin'
 endif
 # On OpenBSD, FreeBSD, and OSX, the library dependencies and 'include_install' directory are the same.
 if os == 'openbsd' or os == 'freebsd' or os == 'darwin'
-	if is_gcc_compatible
+	if cc.get_id() in _GCC_COMPATIBLE_COMPILERS
 		cpp_flags += gcc_compatible_flags
 	endif
 	lib_deps  += cc.find_library('ncurses')
 	include_install = '/usr/local/include'
 # NetBSD uses different directories than the others, with pkgsrc.
 elif os == 'netbsd'
-	if is_gcc_compatible
+	if cc.get_id() in _GCC_COMPATIBLE_COMPILERS
 		cpp_flags += gcc_compatible_flags
 	endif
 	lib_deps += cc.find_library('ncurses', dirs: '/usr/pkg/lib')
@@ -64,7 +63,7 @@ elif os == 'netbsd'
 	inc_dir += '/usr/pkg/include'
 # On GNU/Linux, we need ncurses as on the BSD's, but we also need tinfo. Use /usr/include for the 'include_install' directory.
 elif os == 'linux'
-	if is_gcc_compatible
+	if cc.get_id() in _GCC_COMPATIBLE_COMPILERS
 		cpp_flags += gcc_compatible_flags
 	endif
 	lib_deps  += cc.find_library('ncurses')
@@ -100,7 +99,7 @@ if get_option('enable_cbc_v2')
 	ssc_src += 'crypto/implementation/sspkdf.cc'
 endif
 # For compilers compatible with gcc flags...
-if is_gcc_compatible
+if cc.get_id() in _GCC_COMPATIBLE_COMPILERS
 #	If specified, leave debugging symbols in the binary.
 	if get_option('enable_debugging_symbols')
 		cpp_flags += '-g'
