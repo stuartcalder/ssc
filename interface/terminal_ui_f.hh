@@ -54,7 +54,7 @@ namespace ssc
 		notify (char const *notice);
 
 		[[nodiscard]] static int
-		obtain_password (Char_t * SHIM_RESTRICT password_buffer,
+		obtain_password (Char_t *     SHIM_RESTRICT password_buffer,
 				 char const * SHIM_RESTRICT entry_prompt,
 				 int const                  min_pw_size = 1,
 				 int const                  max_pw_size = Max_Buffer_Size - 1);

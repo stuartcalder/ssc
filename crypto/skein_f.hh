@@ -36,7 +36,7 @@ namespace ssc
 		static void
 		hash (Data_t * SHIM_RESTRICT ubi_data,
 		      uint8_t *              bytes_out,
-		      uint8_t *              bytes_in,
+		      uint8_t const *        bytes_in,
 		      uint64_t const         num_bytes_in,
 		      uint64_t const         num_bytes_out);
 		
@@ -63,7 +63,7 @@ namespace ssc
 	TEMPLATE_ARGS void
 	CLASS::hash (Data_t * SHIM_RESTRICT ubi_data,
 		     uint8_t *              bytes_out,
-		     uint8_t *              bytes_in,
+		     uint8_t const *        bytes_in,
 		     uint64_t const         num_bytes_in,
 		     uint64_t const         num_bytes_out)
 	{
