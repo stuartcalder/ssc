@@ -4,6 +4,9 @@
  */
 #pragma once
 
+#include <shim/operations.h>
+#include <shim/macros.h>
+
 #include <cstdio>
 #include <cstdlib>
 #include <ssc/crypto/constants.hh>
@@ -31,16 +34,16 @@
 			    dat_ptr->tweak_state );	/*Process our tweak state.*/ \
 	/*Encipher our message block as plaintext into our key state as ciphertext.*/ \
 	Threefish_f::cipher( &dat_ptr->threefish_data, 				/*Threefish Data struct.*/ \
-			     reinterpret_cast<u8_t*>(dat_ptr->key_state), 	/*Output ciphertext into key state.*/ \
+			     reinterpret_cast<uint8_t*>(dat_ptr->key_state), 	/*Output ciphertext into key state.*/ \
 			     dat_ptr->msg_state ); 				/*Input message block as plaintext.*/ \
-	xor_block<State_Bits>( dat_ptr->key_state, dat_ptr->msg_state )		/*XOR msg and key states, stored in the key state.*/
+	SSC_XOR (dat_ptr->key_state, dat_ptr->msg_state, State_Bytes)		/*XOR msg and key states, stored in the key state.*/
 
 #define MODIFY_TWEAK_FLAGS(dat_ptr,operation,value) \
 	/*Modify the tweak flags. (i.e. first block flag, last block flag)*/ \
-	reinterpret_cast<u8_t*>(dat_ptr->tweak_state)[ Tweak_Bytes - 1 ] operation value
+	reinterpret_cast<uint8_t*>(dat_ptr->tweak_state)[ Tweak_Bytes - 1 ] operation value
 
 #define MODIFY_TWEAK_POSITION(dat_ptr,operation,value) \
-	dat_ptr->tweak_state[ 0 ] operation static_cast<u64_t>(value)
+	dat_ptr->tweak_state[ 0 ] operation static_cast<uint64_t>(value)
 
 #define INIT_TWEAK(dat_ptr,init_bitwise_or) \
 	/*Initialize the tweak as before any calls to UBI.*/ \
@@ -69,7 +72,7 @@ namespace ssc {
 
 		Unique_Block_Iteration_F (void) = delete;
 
-		enum class Type_Mask_E : u8_t {
+		enum class Type_Mask_E : uint8_t {
 			Key =  0,
 			Cfg =  4,
 			Prs =  8,
@@ -79,46 +82,46 @@ namespace ssc {
 			Msg = 48,
 			Out = 63
 		};
-		static constexpr u8_t Tweak_First_Bit = 0b0100'0000;
-		static constexpr u8_t Tweak_Last_Bit  = 0b1000'0000;
-		static constexpr u8_t Tweak_First_Mask = ~Tweak_First_Bit;
+		static constexpr uint8_t Tweak_First_Bit = 0b0100'0000;
+		static constexpr uint8_t Tweak_Last_Bit  = 0b1000'0000;
+		static constexpr uint8_t Tweak_First_Mask = ~Tweak_First_Bit;
 
 		static_assert (static_cast<int>(State_Bytes) == static_cast<int>(Threefish_f::Block_Bytes));
 		struct Data {
 			typename Threefish_f::Data_t threefish_data;
-			u64_t                        key_state   [Threefish_f::External_Key_Words];
-			alignas(u64_t) u8_t          msg_state   [State_Bytes];
-			u64_t                        tweak_state [Threefish_f::External_Tweak_Words];
+			uint64_t                     key_state   [Threefish_f::External_Key_Words];
+			alignas(uint64_t) uint8_t    msg_state   [State_Bytes];
+			uint64_t                     tweak_state [Threefish_f::External_Tweak_Words];
 		};
 
 		static void
-		chain_config (Data *data, u64_t const num_out_bits);
+		chain_config (Data *data, uint64_t const num_out_bits);
 
 		static void
-		chain_native_output (SSC_RESTRICT (Data*) data,
-				     SSC_RESTRICT (u8_t*) output);
+		chain_native_output (Data *    SHIM_RESTRICT data,
+				     uint8_t * SHIM_RESTRICT output);
 
 		static void
-		chain_message (SSC_RESTRICT (Data *)       data,
-			       SSC_RESTRICT (u8_t const *) input,
-			       u64_t                   num_in_bytes);
+		chain_message (Data *          SHIM_RESTRICT data,
+			       uint8_t const * SHIM_RESTRICT input,
+			       uint64_t                      num_in_bytes);
 
 		static void
-		chain_output (SSC_RESTRICT (Data *) data,
-			      SSC_RESTRICT (u8_t *) output,
-			      u64_t             num_out_bytes);
+		chain_output (Data *    SHIM_RESTRICT data,
+			      uint8_t * SHIM_RESTRICT output,
+			      uint64_t                num_out_bytes);
 
 		template <Type_Mask_E Type,int Input_Bytes> static void
-		chain_type (SSC_RESTRICT (Data*)       data,
-			    SSC_RESTRICT (u8_t const*) input);
+		chain_type (Data *          SHIM_RESTRICT data,
+			    uint8_t const * SHIM_RESTRICT input);
 	/* Constructors / Destructors
 	 */
 	};// ~ class Unique_Block_Iteration_F
 
 	TEMPLATE_ARGS void
-	CLASS::chain_config (Data *data, u64_t const num_out_bits)
+	CLASS::chain_config (Data *data, uint64_t const num_out_bits)
 	{
-		INIT_TWEAK            (data,(Tweak_Last_Bit | static_cast<u8_t>(Type_Mask_E::Cfg)));
+		INIT_TWEAK            (data,(Tweak_Last_Bit | static_cast<uint8_t>(Type_Mask_E::Cfg)));
 		MODIFY_TWEAK_POSITION (data,=,32);
 
 	/*
@@ -141,7 +144,7 @@ namespace ssc {
 		0x00, 0x00, 0x00, 0x00
 	   };
 	*/
-		static constexpr u8_t First_5_Config_Bytes [5] = {
+		static constexpr uint8_t First_5_Config_Bytes [5] = {
 			0x53, 0x48, 0x41, 0x33, // Schema identifier "SHA3"
 			0x01 // Version number (1)
 		};
@@ -162,13 +165,13 @@ namespace ssc {
 	}
 
 	TEMPLATE_ARGS void
-	CLASS::chain_native_output (SSC_RESTRICT (Data*) data,
-			            SSC_RESTRICT (u8_t*) output)
+	CLASS::chain_native_output (Data *    SHIM_RESTRICT data,
+			            uint8_t * SHIM_RESTRICT output)
 	{
 		// Set the tweak first bit, last bit, and the type to Out.
-		INIT_TWEAK            (data,(Tweak_Last_Bit | static_cast<u8_t>(Type_Mask_E::Out)));
+		INIT_TWEAK            (data,(Tweak_Last_Bit | static_cast<uint8_t>(Type_Mask_E::Out)));
 		// Set the tweak position to State_Bytes.
-		MODIFY_TWEAK_POSITION (data,=,sizeof(u64_t));
+		MODIFY_TWEAK_POSITION (data,=,sizeof(uint64_t));
 		// Zero over the message state.
 		std::memset( data->msg_state, 0, sizeof(data->msg_state) );
 		// Rekey the cipher, encrypt the message into the key buffer, xor the two buffers together and store the result in the key buffer.
@@ -178,12 +181,12 @@ namespace ssc {
 	}
 
 	TEMPLATE_ARGS void
-	CLASS::chain_message (SSC_RESTRICT (Data*)       data,
-			      SSC_RESTRICT (u8_t const*) input,
-			      u64_t                      num_in_bytes)
+	CLASS::chain_message (Data *          SHIM_RESTRICT data,
+			      uint8_t const * SHIM_RESTRICT input,
+			      uint64_t                      num_in_bytes)
 	{
 		// Set the tweak first bit and the type to Msg.
-		INIT_TWEAK (data,static_cast<u8_t>(Type_Mask_E::Msg));
+		INIT_TWEAK (data,static_cast<uint8_t>(Type_Mask_E::Msg));
 		// If there are one or less blocks worth of input...
 		if( num_in_bytes <= State_Bytes ) {
 			// Set the tweak last bit.
@@ -236,13 +239,13 @@ namespace ssc {
 		REKEY_CIPHER_XOR (data);
 	}// ~ void chain_message(...)
 	TEMPLATE_ARGS void
-	CLASS::chain_output (SSC_RESTRICT (Data*) data,
-			     SSC_RESTRICT (u8_t*) output,
-			     u64_t                num_out_bytes)
+	CLASS::chain_output (Data *    SHIM_RESTRICT data,
+			     uint8_t * SHIM_RESTRICT output,
+			     uint64_t                num_out_bytes)
 	{
-		INIT_TWEAK (data,static_cast<u8_t>(Type_Mask_E::Out));
+		INIT_TWEAK (data,static_cast<uint8_t>(Type_Mask_E::Out));
 		std::memset( data->msg_state, 0, sizeof(data->msg_state) );
-		MODIFY_TWEAK_POSITION (data,=,sizeof(u64_t));
+		MODIFY_TWEAK_POSITION (data,=,sizeof(uint64_t));
 		if( num_out_bytes <= State_Bytes ) {
 			MODIFY_TWEAK_FLAGS    (data,|=,Tweak_Last_Bit);
 			REKEY_CIPHER_XOR      (data);
@@ -253,7 +256,7 @@ namespace ssc {
 			MODIFY_TWEAK_FLAGS    (data,&=,Tweak_First_Mask);
 			std::memcpy( output, data->key_state, State_Bytes );
 			{
-				u64_t temp;
+				uint64_t temp;
 				std::memcpy( &temp, data->msg_state, sizeof(temp) );
 				++temp;
 				std::memcpy( data->msg_state, &temp, sizeof(temp) );
@@ -262,11 +265,11 @@ namespace ssc {
 			output        += State_Bytes;
 
 			while( num_out_bytes > State_Bytes ) {
-				MODIFY_TWEAK_POSITION (data,+=,sizeof(u64_t));
+				MODIFY_TWEAK_POSITION (data,+=,sizeof(uint64_t));
 				REKEY_CIPHER_XOR (data);
 				std::memcpy( output, data->key_state, State_Bytes );
 				{
-					u64_t temp;
+					uint64_t temp;
 					std::memcpy( &temp, data->msg_state, sizeof(temp) );
 					++temp;
 					std::memcpy( data->msg_state, &temp, sizeof(temp) );
@@ -275,14 +278,14 @@ namespace ssc {
 				output        += State_Bytes;
 			}
 			MODIFY_TWEAK_FLAGS (data,|=,Tweak_Last_Bit);
-			MODIFY_TWEAK_POSITION (data,+=,sizeof(u64_t));
+			MODIFY_TWEAK_POSITION (data,+=,sizeof(uint64_t));
 			REKEY_CIPHER_XOR (data);
 			std::memcpy( output, data->key_state, num_out_bytes );
 		}
 	}
 	TEMPLATE_ARGS template <typename CLASS::Type_Mask_E Type,int Input_Bytes> void
-	CLASS::chain_type (SSC_RESTRICT (Data*)       data,
-			   SSC_RESTRICT (u8_t const*) input)
+	CLASS::chain_type (Data *          SHIM_RESTRICT data,
+			   uint8_t const * SHIM_RESTRICT input)
 	{
 		static_assert (Type == Type_Mask_E::Key ||
 			       Type == Type_Mask_E::Prs ||
@@ -293,7 +296,7 @@ namespace ssc {
 		static_assert (Input_Bytes >= 1);
 
 		std::memset( data->tweak_state, 0, Tweak_Bytes );
-		INIT_TWEAK (data,static_cast<u8_t>(Type));
+		INIT_TWEAK (data,static_cast<uint8_t>(Type));
 		if constexpr (Input_Bytes <= State_Bytes) {
 			MODIFY_TWEAK_FLAGS    (data,|=,Tweak_Last_Bit);
 			MODIFY_TWEAK_POSITION (data,=,Input_Bytes);

@@ -4,9 +4,10 @@
  */
 #pragma once
 
+#include <shim/macros.h>
+#include <shim/map.h>
 #include <ssc/general/macros.hh>
 #include <ssc/general/integers.hh>
-#include <ssc/files/os_map.hh>
 
 #if    (!defined (SSC_FEATURE_DRAGONFLY_V1) && !defined (SSC_FEATURE_CBC_V2))
 #	error 'Crypto implementations must be #included before this file.'
@@ -56,9 +57,9 @@ namespace ssc::crypto_impl
 	}();
 
 	inline Crypto_Method_E
-	determine_crypto_method (OS_Map &os_map)
+	determine_crypto_method (Shim_Map &shim_map)
 	{
-		if( os_map.size < Smallest_ID_String_Size ) {
+		if( shim_map.size < Smallest_ID_String_Size ) {
 			return Crypto_Method_E::None;
 		}
 #ifdef SSC_FEATURE_DRAGONFLY_V1
@@ -66,7 +67,7 @@ namespace ssc::crypto_impl
 			using namespace dragonfly_v1;
 			static_assert (sizeof(Dragonfly_V1_ID) >= Smallest_ID_String_Size);
 			static_assert (sizeof(Dragonfly_V1_ID) <= Biggest_ID_String_Size);
-			if( memcmp( os_map.ptr, Dragonfly_V1_ID, sizeof(Dragonfly_V1_ID) ) == 0 ) {
+			if( memcmp( shim_map.ptr, Dragonfly_V1_ID, sizeof(Dragonfly_V1_ID) ) == 0 ) {
 				return Crypto_Method_E::Dragonfly_V1;
 			}
 		}
@@ -76,7 +77,7 @@ namespace ssc::crypto_impl
 			using namespace cbc_v2;
 			static_assert (sizeof(CBC_V2_ID) >= Smallest_ID_String_Size);
 			static_assert (sizeof(CBC_V2_ID) <= Biggest_ID_String_Size);
-			if( memcmp( os_map.ptr, CBC_V2_ID, sizeof(CBC_V2_ID) ) == 0 ) {
+			if( memcmp( shim_map.ptr, CBC_V2_ID, sizeof(CBC_V2_ID) ) == 0 ) {
 				return Crypto_Method_E::CBC_V2;
 			}
 

@@ -4,11 +4,12 @@
  */
 #include <utility>
 #include "parse_string.hh"
-#include <ssc/general/error_conditions.hh>
+#include <shim/macros.h>
+#include <shim/errors.h>
 
 namespace ssc {
 	int
-	shift_left_digits (char *c_str, int size)
+	shift_left_digits (char * SHIM_RESTRICT c_str, int size)
 	{
 		int index = 0;
 		for( int i = 0; i < size; ++i )

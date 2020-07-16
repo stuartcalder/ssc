@@ -4,9 +4,9 @@
  */
 #pragma once
 #include <string>
-#include <ssc/general/macros.hh>
+#include <shim/macros.h>
 
 namespace ssc {
-	int SSC_PUBLIC
-	shift_left_digits (char *c_str, int size);
+	int SHIM_PUBLIC
+	shift_left_digits (char * SHIM_RESTRICT c_str, int size);
 }// ~ namespace ssc

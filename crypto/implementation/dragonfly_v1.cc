@@ -9,49 +9,48 @@ using namespace std;
 #define __STDC_FORMAT_MACROS
 #include <cinttypes>
 
-#if    defined (LOCK_MEMORY) || defined (UNLOCK_MEMORY)
+#if    defined (LOCK_MEMORY_) || defined (UNLOCK_MEMORY_)
 #       error 'Some MACRO we need was already defined'
 #endif
 
-#ifdef SSC_FEATURE_MEMORYLOCKING
-#       define LOCK_MEMORY(address,size)	  lock_os_memory( address, size )
-#       define UNLOCK_MEMORY(address,size)	unlock_os_memory( address, size )
+#ifdef SHIM_FEATURE_MEMORYLOCKING
+#	define LOCK_MEMORY_(address, size)	shim_lock_memory( address, size )
+#       define UNLOCK_MEMORY_(address, size)	shim_unlock_memory( address, size )
 #else
-#       define LOCK_MEMORY(none_0,none_1)
-#       define UNLOCK_MEMORY(non_0,none_1)
+#       define LOCK_MEMORY_(none_0,none_1)
+#       define UNLOCK_MEMORY_(non_0,none_1)
 #endif
 
-#define CLEANUP_MAP(map) \
-	unmap_file( map ); \
-	close_os_file( map.os_file )
+#define CLEANUP_MAP_(map) \
+	shim_unmap_memory( &map ); \
+	shim_close_file( map.shim_file )
 
-#define CLEANUP_ERROR(secret_object) \
-	zero_sensitive( &secret_object, sizeof(secret_object) ); \
-	UNLOCK_MEMORY (&secret_object,sizeof(secret_object)); \
-	CLEANUP_MAP (output_map); \
-	CLEANUP_MAP (input_map); \
+#define CLEANUP_ERROR_(secret_object) \
+	shim_secure_zero( &secret_object, sizeof(secret_object) ); \
+	UNLOCK_MEMORY_ (&secret_object, sizeof(secret_object)); \
+	CLEANUP_MAP_ (output_map); \
+	CLEANUP_MAP_ (input_map); \
 	remove( output_filename )
 
-#define CLEANUP_SUCCESS(secret_object) \
-	zero_sensitive( &secret_object, sizeof(secret_object) ); \
-	UNLOCK_MEMORY (&secret_object,sizeof(secret_object)); \
-	sync_map( output_map ); \
-	CLEANUP_MAP (output_map); \
-	CLEANUP_MAP (input_map)
+#define CLEANUP_SUCCESS_(secret_object) \
+	shim_secure_zero( &secret_object, sizeof(secret_object) ); \
+	UNLOCK_MEMORY_ (&secret_object, sizeof(secret_object)); \
+	shim_sync_map( &output_map ); \
+	CLEANUP_MAP_ (output_map); \
+	CLEANUP_MAP_ (input_map)
 
-namespace ssc::crypto_impl::dragonfly_v1
-{
+namespace ssc::crypto_impl::dragonfly_v1 {
 	void
-	encrypt (Catena_Input const &catena_input,
-		 OS_Map             &input_map,
-		 OS_Map             &output_map,
-		 char const         *output_filename)
+	encrypt (Catena_Input const & SHIM_RESTRICT catena_input,
+		 Shim_Map &           SHIM_RESTRICT input_map,
+		 Shim_Map &           SHIM_RESTRICT output_map,
+		 char const *         SHIM_RESTRICT output_filename)
 	{
 		{// Setup the output map.
 			// Assume the output file's size to be the plaintext size with a visible header.
 			output_map.size = input_map.size + Visible_Metadata_Bytes + catena_input.padding_bytes;
-			set_os_file_size( output_map.os_file, output_map.size );// Set the output file's size.
-			map_file( output_map, false ); // Memory-map the output file, not readonly.
+			shim_set_file_size( output_map.shim_file, output_map.size ); // Set the output file's size.
+			shim_map_memory( &output_map, false );
 		}
 
 		static_assert (Block_Bytes == Threefish_f::Block_Bytes);
@@ -62,32 +61,32 @@ namespace ssc::crypto_impl::dragonfly_v1
 				typename Catena_Safe_f::Data   safe;
 			} catena;
 			// One key for encryption, large enough to hold the parity word computed during the Threefish keyschedule generation.
-			u64_t                   enc_key         [Threefish_f::External_Key_Words];
+			uint64_t                   enc_key         [Threefish_f::External_Key_Words];
 			// One key for authenticaiton, just large enough for the authentication code in Skein_f::mac().
-			alignas(u64_t) u8_t     auth_key        [Threefish_f::Block_Bytes];
-			typename UBI_f::Data    ubi_data;
+			alignas(uint64_t) uint8_t  auth_key        [Threefish_f::Block_Bytes];
+			typename UBI_f::Data       ubi_data;
 			// Two password buffers. One for the initial input, the second to compare and ensure the intended password is used without error.
-			u8_t                    first_password  [Password_Buffer_Bytes];
-			u8_t                    second_password [Password_Buffer_Bytes];
-			typename CSPRNG_f::Data csprng_data;
+			uint8_t                    first_password  [Password_Buffer_Bytes];
+			uint8_t                    second_password [Password_Buffer_Bytes];
+			typename CSPRNG_f::Data    csprng_data;
 			// A buffer used to temporarily hold random input from the keyboard, that will be hashed into the CSPRNG's seed buffer to strengthen it.
-			u8_t                    entropy_data    [Supplement_Entropy_Buffer_Bytes];
+			uint8_t                    entropy_data    [Supplement_Entropy_Buffer_Bytes];
 			// A buffer to hold the output of CATENA in the first `Block_Bytes` of memory, that will then be hashed into `Block_Bytes*2` bytes of memory,
 			// where the first `Block_Bytes` of memory will be used as the encryption key, and the second `Block_Bytes` of memory will be used as the
 			// authentication key.
-			alignas(u64_t) u8_t    hash_output      [Block_Bytes * 2];
+			alignas(uint64_t) uint8_t  hash_output     [Block_Bytes * 2];
 
 		} secret;
 		struct { // Public data, that need not be destroyed after use.
 			// Threefish tweak buffer; large enough to store the parity word during generation of the Threefish keyschedule.
-			u64_t               tf_tweak    [Threefish_f::External_Tweak_Words];
+			uint64_t                  tf_tweak    [Threefish_f::External_Tweak_Words];
 			// Enough bytes to copy into the nonce portion of the counter-mode's keystream buffer.
-			alignas(u64_t) u8_t ctr_nonce   [CTR_f::IV_Bytes];
+			alignas(uint64_t) uint8_t ctr_nonce   [CTR_f::IV_Bytes];
 			// Enough salt bytes to harden CATENA against adversaries with dedicated hardware.
-			alignas(u64_t) u8_t catena_salt [Salt_Bytes];
+			alignas(uint64_t) uint8_t catena_salt [Salt_Bytes];
 		} pub;
 
-		LOCK_MEMORY (&secret,sizeof(secret)); // Lock the secret object into memory; do not swap it to disk.
+		LOCK_MEMORY_ (&secret,sizeof(secret)); // Lock the secret object into memory; do not swap it to disk.
 
 		int password_size; // Store the number of bytes in the password we're about to get.
 
@@ -97,19 +96,17 @@ namespace ssc::crypto_impl::dragonfly_v1
 					                                secret.second_password,
 									Password_Prompt,
 									Password_Reentry_Prompt );
-			zero_sensitive( secret.second_password, Password_Buffer_Bytes ); // Destroy the secondary password buffer; it is no longer necessary.
+			shim_secure_zero( secret.second_password, Password_Buffer_Bytes ); // Destroy.
 		}
 		CSPRNG_f::initialize_seed( &secret.csprng_data ); // Initialize the random number generator.
 		if( catena_input.supplement_os_entropy ) { // Supplement the RNG's entropy if specified to do so.
-			supplement_entropy( &secret.csprng_data,
-					    secret.entropy_data,
-					    secret.entropy_data + Block_Bytes );
-			zero_sensitive( secret.entropy_data, sizeof(secret.entropy_data) ); // Destroy the entropy data.
+			supplement_entropy( &secret.csprng_data, secret.entropy_data, secret.entropy_data + Block_Bytes );
+			shim_secure_zero( secret.entropy_data, sizeof(secret.entropy_data) );
 		}
 		Terminal_UI_f::end();
 		{// 3 calls to the RNG to generate the tweak, nonce, and salt.
 			CSPRNG_f::get( &secret.csprng_data,
-				       reinterpret_cast<u8_t*>(pub.tf_tweak),
+				       reinterpret_cast<uint8_t*>(pub.tf_tweak),
 				       Tweak_Bytes ); // Generate 16 bytes of tweak material.
 			CSPRNG_f::get( &secret.csprng_data,
 				       pub.ctr_nonce,
@@ -117,7 +114,7 @@ namespace ssc::crypto_impl::dragonfly_v1
 			CSPRNG_f::get( &secret.csprng_data,
 				       pub.catena_salt,
 				       sizeof(pub.catena_salt) ); // Generate 32 bytes of salt material for CATENA.
-			zero_sensitive( &secret.csprng_data, sizeof(secret.csprng_data) ); // Destroy the CSPRNG data.
+			shim_secure_zero( &secret.csprng_data, sizeof(secret.csprng_data) );
 		}
 		{
 			// Generate the catena output, that we will then hash into encryption and authentication keys.
@@ -125,7 +122,7 @@ namespace ssc::crypto_impl::dragonfly_v1
 				memcpy( secret.catena.safe.salt,
 					pub.catena_salt,
 					sizeof(pub.catena_salt) ); // Copy the salt into CATENA's salt buffer.
-				auto r = Catena_Safe_f::call( &(secret.catena.safe), // Use the safe member of the CATENA union.
+				auto r = Catena_Safe_f::call( &secret.catena.safe, // Use the safe member of the CATENA union.
 						              secret.hash_output,    // Output into the first `Block_Bytes` of secret.hash_output.
 						              secret.first_password, // Process the password buffer.
 						              password_size,         // Process `password_size` bytes of the password buffer.
@@ -133,17 +130,17 @@ namespace ssc::crypto_impl::dragonfly_v1
 						              catena_input.g_high,   // Pass in the upper memory-bound, g_high.
 						              catena_input.lambda ); // Pass in the time-cost parameter, lambda.
 				if( r != Catena_Safe_f::Return_E::Success ) { // CATENA failed to allocate memory branch.
-					CLEANUP_ERROR (secret);
-					errx( "Error: Catena_Safe_f failed with error code %d...\n"
-					      "Allocating too much memory?\n", static_cast<int>(r) ); // Die.
+					CLEANUP_ERROR_ (secret);
+					SHIM_ERRX ("Error: Catena_Safe_f failed with error code %d...\n"
+						   "Allocating too much memory?\n", static_cast<int>(r));
 				}
-				zero_sensitive( &(secret.catena.safe), sizeof(secret.catena.safe) ); // Destroy the CATENA safe union member data.
+				shim_secure_zero( &secret.catena.safe, sizeof(secret.catena.safe) );
 			} else { // Resistance to massively-parallel adversaries branch.
 				// Copy the salt in.
 				memcpy( secret.catena.strong.salt,
 				        pub.catena_salt,
 					sizeof(pub.catena_salt) ); // Copy the salt into CATENA's salt buffer.
-				auto r = Catena_Strong_f::call( &(secret.catena.strong), // Use the strong member of the CATENA union.
+				auto r = Catena_Strong_f::call( &secret.catena.strong, // Use the strong member of the CATENA union.
 					  	                secret.hash_output,      // Output into the first `Block_Bytes` of secret.hash_output.
 						                secret.first_password,   // Process the password buffer.
 						                password_size,           // Proces `password_size` bytes of the password buffer.
@@ -151,15 +148,15 @@ namespace ssc::crypto_impl::dragonfly_v1
 						                catena_input.g_high,     // Pass in the upper memory-bound, g_high.
 						                catena_input.lambda );   // Pass in the time-cost parameter, lambda.
 				if( r != Catena_Strong_f::Return_E::Success ) { // CATENA failed to allocate memory branch.
-					CLEANUP_ERROR (secret);
-					errx( "Error: Catena_Strong_f failed with error code %d...\n"
-					      "Allocating too much memory?\n", static_cast<int>(r) ); // Die.
+					CLEANUP_ERROR_ (secret);
+					SHIM_ERRX ("Error: Catena_Strong_f failed with error code %d...\n"
+						   "Allocating too much memory?\n", static_cast<int>(r));
 				}
-				zero_sensitive( &(secret.catena.strong), sizeof(secret.catena.strong) ); // Destroy the CATENA strong union member data.
+				shim_secure_zero( &secret.catena.strong, sizeof(secret.catena.strong) );
 			}
-			zero_sensitive( secret.first_password, sizeof(secret.first_password) ); // Destroy the password.
+			shim_secure_zero( &secret.first_password, sizeof(secret.first_password) );
 			static_assert (sizeof(secret.hash_output) == (Block_Bytes * 2)); // Hash the output into encryption and authentication keys.
-			Skein_f::hash( &(secret.ubi_data),
+			Skein_f::hash( &secret.ubi_data,
 				       secret.hash_output, // Output into itself.
 				       secret.hash_output, // Use the output of CATENA as input to Skein.
 				       Block_Bytes,        // Process the first `Block_Bytes` of data, as output by CATENA.
@@ -170,18 +167,18 @@ namespace ssc::crypto_impl::dragonfly_v1
 			memcpy( secret.auth_key,
 				secret.hash_output + Block_Bytes,
 				Block_Bytes ); // Copy the second Block into the authentication key buffer.
-			zero_sensitive( secret.hash_output, sizeof(secret.hash_output) ); // Destroy the hash output buffer.
-			Threefish_f::rekey( &(secret.ctr_data.threefish_data),
+			shim_secure_zero( secret.hash_output, sizeof(secret.hash_output) );
+			Threefish_f::rekey( &secret.ctr_data.threefish_data,
 					    secret.enc_key,
 					    pub.tf_tweak ); // Compute the Threefish_f keyschedule with the encryption key and tweak.
 		}
 		// Setup the public portion of the header
-		u8_t *out = output_map.ptr; // Get a pointer to the beginning of the memory-mapped output file.
+		uint8_t *out = output_map.ptr; // Get a pointer to the beginning of the memory-mapped output file.
 
 		memcpy( out, Dragonfly_V1_ID, sizeof(Dragonfly_V1_ID) ); // Copy the Dragonfly_V1 identifier in.
 		out += sizeof(Dragonfly_V1_ID);
 		std::memcpy( out, &output_map.size, sizeof(output_map.size) );
-		out += sizeof(u64_t);
+		out += sizeof(uint64_t);
 		(*out++) = catena_input.g_low;                           // Copy the lower memory-bound in.
 		(*out++) = catena_input.g_high;                          // Copy the upper memory-bound in.
 		(*out++) = catena_input.lambda;                          // Copy the time-cost parameter in.
@@ -193,24 +190,24 @@ namespace ssc::crypto_impl::dragonfly_v1
 		memcpy( out, pub.ctr_nonce, CTR_f::IV_Bytes);        // Copy the CTR mode nonce in.
 		out += CTR_f::IV_Bytes;
 		{
-			u64_t crypt_header [2] = { 0 };
+			uint64_t crypt_header [2] = { 0 };
 			crypt_header[ 0 ] = catena_input.padding_bytes;
-			CTR_f::set_iv( &(secret.ctr_data),
+			CTR_f::set_iv( &secret.ctr_data,
 				       pub.ctr_nonce );
-			CTR_f::xorcrypt( &(secret.ctr_data),
+			CTR_f::xorcrypt( &secret.ctr_data,
 					 out,
-					 reinterpret_cast<u8_t*>(crypt_header),
+					 reinterpret_cast<uint8_t*>(crypt_header),
 					 sizeof(crypt_header) );
 			out += sizeof(crypt_header);
 			if( catena_input.padding_bytes != 0 ) {
-				CTR_f::xorcrypt( &(secret.ctr_data),
+				CTR_f::xorcrypt( &secret.ctr_data,
 						 out,
 						 out,
 						 catena_input.padding_bytes,
 						 sizeof(crypt_header) );
 				out += catena_input.padding_bytes;
 			}
-			CTR_f::xorcrypt( &(secret.ctr_data),
+			CTR_f::xorcrypt( &secret.ctr_data,
 					 out,
 					 input_map.ptr,
 					 input_map.size,
@@ -219,47 +216,47 @@ namespace ssc::crypto_impl::dragonfly_v1
 
 		}
 		{
-			Skein_f::mac( &(secret.ubi_data),
+			Skein_f::mac( &secret.ubi_data,
 				      out,
 				      output_map.ptr,
 				      secret.auth_key,
 				      MAC_Bytes,
 				      output_map.size - MAC_Bytes ); // Authenticate the ciphertext with the auth key we generated earlier.
 		}
-		CLEANUP_SUCCESS (secret);
+		CLEANUP_SUCCESS_ (secret);
 	}/* ~ void encrypt (...) */
 	void
-	decrypt (OS_Map &input_map,
-		 OS_Map &output_map,
-		 char const *output_filename)
+	decrypt (Shim_Map &   SHIM_RESTRICT input_map,
+		 Shim_Map &   SHIM_RESTRICT output_map,
+		 char const * SHIM_RESTRICT output_filename)
 	{
 		output_map.size = input_map.size - Visible_Metadata_Bytes;
 
 		static constexpr int Minimum_Possible_File_Size = Visible_Metadata_Bytes + 1;
 		if( input_map.size < Minimum_Possible_File_Size ) {
-			close_os_file( output_map.os_file );
+			shim_close_file( output_map.shim_file );
 			remove( output_filename );
-			CLEANUP_MAP (input_map);
-			errx( "Error: Input file doesn't appear to be large enough to be a SSC_DRAGONFLY_V1 encrypted file\n" );
+			CLEANUP_MAP_ (input_map);
+			SHIM_ERRX ("Error: Input file doesn't appear to be large enough to be a SSC_DRAGONFLY_V1 encrypted file\n");
 		}
-		u8_t const *in = input_map.ptr;
+		uint8_t const *in = input_map.ptr;
 		struct {
-			u64_t               tweak       [Threefish_f::External_Key_Words];
-			alignas(u64_t) u8_t catena_salt [Salt_Bytes];
-			alignas(u64_t) u8_t ctr_nonce   [CTR_f::IV_Bytes];
-			u64_t               header_size;
-			u8_t                header_id   [sizeof(Dragonfly_V1_ID)];
-			u8_t                g_low;
-			u8_t                g_high;
-			u8_t                lambda;
-			u8_t                use_phi;
+			uint64_t                  tweak       [Threefish_f::External_Key_Words];
+			alignas(uint64_t) uint8_t catena_salt [Salt_Bytes];
+			alignas(uint64_t) uint8_t ctr_nonce   [CTR_f::IV_Bytes];
+			uint64_t                  header_size;
+			uint8_t                   header_id   [sizeof(Dragonfly_V1_ID)];
+			uint8_t                   g_low;
+			uint8_t                   g_high;
+			uint8_t                   lambda;
+			uint8_t                   use_phi;
 		} pub;
 		// Copy all the fields of the Dragonfly_V1 header from the memory-mapped input file into the pub struct.
 		{
 			memcpy( pub.header_id, in, sizeof(pub.header_id) );
 			in += sizeof(pub.header_id);
 			std::memcpy( &pub.header_size, in, sizeof(pub.header_size) );
-			in += sizeof(u64_t);
+			in += sizeof(uint64_t);
 			pub.g_low   = (*in++);
 			pub.g_high  = (*in++);
 			pub.lambda  = (*in++);
@@ -272,11 +269,11 @@ namespace ssc::crypto_impl::dragonfly_v1
 			in += CTR_f::IV_Bytes;
 		}
 		if( memcmp( pub.header_id, Dragonfly_V1_ID, sizeof(Dragonfly_V1_ID) ) != 0 ) {
-			unmap_file( input_map );
-			close_os_file( input_map.os_file );
-			close_os_file( output_map.os_file );
+			shim_unmap_memory( &input_map );
+			shim_close_file( input_map.shim_file );
+			shim_close_file( output_map.shim_file );
 			remove( output_filename );
-			errx( "Error: Not a Dragonfly_V1 encrypted file." );
+			SHIM_ERRX ("Error: Not a Dragonfly_V1 encrypted file.\n");
 		}
 		struct {
 			CTR_Data_t           ctr_data;
@@ -285,14 +282,14 @@ namespace ssc::crypto_impl::dragonfly_v1
 				typename Catena_Strong_f::Data strong;
 				typename Catena_Safe_f::Data   safe;
 			} catena;
-			u64_t                enc_key  [Threefish_f::External_Key_Words];
-			alignas(u64_t) u8_t  auth_key [Block_Bytes];
-			alignas(u64_t) u8_t  hash_buf [Block_Bytes * 2];
-			u8_t                 password [Password_Buffer_Bytes];
-			alignas(u64_t) u8_t  gen_mac  [MAC_Bytes];
+			uint64_t                   enc_key  [Threefish_f::External_Key_Words];
+			alignas(uint64_t) uint8_t  auth_key [Block_Bytes];
+			alignas(uint64_t) uint8_t  hash_buf [Block_Bytes * 2];
+			uint8_t                    password [Password_Buffer_Bytes];
+			alignas(uint64_t) uint8_t  gen_mac  [MAC_Bytes];
 		} secret;
 
-		LOCK_MEMORY (&secret,sizeof(secret));
+		LOCK_MEMORY_ (&secret, sizeof(secret));
 
 		Terminal_UI_f::init();
 		int password_size = Terminal_UI_f::obtain_password( secret.password, Password_Prompt );
@@ -301,7 +298,7 @@ namespace ssc::crypto_impl::dragonfly_v1
 			memcpy( secret.catena.safe.salt,
 				pub.catena_salt,
 				sizeof(pub.catena_salt) );
-			auto r = Catena_Safe_f::call( &(secret.catena.safe),
+			auto r = Catena_Safe_f::call( &secret.catena.safe,
 					              secret.hash_buf,
 						      secret.password,
 						      password_size,
@@ -309,20 +306,20 @@ namespace ssc::crypto_impl::dragonfly_v1
 						      pub.g_high,
 						      pub.lambda );
 			if( r != Catena_Safe_f::Return_E::Success ) {
-				zero_sensitive( &secret, sizeof(secret) );
-				UNLOCK_MEMORY (&secret,sizeof(secret));
-				CLEANUP_MAP (input_map);
-				close_os_file( output_map.os_file );
+				shim_secure_zero( &secret, sizeof(secret) );
+				UNLOCK_MEMORY_ (&secret, sizeof(secret));
+				CLEANUP_MAP_ (input_map);
+				shim_close_file( output_map.shim_file );
 				remove( output_filename );
-				errx( "Error: Catena_Safe_f failed with error code %d...\n"
-				      "Do you have enough memory to decrypt this file?\n", static_cast<int>(r) );
+				SHIM_ERRX ("Error: Catena_Safe_f failed with error code %d...\n"
+					   "Do you have enough memory to decrypt this file?\n", static_cast<int>(r));
 			}
-			zero_sensitive( &(secret.catena.safe), sizeof(secret.catena.safe) );
+			shim_secure_zero( &secret.catena.safe, sizeof(secret.catena.safe) );
 		} else {
 			memcpy( secret.catena.strong.salt,
 				pub.catena_salt,
 				sizeof(pub.catena_salt) );
-			auto r = Catena_Strong_f::call( &(secret.catena.strong),
+			auto r = Catena_Strong_f::call( &secret.catena.strong,
 					                secret.hash_buf,
 							secret.password,
 							password_size,
@@ -330,18 +327,18 @@ namespace ssc::crypto_impl::dragonfly_v1
 							pub.g_high,
 							pub.lambda );
 			if( r != Catena_Strong_f::Return_E::Success ) {
-				zero_sensitive( &secret, sizeof(secret) );
-				UNLOCK_MEMORY (&secret,sizeof(secret));
-				CLEANUP_MAP (input_map);
-				close_os_file( output_map.os_file );
+				shim_secure_zero( &secret, sizeof(secret) );
+				UNLOCK_MEMORY_ (&secret, sizeof(secret));
+				CLEANUP_MAP_ (input_map);
+				shim_close_file( output_map.shim_file );
 				remove( output_filename );
-				errx( "Error: Catena_Strong_f failed with error code %d...\n"
-				      "Do you have enough memory to decrypt this file?\n", static_cast<int>(r) );
+				SHIM_ERRX ("Error: Catena_Strong_f failed with error code %d...\n"
+					   "Do you have enough memory to decrypt this file?\n", static_cast<int>(r));
 			}
-			zero_sensitive( &(secret.catena.strong), sizeof(secret.catena.strong) );
+			shim_secure_zero( &secret.catena.strong, sizeof(secret.catena.strong) );
 		}
 		{// Generate the keys.
-			Skein_f::hash( &(secret.ubi_data),
+			Skein_f::hash( &secret.ubi_data,
 				       secret.hash_buf,
 				       secret.hash_buf,
 				       Block_Bytes,
@@ -352,7 +349,7 @@ namespace ssc::crypto_impl::dragonfly_v1
 			memcpy( secret.auth_key,
 				secret.hash_buf + Block_Bytes,
 				Block_Bytes );
-			zero_sensitive( secret.hash_buf, sizeof(secret.hash_buf) );
+			shim_secure_zero( secret.hash_buf, sizeof(secret.hash_buf) );
 			{
 				Skein_f::mac( &secret.ubi_data,
 					      secret.gen_mac,
@@ -360,69 +357,69 @@ namespace ssc::crypto_impl::dragonfly_v1
 					      secret.auth_key,
 					      sizeof(secret.gen_mac),
 					      input_map.size - MAC_Bytes );
-				if( constant_time_memcmp( secret.gen_mac, (input_map.ptr + input_map.size - MAC_Bytes), MAC_Bytes ) != 0 ) {
-					zero_sensitive( &secret, sizeof(secret) );
-					UNLOCK_MEMORY (&secret,sizeof(secret));
-					CLEANUP_MAP (input_map);
-					close_os_file( output_map.os_file );
+				if( shim_ctime_memcmp( secret.gen_mac, (input_map.ptr + input_map.size - MAC_Bytes), MAC_Bytes ) != 0 ) {
+					shim_secure_zero( &secret, sizeof(secret) );
+					UNLOCK_MEMORY_ (&secret, sizeof(secret));
+					CLEANUP_MAP_ (input_map);
+					shim_close_file( output_map.shim_file );
 					remove( output_filename );
-					errx( "Error: Authentication failed.\n"
-					      "Possibilities: Wrong password, the file is corrupted, or it has been tampered with.\n" );
+					SHIM_ERRX ("Error: Authentication failed.\n"
+						   "Possibilities: Wrong password, the file is corrupted, or it has been tampered with.\n");
 				}
 			}
-			Threefish_f::rekey( &(secret.ctr_data.threefish_data),
+			Threefish_f::rekey( &secret.ctr_data.threefish_data,
 					    secret.enc_key,
 					    pub.tweak );
 		}
 		{
 			// Set the nonce.
-			CTR_f::set_iv( &(secret.ctr_data),
+			CTR_f::set_iv( &secret.ctr_data,
 				       pub.ctr_nonce );
-			u64_t padding_bytes;
+			uint64_t padding_bytes;
 			// Decrypt the padding bytes.
 			CTR_f::xorcrypt( &secret.ctr_data,
-					 reinterpret_cast<u8_t*>(&padding_bytes),
+					 reinterpret_cast<uint8_t*>(&padding_bytes),
 					 in,
-					 sizeof(u64_t) );
+					 sizeof(padding_bytes) );
 			output_map.size -= padding_bytes;
-			set_os_file_size( output_map.os_file, output_map.size );
-			map_file( output_map, false );
-			in += (padding_bytes + (sizeof(u64_t) * 2)); // Skip the second word. It is reserved.
+			shim_set_file_size( output_map.shim_file, output_map.size );
+			shim_map_memory( &output_map, false );
+			in += (padding_bytes + (sizeof(uint64_t) * 2)); // Skip the second word. It is reserved.
 			CTR_f::xorcrypt( &secret.ctr_data,
 					 output_map.ptr,
 					 in,
 					 output_map.size,
-					 (sizeof(u64_t) * 2) + padding_bytes );
+					 (sizeof(uint64_t) * 2) + padding_bytes );
 		}
-		zero_sensitive( &secret, sizeof(secret) );
-		UNLOCK_MEMORY (&secret,sizeof(secret));
-		sync_map( output_map );
-		CLEANUP_MAP (output_map);
-		CLEANUP_MAP (input_map);
+		shim_secure_zero( &secret, sizeof(secret) );
+		UNLOCK_MEMORY_ (&secret, sizeof(secret));
+		shim_sync_map( &output_map );
+		CLEANUP_MAP_ (output_map);
+		CLEANUP_MAP_ (input_map);
 	}/* ~ void decrypt (...) */
 	void
-	dump_header (OS_Map     &input_map,
-		     char const *input_filename)
+	dump_header (Shim_Map &                 input_map,
+		     char const * SHIM_RESTRICT input_filename)
 	{
 		static constexpr int Minimum_Size = Visible_Metadata_Bytes + 1;
 		if( input_map.size < Minimum_Size ) {
-			CLEANUP_MAP (input_map);
-			errx( "File `%s` looks too small to be SSC_Dragonfly_V1 encrypted\n", input_filename );
+			CLEANUP_MAP_ (input_map);
+			SHIM_ERRX ("File %s looks too small to be SSC_Dragonfly_V1 encrypted\n", input_filename);
 		}
 		struct {
-			u8_t id     [sizeof(Dragonfly_V1_ID)];
-			u64_t total_size;
-			u8_t  g_low;
-			u8_t  g_high;
-			u8_t  lambda;
-			u8_t  use_phi;
-			u8_t  tweak [Tweak_Bytes];
-			u8_t  salt  [Salt_Bytes];
-			u8_t  nonce [CTR_f::IV_Bytes];
+			uint8_t  id    [sizeof(Dragonfly_V1_ID)];
+			uint64_t total_size;
+			uint8_t  g_low;
+			uint8_t  g_high;
+			uint8_t  lambda;
+			uint8_t  use_phi;
+			uint8_t  tweak [Tweak_Bytes];
+			uint8_t  salt  [Salt_Bytes];
+			uint8_t  nonce [CTR_f::IV_Bytes];
 		} header;
-		u8_t mac [MAC_Bytes];
+		uint8_t mac [MAC_Bytes];
 		{
-			u8_t const *p = input_map.ptr;
+			uint8_t const *p = input_map.ptr;
 			memcpy( header.id, p, sizeof(header.id) );
 			p += sizeof(header.id);
 			memcpy( &header.total_size, p, sizeof(header.total_size) );
@@ -440,7 +437,7 @@ namespace ssc::crypto_impl::dragonfly_v1
 			p = input_map.ptr + input_map.size - MAC_Bytes;
 			memcpy( mac, p, sizeof(mac) );
 		}
-		CLEANUP_MAP (input_map);
+		CLEANUP_MAP_ (input_map);
 
 		header.id[ sizeof(header.id) - 1 ] = '\0';
 		fprintf( stdout, "File Header ID : %s\n", reinterpret_cast<char*>(header.id) );
@@ -453,15 +450,15 @@ namespace ssc::crypto_impl::dragonfly_v1
 		else
 			fprintf( stdout, "The Phi function is used!\n" );
 		fputs(           "Threefish Tweak :\n", stdout );
-		print_integral_buffer<u8_t>( header.tweak, sizeof(header.tweak) );
+		shim_print_byte_buffer( header.tweak, sizeof(header.tweak) );
 		fputs(         "\nCatena Salt :\n", stdout );
-		print_integral_buffer<u8_t>( header.salt, sizeof(header.salt) );
-		fputs(         "\nCTR Nonce:\n", stdout );
-		print_integral_buffer<u8_t>( header.nonce, sizeof(header.nonce) );
+		shim_print_byte_buffer( header.salt, sizeof(header.salt) );
+		fputs(         "\nCTR Initialization Vector:\n", stdout );
+		shim_print_byte_buffer( header.nonce, sizeof(header.nonce) );
 		fputs(         "\nSkein-MAC:\n", stdout );
-		print_integral_buffer<u8_t>( mac, sizeof(mac) );
-		puts( "" );
+		shim_print_byte_buffer( mac, sizeof(mac) );
+		fputs( "\n", stdout );
 	}
 }/* ~ namespace ssc::crypto_impl::dragonfly_v1 */
-#undef UNLOCK_MEMORY
-#undef LOCK_MEMORY
+#undef UNLOCK_MEMORY_
+#undef LOCK_MEMORY_

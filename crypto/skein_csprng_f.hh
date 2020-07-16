@@ -3,6 +3,7 @@
  * See accompanying LICENSE file for licensing information.
  */
 #pragma once
+#include <shim/operations.h>
 #include <ssc/crypto/skein_f.hh>
 
 #if    defined (TEMPLATE_ARGS) || defined (CLASS)
@@ -29,63 +30,63 @@ namespace ssc
 		};
 
 		struct Data {
-			typename Skein_f::Data_t skein_data;
-			alignas(u64_t)      u8_t buffer [State_Bytes * 2];
-			alignas(u64_t)      u8_t seed   [State_Bytes];
+			typename Skein_f::Data_t       skein_data;
+			alignas(uint64_t)      uint8_t buffer [State_Bytes * 2];
+			alignas(uint64_t)      uint8_t seed   [State_Bytes];
 		};
 
 		static inline void
 		initialize_seed (Data *data);
 
 		static void
-		reseed (SSC_RESTRICT (Data *)       data,
-			SSC_RESTRICT (u8_t const *) seed);
+		reseed (Data *          SHIM_RESTRICT data,
+			uint8_t const * SHIM_RESTRICT seed);
 
 		static void
 		os_reseed (Data *data);
 
 		static void
-		get (SSC_RESTRICT (Data *) data,
-		     SSC_RESTRICT (u8_t *) output,
-		     u64_t                 requested_bytes);
+		get (Data *    SHIM_RESTRICT data,
+		     uint8_t * SHIM_RESTRICT output,
+		     uint64_t                requested_bytes);
 	};
 
 	TEMPLATE_ARGS void
 	CLASS::initialize_seed (Data *data)
 	{
-		obtain_os_entropy( data->seed, sizeof(data->seed) ); // Fill the stored seed buffer with pseudorandom bytes from the OS.
+		shim_obtain_os_entropy( data->seed, sizeof(data->seed) );
 	}
 
 	TEMPLATE_ARGS void
-	CLASS::reseed (SSC_RESTRICT (Data *)       data,
-		       SSC_RESTRICT (u8_t const *) seed)
+	CLASS::reseed (Data *          SHIM_RESTRICT data,
+		       uint8_t const * SHIM_RESTRICT seed)
 	{
 		std::memcpy( data->buffer              , data->seed, State_Bytes );	// Copy the whole stored seed into the stored temporary buffer.
 		std::memcpy( data->buffer + State_Bytes, seed      , State_Bytes );	// Copy the whole new    seed into the stored temporary buffer.
 		static_assert (Skein_f::State_Bytes == State_Bytes);
-		Skein_f::hash_native( &(data->skein_data),	// UBI data
-					data->seed,		// Output into the stored seed buffer.
-					data->buffer,		// Input from the stored temporary buffer.
-					sizeof(data->buffer) );	// Input the entire stored temporary buffer.
-		zero_sensitive( data->buffer, sizeof(data->buffer) );	// Securely overwrite the stored temporary buffer.
+		Skein_f::hash_native( &data->skein_data,	// UBI data
+				      data->seed,		// Output into the stored seed buffer.
+				      data->buffer,		// Input from the stored temporary buffer.
+				      sizeof(data->buffer) );	// Input the entire stored temporary buffer.
+		shim_secure_zero( data->buffer, sizeof(data->buffer) );
 	}
 
 	TEMPLATE_ARGS void
 	CLASS::os_reseed (Data *data)
 	{
 		std::memcpy( data->buffer, data->seed, State_Bytes );		// Copy the whole stored seed into the stored temporary buffer.
-		obtain_os_entropy( (data->buffer + State_Bytes), State_Bytes );	// Obtain pseudorandom bytes from the OS and append to the seed in the temp buffer.
+		shim_obtain_os_entropy( data->buffer + State_Bytes, State_Bytes );
 		Skein_f::hash_native( &data->skein_data,	// UBI data
 				      data->seed,		// Output into the stored seed buffer.
 				      data->buffer,		// Input from the stored temporary buffer.
 				      sizeof(data->buffer) );	// Input the entire stored temporary buffer.
-		zero_sensitive( data->buffer, sizeof(data->buffer) );	// Securely overwrite the stored temporary buffer.
+		shim_secure_zero( data->buffer, sizeof(data->buffer) );
 	}
 
 	TEMPLATE_ARGS void
-	CLASS::get (SSC_RESTRICT (Data *) data,
-		    SSC_RESTRICT (u8_t *) output,
-		    u64_t                 requested_bytes)
+	CLASS::get (Data *    SHIM_RESTRICT data,
+		    uint8_t * SHIM_RESTRICT output,
+		    uint64_t                requested_bytes)
 	{
 		while( requested_bytes > State_Bytes ) { // Until we have less than a block left...
 			Skein_f::hash( &data->skein_data,	// UBI Data

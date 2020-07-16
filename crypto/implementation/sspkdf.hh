@@ -4,8 +4,7 @@
  */
 #pragma once
 /* SSC General Headers */
-#include <ssc/general/integers.hh>
-#include <ssc/general/macros.hh>
+#include <shim/macros.h>
 /* C Standard Headers */
 #include <cstdio>
 #include <cstdint>
@@ -14,13 +13,13 @@
 #include "common.hh"
 
 namespace ssc::crypto_impl {
-	void SSC_PUBLIC
-	sspkdf (typename UBI_f::Data       *ubi_data,
-	 	SSC_RESTRICT (u8_t*)       output,
-	 	SSC_RESTRICT (u8_t const*) password,
-	 	int const                  password_size,
-	 	SSC_RESTRICT (u8_t const*) salt,
-	 	u32_t const                num_iter,
-	 	u32_t const                num_concat);
+	void SHIM_PUBLIC
+	sspkdf (typename UBI_f::Data * SHIM_RESTRICT ubi_data,
+		uint8_t *              SHIM_RESTRICT output,
+		uint8_t const *        SHIM_RESTRICT password,
+	 	int const                            password_size,
+		uint8_t const *        SHIM_RESTRICT salt,
+		uint32_t const                       num_iter,
+		uint32_t const                       num_concat);
 			     
 }/* ~ namespace ssc::crypto_impl */

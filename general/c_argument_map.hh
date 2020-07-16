@@ -3,11 +3,12 @@
  * See accompanying LICENSE file for licensing information.
  */
 #pragma once
-#include <ssc/general/macros.hh>
-#include <ssc/general/integers.hh>
+#include <shim/macros.h>
+#include <cstdint>
+#include <cstddef>
 
 namespace ssc {
-	struct SSC_PUBLIC
+	struct SHIM_PUBLIC
 	C_Argument_Map
 	{
 
@@ -25,7 +26,7 @@ namespace ssc {
 
 		bool
 		argument_cmp (int const,
-			      SSC_RESTRICT (char const*),
+			      char const * SHIM_RESTRICT,
 			      size_t const);
 		bool
 		next_string_is_valid (int const);

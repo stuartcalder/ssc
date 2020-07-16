@@ -3,28 +3,29 @@
  * See accompanying LICENSE file for licensing information.
  */
 #include <ssc/general/c_argument_map.hh>
-#include <ssc/general/error_conditions.hh>
+#include <shim/errors.h>
 #include <cstdlib>
 #include <cstring>
 using namespace ssc;
 
 C_Argument_Map::C_Argument_Map (int const argc, char const *argv[])
 {
+	static constexpr auto &Bad_Arg_Count = "Error: Invalid arg count in C_Argument_Map\n";
 	/* Allocate memory for c_strings and sizes */
 	if( argc == 0 )
-		errx( "Error: Invalid arg count in C_Argument_Map\n" );
+		SHIM_ERRX (Bad_Arg_Count);
 	if( argc > Max_Argument_Count )
-		errx( "Error: Invalid arg count in C_Argument_Map\n" );
+		SHIM_ERRX (Bad_Arg_Count);
 	count = argc - 1;
 	if( count == 0 )
 		return;
 	char const **args = argv + 1;
 	c_strings = static_cast<char const**>(std::malloc( sizeof(char*) * count ));
 	if( c_strings == nullptr )
-		errx( Generic_Error::Alloc_Failure );
+		SHIM_ERRX (SHIM_ERR_STR_ALLOC_FAILURE);
 	sizes = static_cast<size_t*>(std::malloc( sizeof(size_t) * count ));
 	if( sizes == nullptr )
-		errx( Generic_Error::Alloc_Failure );
+		SHIM_ERRX (SHIM_ERR_STR_ALLOC_FAILURE);
 	/* Assign all the strings in args to the positions in c_strings, and store
 	 * their sizes. */
 	max_string_size = 0;
@@ -44,7 +45,7 @@ C_Argument_Map::~C_Argument_Map ()
 
 bool
 C_Argument_Map::argument_cmp (int const                   index,
-		              SSC_RESTRICT (char const *) c_str,
+			      char const * SHIM_RESTRICT  c_str,
 		              size_t const                c_str_size)
 {
 	if( sizes[ index ] != c_str_size )

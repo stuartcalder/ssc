@@ -7,24 +7,23 @@
 
 using namespace std;
 
-#if    defined (LOCK_MEMORY) || defined (UNLOCK_MEMORY)
+#if    defined (LOCK_MEMORY_) || defined (UNLOCK_MEMORY_)
 #	error 'Some MACRO we need was already defined'
 #endif
 
-#ifdef SSC_FEATURE_MEMORYLOCKING
-#	define LOCK_MEMORY(address,size)	lock_os_memory( address, size )
-#	define UNLOCK_MEMORY(address,size)	unlock_os_memory( address, size )
+#ifdef SHIM_FEATURE_MEMORYLOCKING
+#	define LOCK_MEMORY_(address, size)	shim_lock_memory( address, size )
+#	define UNLOCK_MEMORY_(address, size)	shim_unlock_memory( address, size )
 #else
-#	define LOCK_MEMORY(none_0,none_1)
-#	define UNLOCK_MEMORY(non_0,none_1)
+#	define LOCK_MEMORY_(address, size)
+#	define UNLOCK_MEMORY_(address, size)
 #endif
 
 namespace ssc::crypto_impl::cbc_v2 {
 
-	static u64_t
-	calculate_encrypted_size (u64_t const pre_encryption_size)
-	{
-		u64_t s = pre_encryption_size;
+	static uint64_t
+	calculate_encrypted_size (uint64_t const pre_encryption_size) {
+		uint64_t s = pre_encryption_size;
 		if( s < Block_Bytes )
 			s = Block_Bytes;
 		else
@@ -33,58 +32,58 @@ namespace ssc::crypto_impl::cbc_v2 {
 	}
 
 	static void
-	cleanup_map (OS_Map &os_map)
-	{
-		unmap_file( os_map );
-		close_os_file( os_map.os_file );
+	cleanup_memory (Shim_Map &shim_map) {
+		shim_unmap_memory( &shim_map );
+		shim_close_file( shim_map.shim_file );
 	}
-	void encrypt (SSPKDF_Input &sspkdf_input,
-		      OS_Map       &input_map,
-		      OS_Map       &output_map)
+
+	void encrypt (SSPKDF_Input & SHIM_RESTRICT sspkdf_input,
+		      Shim_Map &     SHIM_RESTRICT input_map,
+		      Shim_Map &     SHIM_RESTRICT output_map)
 	{
 		// The passed in input_map has all its parameters in order, but the output_map has only its os_file set.
 		output_map.size = calculate_encrypted_size( input_map.size );
-		set_os_file_size( output_map.os_file, output_map.size );
-		map_file( output_map, false );
+		shim_set_file_size( output_map.shim_file, output_map.size );
+		shim_map_memory( &output_map, false );
 
 		struct {
 			typename CBC_f::Data    cbc_data;
-			u64_t                   key_buffer [Threefish_f::External_Key_Words];
+			uint64_t                key_buffer [Threefish_f::External_Key_Words];
 			typename UBI_f::Data    ubi_data;
 			typename CSPRNG_f::Data csprng_data;
-			u8_t                    first_password  [Password_Buffer_Bytes];
-			u8_t                    second_password [Password_Buffer_Bytes];
-			u8_t                    entropy_data    [Supplement_Entropy_Buffer_Bytes];
+			uint8_t                 first_password  [Password_Buffer_Bytes];
+			uint8_t                 second_password [Password_Buffer_Bytes];
+			uint8_t                 entropy_data    [Supplement_Entropy_Buffer_Bytes];
 		} crypto_object;
 		struct {
-			              u64_t  tweak       [Threefish_f::External_Tweak_Words];
-	                alignas(u64_t) u8_t  cbc_iv      [Threefish_f::Block_Bytes];
-	                alignas(u64_t) u8_t  sspkdf_salt [Salt_Bytes];
+			                 uint64_t  tweak       [Threefish_f::External_Tweak_Words];
+	                alignas(uint64_t) uint8_t  cbc_iv      [Threefish_f::Block_Bytes];
+	                alignas(uint64_t) uint8_t  sspkdf_salt [Salt_Bytes];
 		} public_object;
 
-		LOCK_MEMORY ((&crypto_object),sizeof(crypto_object));
+		LOCK_MEMORY_ (&crypto_object, sizeof(crypto_object));
 
 		int password_length;
-		u8_t *out = output_map.ptr;
+		uint8_t *out = output_map.ptr;
 		{
 			Terminal_UI_f::init();
 			password_length = Terminal_UI_f::obtain_password( crypto_object.first_password,
 					                                  crypto_object.second_password,
 									  Password_Prompt,
 									  Password_Reentry_Prompt );
-			zero_sensitive( crypto_object.second_password, Password_Buffer_Bytes );
+			shim_set_file_size( crypto_object.second_password, Password_Buffer_Bytes );
 		}
 		CSPRNG_f::initialize_seed( &crypto_object.csprng_data );
 		if( sspkdf_input.supplement_os_entropy ) {
 			supplement_entropy( &crypto_object.csprng_data,
 					    crypto_object.entropy_data,
 					    crypto_object.entropy_data + Block_Bytes );
-			zero_sensitive( crypto_object.entropy_data, Supplement_Entropy_Buffer_Bytes );
+			shim_secure_zero( crypto_object.entropy_data, Supplement_Entropy_Buffer_Bytes );
 		}
 		Terminal_UI_f::end();
 		{
 			CSPRNG_f::get( &crypto_object.csprng_data,
-				       reinterpret_cast<u8_t*>(public_object.tweak),
+				       reinterpret_cast<uint8_t*>(public_object.tweak),
 				       Tweak_Bytes );
 			CSPRNG_f::get( &crypto_object.csprng_data,
 					public_object.cbc_iv,
@@ -97,7 +96,7 @@ namespace ssc::crypto_impl::cbc_v2 {
 			memcpy( out, CBC_V2_ID, sizeof(CBC_V2_ID) ); // Header ID.
 			out += sizeof(CBC_V2_ID);
 			std::memcpy( out, &output_map.size, sizeof(output_map.size) );
-			out += sizeof(u64_t);
+			out += sizeof(uint64_t);
 			memcpy( out, public_object.tweak, Tweak_Bytes );
 			out += Tweak_Bytes;
 			memcpy( out, public_object.sspkdf_salt, sizeof(public_object.sspkdf_salt) ); // SSPKDF Salt.
@@ -105,48 +104,48 @@ namespace ssc::crypto_impl::cbc_v2 {
 			memcpy( out, public_object.cbc_iv, sizeof(public_object.cbc_iv) ); // CBC IV.
 			out += sizeof(public_object.cbc_iv);
 			std::memcpy( out, &sspkdf_input.number_iterations, sizeof(sspkdf_input.number_iterations) );
-			out += sizeof(u32_t);
+			out += sizeof(uint32_t);
 			std::memcpy( out, &sspkdf_input.number_concatenations, sizeof(sspkdf_input.number_concatenations) );
 		}
 		sspkdf( &crypto_object.ubi_data,
-		        reinterpret_cast<u8_t*>(crypto_object.key_buffer),
+		        reinterpret_cast<uint8_t*>(crypto_object.key_buffer),
 			crypto_object.first_password,
 			password_length,
 			public_object.sspkdf_salt,
 			sspkdf_input.number_iterations,
 			sspkdf_input.number_concatenations );
-		zero_sensitive( crypto_object.first_password, sizeof(crypto_object.first_password) );
+		shim_secure_zero( crypto_object.first_password, sizeof(crypto_object.first_password) );
 		{
-			Threefish_f::rekey( &(crypto_object.cbc_data.threefish_data),
+			Threefish_f::rekey( &crypto_object.cbc_data.threefish_data,
 					    crypto_object.key_buffer,
 					    public_object.tweak );
-			out += CBC_f::encrypt( &(crypto_object.cbc_data),
+			out += CBC_f::encrypt( &crypto_object.cbc_data,
 					       out,
 					       input_map.ptr,
 					       public_object.cbc_iv,
 					       input_map.size );
-			zero_sensitive( &(crypto_object.cbc_data), sizeof(crypto_object.cbc_data) );
+			shim_secure_zero( &crypto_object.cbc_data, sizeof(crypto_object.cbc_data) );
 		}
 		{
-			Skein_f::mac( &(crypto_object.ubi_data),
+			Skein_f::mac( &crypto_object.ubi_data,
 				      out, // bytes out
 				      output_map.ptr, // bytes in
-				      reinterpret_cast<u8_t*>(crypto_object.key_buffer), // key in
+				      reinterpret_cast<uint8_t*>(crypto_object.key_buffer), // key in
 				      MAC_Bytes, // number bytes out
 				      output_map.size - MAC_Bytes); // num bytes in
 		}
-		zero_sensitive( &(crypto_object), sizeof(crypto_object) );
+		shim_secure_zero( &crypto_object, sizeof(crypto_object) );
 
-		UNLOCK_MEMORY ((&crypto_object),sizeof(crypto_object));
+		UNLOCK_MEMORY_ (&crypto_object, sizeof(crypto_object));
 
-		sync_map( output_map );
+		shim_sync_map( &output_map );
 		cleanup_map( output_map );
 		cleanup_map( input_map );
 	}
 	void
-	decrypt (OS_Map &input_map,
-		 OS_Map &output_map,
-		 char const *output_filename)
+	decrypt (Shim_Map &   SHIM_RESTRICT input_map,
+		 Shim_Map &   SHIM_RESTRICT output_map,
+		 char const * SHIM_RESTRICT output_filename)
 	{
 		using namespace std;
 
@@ -154,144 +153,143 @@ namespace ssc::crypto_impl::cbc_v2 {
 
 		static constexpr int Minimum_Possible_File_Size = Metadata_Bytes + Block_Bytes; 
 		if( input_map.size < Minimum_Possible_File_Size ) {
-			close_os_file( output_map.os_file );
+			shim_close_file( output_map.shim_file );
 			remove( output_filename );
-			unmap_file( input_map );
-			close_os_file( input_map.os_file );
-			errx( "Error: Input file doesn't appear to be large enough to be a 3CRYPT_CBC_V2 encrypted file\n" );
+			shim_unmap_memory( &input_map );
+			shim_close_file( input_map.shim_file );
+			SHIM_ERRX ("Error: Input file doesn't appear to be large enough to be a 3CRYPT_CBC_V2 encrypted file\n");
 		}
-		set_os_file_size( output_map.os_file, output_map.size );
-		map_file( output_map, false );
-		u8_t const *in = input_map.ptr;
+		shim_close_file( output_map.shim_file, output_map.size );
+		shim_map_memory( &output_map, false );
+		uint8_t const *in = input_map.ptr;
 		struct {
-			              u64_t tweak       [Threefish_f::Tweak_Words];
-			alignas(u64_t) u8_t sspkdf_salt [Salt_Bytes];
-			alignas(u64_t) u8_t cbc_iv      [Block_Bytes];
-			               char header_id   [sizeof(CBC_V2_ID)];
-			              u64_t header_size;
-				      u32_t num_iter;
-				      u32_t num_concat;
+			                  uint64_t tweak      [Threefish_f::Tweak_Words];
+			alignas(uint64_t) uint8_t sspkdf_salt [Salt_Bytes];
+			alignas(uint64_t) uint8_t cbc_iv      [Block_Bytes];
+			                  char    header_id   [sizeof(CBC_V2_ID)];
+			                  uint64_t header_size;
+				          uint32_t num_iter;
+				          uint32_t num_concat;
 			
 		} data;
 		// Copy all the fields of a CBC_V2 header from the memory-mapped input file into the header struct.
 		{
 			memcpy( data.header_id, in, sizeof(data.header_id) );
 			in += sizeof(data.header_id);
-			std::memcpy( &data.header_size, in, sizeof(u64_t) );
-			in += sizeof(u64_t);
+			memcpy( &data.header_size, in, sizeof(data.header_size) );
+			in += sizeof(data.header_size);
 			memcpy( data.tweak, in, Tweak_Bytes );
 			in += Tweak_Bytes;
 			memcpy( data.sspkdf_salt, in, sizeof(data.sspkdf_salt) );
 			in += sizeof(data.sspkdf_salt);
 			memcpy( data.cbc_iv, in, sizeof(data.cbc_iv) );
 			in += sizeof(data.cbc_iv);
-			std::memcpy( &data.num_iter  , in, sizeof(u32_t) );
-			in += sizeof(u32_t);
-			std::memcpy( &data.num_concat, in, sizeof(u32_t) );
-			in += sizeof(u32_t);
+			memcpy( &data.num_iter  , in, sizeof(uint32_t) );
+			in += sizeof(uint32_t);
+			memcpy( &data.num_concat, in, sizeof(uint32_t) );
+			in += sizeof(uint32_t);
 		}
-		if( constant_time_memcmp( data.header_id, CBC_V2_ID, sizeof(CBC_V2_ID) ) != 0 ) {
-			unmap_file( input_map );
-			unmap_file( output_map );
-			close_os_file( input_map.os_file );
-			close_os_file( output_map.os_file );
+		if( shim_ctime_memcmp( data.header_id, CBC_V2_ID, sizeof(CBC_V2_ID) ) != 0 ) {
+			shim_unmap_memory( &input_map );
+			shim_unmap_memory( &output_map );
+			shim_close_file( input_map.shim_file );
+			shim_close_file( output_map.shim_file );
 			remove( output_filename );
-			errx( "Error: Input file size (%zu) does not equal file size in the file header of the input file (%zu)\n",
-			      input_map.size, data.header_size );
+			SHIM_ERRX ("Error: Input file size (%zu) does not equal file size in the file header of the input file (%zu)\n",
+			           input_map.size, data.header_size);
 		}
 		struct {
 			typename CBC_f::Data    cbc_data;
-			u64_t                   key_buffer [Threefish_f::External_Key_Words];
+			uint64_t                key_buffer [Threefish_f::External_Key_Words];
 			typename UBI_f::Data    ubi_data;
-			u8_t                    password   [Password_Buffer_Bytes];
+			uint8_t                 password   [Password_Buffer_Bytes];
 		} crypto;
 		
-		LOCK_MEMORY (&crypto,sizeof(crypto));
+		LOCK_MEMORY_ (&crypto, sizeof(crypto));
 
 		Terminal_UI_f::init();
 		int password_length = Terminal_UI_f::obtain_password( crypto.password, Password_Prompt );
 		Terminal_UI_f::end();
 		sspkdf( &crypto.ubi_data,
-			reinterpret_cast<u8_t*>(crypto.key_buffer),
+			reinterpret_cast<uint8_t*>(crypto.key_buffer),
 			crypto.password,
 			password_length,
 			data.sspkdf_salt,
 			data.num_iter,
 			data.num_concat );
-		zero_sensitive( crypto.password, sizeof(crypto.password) );
+		shim_secure_zero( crypto.password, sizeof(crypto.password) );
 		{
-			alignas(u64_t) u8_t generated_mac [MAC_Bytes];
+			alignas(uint64_t) uint8_t generated_mac [MAC_Bytes];
 			{
 				Skein_f::mac( &crypto.ubi_data,
 					      generated_mac,
 					      input_map.ptr,
-					      reinterpret_cast<u8_t*>(crypto.key_buffer),
+					      reinterpret_cast<uint8_t*>(crypto.key_buffer),
 					      sizeof(generated_mac),
 					      input_map.size - MAC_Bytes );
 			}
-			if( constant_time_memcmp( generated_mac, (input_map.ptr + input_map.size - MAC_Bytes), MAC_Bytes) != 0 ) {
-				zero_sensitive( &crypto, sizeof(crypto) );
+			if( shim_ctime_memcmp( generated_mac, (input_map.ptr + input_map.size - MAC_Bytes), MAC_Bytes ) != 0 ) {
+				shim_secure_zero( &crypto, sizeof(crypto) );
 
-				UNLOCK_MEMORY (&crypto, sizeof(crypto));
+				UNLOCK_MEMORY_ (&crypto, sizeof(crypto));
 
-				unmap_file( input_map );
-				unmap_file( output_map );
-				close_os_file( input_map.os_file );
-				close_os_file( output_map.os_file );
+				shim_unmap_memory( &input_map );
+				shim_unmap_memory( &output_map );
+				shim_close_file( input_map.shim_file );
+				shim_close_file( output_map.shim_file );
 				remove( output_filename );
-				errx( "Error: Authentication failed.\n"
-				      "Possibilities: Wrong password, the file is corrupted, or it has been tampered with.\n" );
+				SHIM_ERRX ("Error: Authentication failed.\n"
+				      	   "Possibilities: Wrong password, the file is corrupted, or it has been tampered with.\n");
 			}
 		}
-		u64_t plaintext_size;
+		uint64_t plaintext_size;
 		{
-			Threefish_f::rekey( &(crypto.cbc_data.threefish_data),
+			Threefish_f::rekey( &crypto.cbc_data.threefish_data,
 					    crypto.key_buffer,
 					    data.tweak );
-			plaintext_size = CBC_f::decrypt( &(crypto.cbc_data),
+			plaintext_size = CBC_f::decrypt( &crypto.cbc_data,
 					                 output_map.ptr,
 							 in,
 							 data.cbc_iv,
 							 input_map.size - Metadata_Bytes );
 		}
-		zero_sensitive( &crypto, sizeof(crypto) );
+		shim_secure_zero( &crypto, sizeof(crypto) );
 
-		UNLOCK_MEMORY (&crypto,sizeof(crypto));
+		UNLOCK_MEMORY_ (&crypto, sizeof(crypto));
 
-		sync_map( output_map );
-		unmap_file( input_map );
-		unmap_file( output_map );
-		set_os_file_size( output_map.os_file, plaintext_size );
-		close_os_file( input_map.os_file );
-		close_os_file( output_map.os_file );
-
+		shim_sync_map( &output_map );
+		shim_unmap_memory( &input_map );
+		shim_unmap_memory( &output_map );
+		shim_set_file_size( output_map.shim_file, plaintext_size );
+		shim_close_file( input_map.shim_file );
+		shim_close_file( output_map.shim_file );
 	}
 
 	void
-	dump_header (OS_Map &os_map,
-		     char const *filename)
+	dump_header (Shim_Map &   SHIM_RESTRICT shim_map,
+		     char const * SHIM_RESTRICT filename)
 	{
 		using std::memcpy, std::fprintf, std::fputs, std::putchar, std::exit;
 
 		static constexpr int Minimum_Size = Metadata_Bytes + Block_Bytes;
-		if (os_map.size < Minimum_Size) {
-			unmap_file( os_map );
-			close_os_file( os_map.os_file );
-			errx( "File `%s` looks too small to be CBC_V2 encrypted\n", filename );
+		if (shim_map.size < Minimum_Size) {
+			shim_unmap_memory( &shim_map );
+			shim_close_file( shim_map.shim_file );
+			SHIM_ERRX ("File %s looks too small to be CBC_V2 encrypted\n", filename );
 		}
 
 		struct {
 			char id [sizeof(CBC_V2_ID)];
-			u64_t total_size;
-			u8_t  tweak  [Tweak_Bytes];
-			u8_t  salt   [Salt_Bytes];
-			u8_t  cbc_iv [Block_Bytes];
-			u32_t num_iter;
-			u32_t num_concat;
+			uint64_t total_size;
+			uint8_t  tweak  [Tweak_Bytes];
+			uint8_t  salt   [Salt_Bytes];
+			uint8_t  cbc_iv [Block_Bytes];
+			uint32_t num_iter;
+			uint32_t num_concat;
 		} header;
-		u8_t mac [MAC_Bytes];
+		uint8_t mac [MAC_Bytes];
 		{
-			u8_t const *p = os_map.ptr;
+			uint8_t const *p = shim_map.ptr;
 
 			memcpy( header.id, p, sizeof(header.id) );
 			p += sizeof(header.id);
@@ -313,27 +311,27 @@ namespace ssc::crypto_impl::cbc_v2 {
 
 			memcpy( &header.num_concat, p, sizeof(header.num_concat) );
 
-			p = os_map.ptr + os_map.size - MAC_Bytes;
+			p = shim_map.ptr + shim_map.size - MAC_Bytes;
 			memcpy( mac, p, sizeof(mac) );
 		}
-		unmap_file( os_map );
-		close_os_file( os_map.os_file );
+		shim_unmap_memory( &shim_map );
+		shim_close_file( shim_map.shim_file );
 
 		fprintf( stdout,   "File Header ID             : %s\n", header.id );
 		fprintf( stdout,   "File Size                  : %zu\n", header.total_size );
 		fputs  (           "Threefish Tweak            : ", stdout );
-		print_integral_buffer<u8_t>( header.tweak, sizeof(header.tweak) );
+		shim_print_byte_buffer( header.tweak, sizeof(header.tweak) );
 		fputs  (         "\nSSPKDF Salt                : ", stdout );
-		print_integral_buffer<u8_t>( header.salt, sizeof(header.salt) );
+		shim_print_byte_buffer( header.salt, sizeof(header.salt) );
 		fputs  (         "\nCBC Initialization Vector  : ", stdout );
-		print_integral_buffer<u8_t>( header.cbc_iv, sizeof(header.cbc_iv) );
+		shim_print_byte_buffer( header.cbc_iv, sizeof(header.cbc_iv) );
 		fprintf( stdout, "\nNumber Iterations          : %u\n", header.num_iter );
 		fprintf( stdout,   "Number Concatenations      : %u\n", header.num_concat );
 		fputs(             "Message Authentication Code: ", stdout );
-		print_integral_buffer<u8_t>( mac, sizeof(mac) );
+		shim_print_byte_buffer( mac, sizeof(mac) );
 		putchar( '\n' );
 	}/* ! dump_header */
 
 }
-#undef UNLOCK_MEMORY
-#undef LOCK_MEMORY
+#undef UNLOCK_MEMORY_
+#undef LOCK_MEMORY_

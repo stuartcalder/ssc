@@ -3,8 +3,7 @@
  * See accompanying LICENSE file for licensing information.
  */
 #pragma once
-#include <ssc/general/integers.hh>
-#include <ssc/crypto/operations.hh>
+#include <shim/operations.h>
 
 namespace ssc {
 	struct
@@ -13,15 +12,15 @@ namespace ssc {
 	/* index (u64_t,u8_t const) -> u64_t
 	 * 	Bit reversal graph generic indexing function for Catena.
 	 */
-		static inline u64_t
-		index (u64_t i,u8_t const garlic) {
-			i = reverse_byte_order( i );
-			i = ((i & static_cast<u64_t>(0x0f'0f'0f'0f'0f'0f'0f'0f)) << 4) |
-			    ((i & static_cast<u64_t>(0xf0'f0'f0'f0'f0'f0'f0'f0)) >> 4);
-			i = ((i & static_cast<u64_t>(0x33'33'33'33'33'33'33'33)) << 2) |
-			    ((i & static_cast<u64_t>(0xcc'cc'cc'cc'cc'cc'cc'cc)) >> 2);
-			i = ((i & static_cast<u64_t>(0x55'55'55'55'55'55'55'55)) << 1) |
-			    ((i & static_cast<u64_t>(0xaa'aa'aa'aa'aa'aa'aa'aa)) >> 1);
+		static inline uint64_t
+		index (uint64_t i, uint8_t const garlic) {
+			i = shim_swap_64( i );
+			i = ((i & static_cast<uint64_t>(0x0f'0f'0f'0f'0f'0f'0f'0f)) << 4) |
+			    ((i & static_cast<uint64_t>(0xf0'f0'f0'f0'f0'f0'f0'f0)) >> 4);
+			i = ((i & static_cast<uint64_t>(0x33'33'33'33'33'33'33'33)) << 2) |
+			    ((i & static_cast<uint64_t>(0xcc'cc'cc'cc'cc'cc'cc'cc)) >> 2);
+			i = ((i & static_cast<uint64_t>(0x55'55'55'55'55'55'55'55)) << 1) |
+			    ((i & static_cast<uint64_t>(0xaa'aa'aa'aa'aa'aa'aa'aa)) >> 1);
 			return i >> (64 - garlic);
 		}
 	};

@@ -10,14 +10,16 @@
 #	error 'SSC_FEATURE_CBC_V2 already defined!'
 #endif
 
-#if    defined (OS_PROMPT) || defined (NEW_LINE)
+#if    defined (OS_PROMPT_) || defined (NEW_LINE_)
 #	error 'Some MACRO we need was already defined'
 #endif
 
-#include <ssc/general/macros.hh>
-#include <ssc/general/integers.hh>
-#include <ssc/general/print.hh>
-#include <ssc/files/os_map.hh>
+#include <shim/macros.h>
+#include <shim/print.h>
+#include <shim/map.h>
+#include <shim/mlock.h>
+#include <shim/operations.h>
+
 #include <ssc/crypto/cipher_block_chaining_f.hh>
 
 #include "common.hh"
@@ -30,22 +32,23 @@ namespace ssc::crypto_impl::cbc_v2 {
 		Salt_Bytes = Salt_Bits / CHAR_BIT,
 		Block_Bits = 512,
 		Block_Bytes = Block_Bits / CHAR_BIT,
-		Header_Bytes = sizeof(CBC_V2_ID) + sizeof(u64_t) + Tweak_Bytes + Salt_Bytes + Block_Bytes + (2 * sizeof(u32_t)),
+		Header_Bytes = sizeof(CBC_V2_ID) + sizeof(uint64_t) + Tweak_Bytes + Salt_Bytes + Block_Bytes + (2 * sizeof(uint32_t)),
 		Metadata_Bytes = Header_Bytes + MAC_Bytes
 	};
 
-	void SSC_PUBLIC
-	encrypt (SSPKDF_Input &sspkdf_input,
-			      OS_Map &input_map,
-			      OS_Map &output_map);
-	void SSC_PUBLIC
-	decrypt (OS_Map &input_map,
-		 OS_Map &output_map,
-		 char const *output_filename);
+	void SHIM_PUBLIC
+	encrypt (SSPKDF_Input & SHIM_RESTRICT sspkdf_input,
+		 Shim_Map &     SHIM_RESTRICT input_map,
+		 Shim_Map &     SHIM_RESTRICT output_map)
 
-	void SSC_PUBLIC
-	dump_header (OS_Map &input_map,
-		     char const *filename);
+	void SHIM_PUBLIC
+	decrypt (Shim_Map &   SHIM_RESTRICT input_map,
+		 Shim_Map &   SHIM_RESTRICT output_map,
+		 char const * SHIM_RESTRICT output_filename);
+
+	void SHIM_PUBLIC
+	dump_header (Shim_Map &   SHIM_RESTRICT input_map,
+		     char const * SHIM_RESTRICT filename);
 }/* ~ namespace ssc::crypto_impl */
-#undef OS_PROMPT
-#undef NEW_LINE
+#undef OS_PROMPT_
+#undef NEW_LINE_

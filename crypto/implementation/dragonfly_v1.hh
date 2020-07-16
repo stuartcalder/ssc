@@ -9,11 +9,10 @@
 #	error 'SSC_FEATURE_DRAGONFLY_V1 already defined!'
 #endif
 /* SSC General */
-#include <ssc/general/macros.hh>
-#include <ssc/general/integers.hh>
-#include <ssc/general/print.hh>
-/* SSC File I/O */
-#include <ssc/files/os_map.hh>
+#include <shim/macros.h>
+#include <shim/print.h>
+#include <shim/operations.h>
+#include <shim/map.h>
 /* SSC Crypto */
 #include <ssc/crypto/generic_graph_hash_f.hh>
 #include <ssc/crypto/bit_reversal_graph_f.hh>
@@ -50,8 +49,8 @@ namespace ssc::crypto_impl::dragonfly_v1 {
 		Salt_Bits  = 256,
 		Salt_Bytes = Salt_Bits / CHAR_BIT,
 		Max_Password_Bits = (Max_Password_Chars * CHAR_BIT),
-		Plaintext_Header_Bytes = sizeof(Dragonfly_V1_ID) + sizeof(u64_t) + (4 * sizeof(u8_t)) + Tweak_Bytes + Salt_Bytes + CTR_f::IV_Bytes,
-		Ciphertext_Header_Bytes = (sizeof(u64_t) * 2),
+		Plaintext_Header_Bytes = sizeof(Dragonfly_V1_ID) + sizeof(uint64_t) + (4 * sizeof(uint8_t)) + Tweak_Bytes + Salt_Bytes + CTR_f::IV_Bytes,
+		Ciphertext_Header_Bytes = (sizeof(uint64_t) * 2),
 		Total_Header_Bytes = Plaintext_Header_Bytes + Ciphertext_Header_Bytes,
 		Visible_Metadata_Bytes = Total_Header_Bytes + MAC_Bytes
 	};
@@ -60,7 +59,7 @@ namespace ssc::crypto_impl::dragonfly_v1 {
 	                                   Bit_Reversal_Graph_F>;
 	struct Catena_Safe_Metadata {
 		// Version ID String: Dragonfly_Safe_V1
-		alignas(u64_t) static constexpr u8_t Version_ID_Hash [64] = {
+		alignas(uint64_t) static constexpr uint8_t Version_ID_Hash [64] = {
 			0x79,0xb5,0x79,0x1e,0x9a,0xac,0x02,0x64,
 			0x2a,0xaa,0x99,0x1b,0xd5,0x47,0xed,0x14,
 			0x74,0x4d,0x72,0xbf,0x13,0x22,0x54,0xc9,
@@ -80,7 +79,7 @@ namespace ssc::crypto_impl::dragonfly_v1 {
 				       false>;
 	struct Catena_Strong_Metadata {
 		// Version ID String: Dragonfly_Strong_V1
-		alignas(u64_t) static constexpr u8_t Version_ID_Hash [64] = {
+		alignas(uint64_t) static constexpr uint8_t Version_ID_Hash [64] = {
 			0x1f,0x23,0x89,0x58,0x4a,0x4a,0xbb,0xa5,
 			0x9f,0x09,0xca,0xd4,0xef,0xac,0x43,0x1d,
 			0xde,0x9a,0xb0,0xf8,0x69,0xaa,0x50,0xf3,
@@ -98,18 +97,19 @@ namespace ssc::crypto_impl::dragonfly_v1 {
 					 Max_Password_Bits,
 					 true,
 					 true>;
-	void SSC_PUBLIC
-	encrypt (Catena_Input const &catena_input,
-		 OS_Map             &input_map,
-		 OS_Map             &output_map,
-		 char const         *output_filename);
 
-	void SSC_PUBLIC
-	decrypt (OS_Map &input_map,
-		 OS_Map &output_map,
-		 char const *output_filename);
+	void SHIM_PUBLIC
+	encrypt (Catena_Input const & SHIM_RESTRICT catena_input,
+		 Shim_Map &           SHIM_RESTRICT input_map,
+		 Shim_Map &           SHIM_RESTRICT output_map,
+		 char const *         SHIM_RESTRICT output_filename);
 
-	void SSC_PUBLIC
-	dump_header (OS_Map &input_map,
-		     char const *filename);
+	void SHIM_PUBLIC
+	decrypt (Shim_Map &   SHIM_RESTRICT input_map,
+		 Shim_Map &   SHIM_RESTRICT output_map,
+		 char const * SHIM_RESTRICT output_filename);
+
+	void SHIM_PUBLIC
+	dump_header (Shim_Map &   SHIM_RESTRICT input_map,
+		     char const * SHIM_RESTRICT filename);
 }// ~ namespace ssc::crypto_impl::dragonfly_v1

@@ -3,34 +3,34 @@
  * See accompanying LICENSE file for licensing information.
  */
 #pragma once
-#include <ssc/general/macros.hh>
-#include <ssc/crypto/operations.hh>
-#if    defined (SSC_OS_UNIXLIKE) || defined (SSC_OS_WIN64)
-#	ifndef SSC_FEATURE_TERMINAL_UI_F
-#		define SSC_FEATURE_TERMINAL_UI_F
-#	else
-#		error 'SSC_FEATURE_TERMINAL_UI_F Already Defined'
+#include <shim/macros.h>
+#include <shim/operations.h>
+
+#if    defined (SHIM_OS_UNIXLIKE) || defined (SHIM_OS_WINDOWS)
+#	ifdef SSC_FEATURE_TERMINAL_UI_F
+#		error "SSC_FEATURE_TERMINAL_UI_F already defined"
 #	endif
-#	if    defined (SSC_OS_UNIXLIKE)
-#		if    __has_include (<ncurses.h>)
+#	define SSC_FEATURE_TERMINAL_UI_F
+#	if    defined (SHIM_OS_UNIXLIKE)
+#		if    __has_include(<ncurses.h>)
 #			include <ncurses.h>
-#		elif  __has_include (<ncurses/ncurses.h>)
+#		elif  __has_include(<ncurses/ncurses.h>)
 #			include <ncurses/ncurses.h>
 #		else
-#			error 'No valid ncurses.h header found.'
-#		endif // ~ #if __has_include (<ncurses.h>)
+#			error "No valid ncurses.h header found."
+#		endif
 #		define NEWLINE "\n"
-#	elif  defined (SSC_OS_WIN64)
-#		include <ssc/general/error_conditions.hh>
+#	elif  defined (SHIM_OS_WINDOWS)
+#		include <shim/errors.h>
 #		include <windows.h>
 #		include <conio.h>
 #		define NEWLINE "\n\r"
 #	else
-#		error 'Unsupported OS'
+#		error "Unsupported operating system"
 #	endif
 #	define TEMPLATE_ARGS template <typename Char_t,\
                                        int      Max_Buffer_Size>
-#	define CLASS         Terminal_UI_F<Char_t,Max_Buffer_Size>
+#	define CLASS         Terminal_UI_F<Char_t, Max_Buffer_Size>
 
 #	include <utility>
 namespace ssc
@@ -47,25 +47,26 @@ namespace ssc
 		end ();
 
 		[[nodiscard]] static int
-		get_sensitive_string (SSC_RESTRICT (Char_t *)     buffer,
-				      SSC_RESTRICT (char const *) prompt);
+		get_sensitive_string (Char_t *     SHIM_RESTRICT buffer,
+				      char const * SHIM_RESTRICT prompt);
 
 		static void
 		notify (char const *notice);
 
 		[[nodiscard]] static int
-		obtain_password (SSC_RESTRICT (Char_t *)     password_buffer,
-				 SSC_RESTRICT (char const *) entry_prompt,
-				 int const                   min_pw_size = 1,
-				 int const                   max_pw_size = Max_Buffer_Size - 1);
+		obtain_password (Char_t * SHIM_RESTRICT password_buffer,
+				 char const * SHIM_RESTRICT entry_prompt,
+				 int const                  min_pw_size = 1,
+				 int const                  max_pw_size = Max_Buffer_Size - 1);
 
-		[[nodiscard]] static int obtain_password (SSC_RESTRICT (Char_t *)     password_buffer,
-				                          SSC_RESTRICT (Char_t *)     check_buffer,
-					                  SSC_RESTRICT (char const *) entry_prompt,
-					                  SSC_RESTRICT (char const *) reentry_prompt,
-					                  int const                   min_pw_size = 1,
-					                  int const                   max_ps_size = Max_Buffer_Size - 1);
-#	ifdef SSC_OS_UNIXLIKE
+		[[nodiscard]] static int
+		obtain_password (Char_t *     SHIM_RESTRICT password_buffer,
+				 Char_t *     SHIM_RESTRICT check_buffer,
+				 char const * SHIM_RESTRICT entry_prompt,
+				 char const * SHIM_RESTRICT reentry_prompt,
+				 int const                  min_pw_size = 1,
+				 int const                  max_pw_size = Max_Buffer_Size - 1);
+#	ifdef SHIM_OS_UNIXLIKE
 		using Window_t = WINDOW;
 		using Coord_Pair_t = std::pair<int,int>;
 		static Coord_Pair_t get_cursor_position (Window_t *window = stdscr);
@@ -75,10 +76,10 @@ namespace ssc
 	TEMPLATE_ARGS void
 	CLASS::init ()
 	{
-#	if    defined (SSC_OS_UNIXLIKE)
+#	if    defined (SHIM_OS_UNIXLIKE)
 		initscr();
 		clear();
-#	elif  defined (SSC_OS_WIN64)
+#	elif  defined (SHIM_OS_WINDOWS)
 		system( "cls" );
 #	endif
 	}
@@ -86,21 +87,21 @@ namespace ssc
 	TEMPLATE_ARGS void
 	CLASS::end ()
 	{
-#	if    defined (SSC_OS_UNIXLIKE)
+#	if    defined (SHIM_OS_UNIXLIKE)
 		endwin();
-#	elif  defined (SSC_OS_WIN64)
+#	elif  defined (SHIM_OS_WINDOWS)
 		system( "cls" );
 #	endif
 	}
 
 	TEMPLATE_ARGS int
-	CLASS::get_sensitive_string (SSC_RESTRICT (Char_t *)     buffer,
-			             SSC_RESTRICT (char const *) prompt)
+	CLASS::get_sensitive_string (Char_t *     SHIM_RESTRICT buffer,
+				     char const * SHIM_RESTRICT prompt)
 	{
 		using namespace std;
 		static_assert (Max_Buffer_Size >= 2);
 		static constexpr int Max_Password_Size = Max_Buffer_Size - 1;
-#	if    defined (SSC_OS_UNIXLIKE)
+#	if    defined (SHIM_OS_UNIXLIKE)
 		cbreak(); // Disable line buffering.
 		noecho(); // Disables echoing input.
 		keypad( stdscr, TRUE ); // Enable keypad of the user's terminal.
@@ -155,7 +156,7 @@ namespace ssc
 		int const password_size = strlen( reinterpret_cast<char*>(buffer) ); // Get the size of the null-terminated C-string in the buffer.
 		delwin( w ); // Delete the window `w`.
 		return password_size; // Return the number of non-null characters of the C-string in the buffer.
-#	elif  defined (SSC_OS_WIN64)
+#	elif  defined (SHIM_OS_WINDOWS)
 		int index = 0;
 		bool repeat_ui, repeat_input;
 		repeat_ui = true;
@@ -203,7 +204,7 @@ namespace ssc
 	void CLASS::notify (char const *notice)
 	{
 		using namespace std;
-#	if    defined (SSC_OS_UNIXLIKE)
+#	if    defined (SHIM_OS_UNIXLIKE)
 		Window_t *w = newwin( 1, strlen( notice ) + 1, 0, 0 );
 		wclear( w );
 		wmove( w, 0, 0 );
@@ -211,7 +212,7 @@ namespace ssc
 		wrefresh( w );
 		wgetch( w );
 		delwin( w );
-#	elif  defined (SSC_OS_WIN64)
+#	elif  defined (SHIM_OS_WINDOWS)
 		system( "cls" );
 		if( _cputs( notice ) != 0 )
 			errx( "Error: Failed to _cputs()\n" );
@@ -222,10 +223,10 @@ namespace ssc
 #	endif
 	}
 	TEMPLATE_ARGS int
-	CLASS::obtain_password (SSC_RESTRICT (Char_t *)     password_buffer,
-			        SSC_RESTRICT (char const *) entry_prompt,
-				int const                   min_pw_size,
-				int const                   max_pw_size)
+	CLASS::obtain_password (Char_t *     SHIM_RESTRICT password_buffer,
+				char const * SHIM_RESTRICT entry_prompt,
+				int const                  min_pw_size,
+				int const                  max_pw_size)
 	{
 		int size;
 		while( true ) {
@@ -240,12 +241,12 @@ namespace ssc
 		return size;
 	}
 	TEMPLATE_ARGS int
-	CLASS::obtain_password (SSC_RESTRICT (Char_t *)     password_buffer,
-			        SSC_RESTRICT (Char_t *)     check_buffer,
-				SSC_RESTRICT (char const *) entry_prompt,
-				SSC_RESTRICT (char const *) reentry_prompt,
-				int const                   min_pw_size,
-				int const                   max_pw_size)
+	CLASS::obtain_password (Char_t *     SHIM_RESTRICT password_buffer,
+				Char_t *     SHIM_RESTRICT check_buffer,
+				char const * SHIM_RESTRICT entry_prompt,
+				char const * SHIM_RESTRICT reentry_prompt,
+				int const                  min_pw_size,
+				int const                  max_pw_size)
 	{
 		int size;
 		while( true ) {
@@ -260,13 +261,13 @@ namespace ssc
 				notify( "Second password not the same size as the first." NEWLINE );
 				continue;
 			}
-			if( constant_time_memcmp( password_buffer, check_buffer, Max_Buffer_Size ) == 0 )
+			if( shim_ctime_memcmp( password_buffer, check_buffer, Max_Buffer_Size ) == 0 )
 				break;
 			notify( "Passwords do not match." NEWLINE );
 		}
 		return size;
 	}
-#	ifdef SSC_OS_UNIXLIKE
+#	ifdef SHIM_OS_UNIXLIKE
 	TEMPLATE_ARGS typename CLASS::Coord_Pair_t
 	CLASS::get_cursor_position (Window_t *window)
 	{

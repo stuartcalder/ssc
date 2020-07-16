@@ -3,6 +3,11 @@
  * See accompanying LICENSE file for licensing information.
  */
 #pragma once
+
+#include <shim/macros.h>
+#include <shim/errors.h>
+#include <shim/operations.h>
+
 /* SSC General
  */
 #include <ssc/general/macros.hh>
@@ -48,68 +53,68 @@ namespace ssc
 		using Threefish_f = Threefish_F<Block_Bits,Key_Schedule_E::Stored>;
 		using Threefish_Data_t = typename Threefish_f::Data_t;
 		struct Data {
-			Threefish_Data_t    threefish_data;
-			alignas(u64_t) u8_t keystream [Block_Bytes];
-			alignas(u64_t) u8_t buffer    [Block_Bytes];
+			Threefish_Data_t          threefish_data;
+			alignas(uint64_t) uint8_t keystream [Block_Bytes];
+			alignas(uint64_t) uint8_t buffer    [Block_Bytes];
 		};
 
 		Counter_Mode_F (void) = delete;
 
 		static inline void
-		set_iv (SSC_RESTRICT (Data*)       data,
-		        SSC_RESTRICT (u8_t const*) iv);
+		set_iv (Data *          SHIM_RESTRICT data,
+			uint8_t const * SHIM_RESTRICT iv);
 
 		static void
-		xorcrypt (SSC_RESTRICT (Data *) data,
-			  u8_t                  *output,
-			  u8_t const            *input,
-			  u64_t                 input_size,
-			  u64_t                 starting_byte = 0);
+		xorcrypt (Data * SHIM_RESTRICT data,
+			  uint8_t *            output,
+			  uint8_t const *      input,
+			  uint64_t             input_size,
+			  uint64_t             starting_byte = 0);
 	};
 
 	TEMPLATE_ARGS void
-	CLASS::set_iv (SSC_RESTRICT (Data*)       data,
-		       SSC_RESTRICT (u8_t const*) iv)
+	CLASS::set_iv (Data *          SHIM_RESTRICT data,
+		       uint8_t const * SHIM_RESTRICT iv)
 	{
 		static_assert (Block_Bytes == (IV_Bytes *2));
-		static_assert (sizeof(u64_t) <= IV_Bytes);
-		if constexpr (sizeof(u64_t) != IV_Bytes)
-			std::memset( (data->keystream + sizeof(u64_t)), 0, (IV_Bytes - sizeof(u64_t)) );
+		static_assert (sizeof(uint64_t) <= IV_Bytes);
+		if constexpr (sizeof(uint64_t) != IV_Bytes)
+			std::memset( (data->keystream + sizeof(uint64_t)), 0, (IV_Bytes - sizeof(uint64_t)) );
 		std::memcpy( (data->keystream + IV_Bytes),
 			     iv,
 			     IV_Bytes );
 	}
 
 	TEMPLATE_ARGS void
-	CLASS::xorcrypt (SSC_RESTRICT (Data *) data,
-			 u8_t                  *output,
-			 u8_t const            *input,
-			 u64_t                 input_size,
-			 u64_t                 starting_byte)
+	CLASS::xorcrypt (Data * SHIM_RESTRICT data,
+			 uint8_t *            output,
+			 uint8_t const *      input,
+			 uint64_t             input_size,
+			 uint64_t             starting_byte)
 	{
 		if( starting_byte == 0 ) {
 			std::memcpy( data->keystream, &starting_byte, sizeof(starting_byte) );
 		} else {
-			u64_t starting_block = starting_byte / Block_Bytes;
-			u64_t offset         = starting_byte % Block_Bytes;
-			u64_t bytes          = Block_Bytes - offset;
+			uint64_t starting_block = starting_byte / Block_Bytes;
+			uint64_t offset         = starting_byte % Block_Bytes;
+			uint64_t bytes          = Block_Bytes - offset;
 			std::memcpy( data->keystream, &starting_block, sizeof(starting_block) );
-			Threefish_f::cipher( &(data->threefish_data),
+			Threefish_f::cipher( &data->threefish_data,
 					     data->buffer,
 					     data->keystream );
 			{
-				u64_t temp;
-				std::memcpy( &temp, data->keystream, sizeof(u64_t) );
+				uint64_t temp;
+				std::memcpy( &temp, data->keystream, sizeof(uint64_t) );
 				++temp;
 				std::memcpy( data->keystream, &temp, sizeof(temp) );
 			}
-			u8_t *offset_buffer = data->buffer + offset;
-			u64_t left;
+			uint8_t *offset_buffer = data->buffer + offset;
+			uint64_t left;
 			if( input_size >= bytes )
 				left = bytes;
 			else
 				left = input_size;
-			for( u64_t i = 0; i < left; ++i )
+			for( uint64_t i = 0; i < left; ++i )
 				offset_buffer[ i ] ^= input[ i ];
 			std::memcpy( output, offset_buffer, left );
 			input      += left;
@@ -117,26 +122,26 @@ namespace ssc
 			input_size -= left;
 		}
 		while( input_size >= Block_Bytes ) {
-			Threefish_f::cipher( &(data->threefish_data),
+			Threefish_f::cipher( &data->threefish_data,
 					     data->buffer,
 					     data->keystream );
 			{
-				u64_t temp;
+				uint64_t temp;
 				std::memcpy( &temp, data->keystream, sizeof(temp) );
 				++temp;
 				std::memcpy( data->keystream, &temp, sizeof(temp) );
 			}
-			xor_block<Block_Bits>( data->buffer, input );
+			SSC_XOR (data->buffer, input, Block_Bytes);
 			std::memcpy( output, data->buffer, Block_Bytes );
 			input      += Block_Bytes;
 			output     += Block_Bytes;
 			input_size -= Block_Bytes;
 		}
 		if( input_size > 0 ) {
-			Threefish_f::cipher( &(data->threefish_data),
+			Threefish_f::cipher( &data->threefish_data,
 					     data->buffer,
 					     data->keystream );
-			for( u64_t i = 0; i < input_size; ++i )
+			for( uint64_t i = 0; i < input_size; ++i )
 				data->buffer[ i ] ^= input[ i ];
 			std::memcpy( output, data->buffer, input_size );
 		}

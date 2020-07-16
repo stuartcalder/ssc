@@ -4,6 +4,9 @@
  */
 #pragma once
 
+#include <shim/macros.h>
+#include <shim/operations.h>
+
 /* C++ Std
  */
 #include <type_traits>
@@ -34,8 +37,8 @@ namespace ssc {
 	Threefish_F
 	{
 	public:
-		static_assert (CHAR_BIT      == 8,"This code assumes 8-bit bytes.");
-		static_assert (sizeof(u64_t) == 8,"This code assumes 64-bit integers are 8 bytes large.");
+		static_assert (CHAR_BIT         == 8,"This code assumes 8-bit bytes.");
+		static_assert (sizeof(uint64_t) == 8,"This code assumes 64-bit integers are 8 bytes large.");
 		static_assert (Bits == 256 ||
 			       Bits == 512 ||
 			       Bits == 1024,
@@ -50,9 +53,9 @@ namespace ssc {
 		enum Int_Constants : int {
 			Block_Bits    = Bits,
 			Block_Bytes   = Block_Bits / CHAR_BIT,
-			Block_Words   = Block_Bytes / sizeof(u64_t),
+			Block_Words   = Block_Bytes / sizeof(uint64_t),
 			Tweak_Words   = 2,
-			Tweak_Bytes   = Tweak_Words * sizeof(u64_t),
+			Tweak_Bytes   = Tweak_Words * sizeof(uint64_t),
 			Tweak_Bits    = Tweak_Bytes * CHAR_BIT,
 			Number_Rounds = [](){
 				if constexpr (Block_Bits == 1024)
@@ -67,22 +70,22 @@ namespace ssc {
 			       "Threefish 1024 uses 80 rounds, 256 and 512 use 72 rounds.");
 		static_assert (Number_Subkeys == 19 || Number_Subkeys == 21,
 			       "Given a choice of 72 and 80 rounds, there may only be 19 or 21 subkeys.");
-		enum U64_Constants : u64_t {
+		enum U64_Constants : uint64_t {
 			Constant_240 = 0x1b'd1'1b'da'a9'fc'1a'22
 		};
 
 		/* When we compute once then store all the subkeys of the key schedule, we store them in $key_schedule.
 		 */
 		struct Stored_Data {
-			u64_t key_schedule [Block_Words * Number_Subkeys];
-			u64_t state        [Block_Words];
+			uint64_t key_schedule [Block_Words * Number_Subkeys];
+			uint64_t state        [Block_Words];
 		};// ~ struct Precomputed_Data
 		/* When we compute the subkeys at runtime, we store pointers to the input key and tweak.
 		 */
 		struct On_Demand_Data {
-			u64_t state        [Block_Words];
-			u64_t *stored_key;  // -> [External_Key_Words]
-			u64_t *stored_tweak;// -> [External_Tweak_Words]
+			uint64_t state        [Block_Words];
+			uint64_t *stored_key;  // -> [External_Key_Words]
+			uint64_t *stored_tweak;// -> [External_Tweak_Words]
 		};// ~ struct Runtime_Data
 
 		/* Data_t refers to Stored_Data or Runtime_Data depending on which
@@ -92,28 +95,28 @@ namespace ssc {
 		static_assert (std::is_same<Data_t,Stored_Data>::value || std::is_same<Data_t,On_Demand_Data>::value);
 
 		static void
-		rekey (SSC_RESTRICT (Data_t*) data,
-		       SSC_RESTRICT (u64_t*)  key,
-		       SSC_RESTRICT (u64_t*)  tweak);
+		rekey (Data_t *   SHIM_RESTRICT data,
+		       uint64_t * SHIM_RESTRICT key,
+		       uint64_t * SHIM_RESTRICT tweak);
 
 		static void
-		cipher (SSC_RESTRICT (Data_t*)     data,
-			SSC_RESTRICT (u8_t*)       ctext,
-			SSC_RESTRICT (u8_t const*) ptext);
+		cipher (Data_t *        SHIM_RESTRICT data,
+			uint8_t *       SHIM_RESTRICT ctext,
+			uint8_t const * SHIM_RESTRICT ptext);
 
 		static void
-		inverse_cipher (SSC_RESTRICT (Data_t*)     data,
-				SSC_RESTRICT (u8_t*)       ptext,
-				SSC_RESTRICT (u8_t const*) ctext);
+		inverse_cipher (Data_t *        SHIM_RESTRICT data,
+				uint8_t *       SHIM_RESTRICT ptext,
+				uint8_t const * SHIM_RESTRICT ctext);
 	private:
 		template <int round,int index> static constexpr int
 		Rotate_Const_ ();
 	};// ~ class Threefish_F
 
 	TEMPLATE_ARGS void
-	CLASS::rekey (SSC_RESTRICT (Data_t*) data,
-                      SSC_RESTRICT (u64_t*)  key,
-                      SSC_RESTRICT (u64_t*)  tweak)
+	CLASS::rekey (Data_t *    SHIM_RESTRICT data,
+                      uint64_t *  SHIM_RESTRICT key,
+                      uint64_t *  SHIM_RESTRICT tweak)
 	{
 #if    defined (MAKE_WORD) || defined (SET_WORDS) || defined (SET_FOUR_WORDS) || defined (SET_EIGHT_WORDS) || defined (MAKE_SUBKEY)
 #	error 'A macro name we need was already defined'
@@ -138,7 +141,7 @@ namespace ssc {
 	SET_FOUR_WORDS (subkey,start_i); SET_FOUR_WORDS (subkey,(start_i + 4))
 
 #define MAKE_SUBKEY(subkey) \
-	SSC_MACRO_SHIELD \
+	SHIM_MACRO_SHIELD \
 		static_assert (std::is_same<decltype(subkey),int>::value && subkey >= 0 && subkey < Number_Subkeys, \
 			       "Ensure the subkey is an integer, and within the valid range of subkey values."); \
 		if constexpr (Block_Words == 4) { \
@@ -160,7 +163,7 @@ namespace ssc {
 			SET_WORD       (subkey,14) + tweak[ (subkey + 1) % 3 ]; /* 14 */ \
 			SET_WORD       (subkey,15) + subkey; \
 		} \
-	SSC_MACRO_SHIELD_EXIT
+	SHIM_MACRO_SHIELD_EXIT
 	/* Setup the key.
 	 */
 		// Initialize the parity word of the key to our Constant_240 unsigned 64-bit integer constant.
@@ -217,9 +220,9 @@ namespace ssc {
 	}// ~ void rekey (...)
 
 	TEMPLATE_ARGS void
-	CLASS::cipher (SSC_RESTRICT (Data_t *)     data,
-                       SSC_RESTRICT (u8_t *)       ctext,
-                       SSC_RESTRICT (u8_t const *) ptext)
+	CLASS::cipher (Data_t *        SHIM_RESTRICT data,
+                       uint8_t *       SHIM_RESTRICT ctext,
+                       uint8_t const * SHIM_RESTRICT ptext)
 	{
 #if    defined (MIX) || defined (CALL_MIX) || defined (INVERSE_MIX) || defined (CALL_INVERSE_MIX) || \
        defined (USE_SUBKEY) || defined (PERMUTE) || defined (INVERSE_PERMUTE) || defined (ENC_ROUND) || \
@@ -228,36 +231,35 @@ namespace ssc {
 	       PERMUTE, INVERSE_PERMUTE, ENC_ROUND, DEC_ROUND, EIGHT_ENC_ROUNDS, EIGHT_DEC_ROUNDS Already Defined'
 #endif
 #	define MIX(word_0,word_1,round,index) \
-	static_assert (std::is_same<decltype(word_0),u64_t&>::value, \
+	static_assert (std::is_same<decltype(word_0),uint64_t&>::value, \
 		       "word_0 must be an unsigned 64-bit integer reference."); \
-	static_assert (std::is_same<decltype(word_1),u64_t&>::value, \
+	static_assert (std::is_same<decltype(word_1),uint64_t&>::value, \
 		       "word_1 must be an unsigned 64-bit integer reference."); \
 	static_assert (std::is_same<decltype(round),int>::value, \
 		       "round must be an integer."); \
 	static_assert (std::is_same<decltype(index),int>::value, \
 		       "index must be an integer."); \
-	word_0 += word_1; \
-	word_1 = rotate_left< \
-			Rotate_Const_<round,index>(), \
-			u64_t \
-		> (word_1) ^ word_0
+	{ \
+		word_0 += word_1; \
+		static constexpr uint64_t Rot_Const = Rotate_Const_<round, index>(); \
+		word_1 = SHIM_ROT_LEFT (word_1, Rot_Const, 64) ^ word_0; \
+	}
 
 #	define CALL_MIX(round,index) \
 	MIX (data->state[ index * 2 ],data->state[ (index * 2) + 1 ],round,index)
 
-#	define INVERSE_MIX(word_0,word_1,round,index) \
-	word_1 ^= word_0; \
-	word_1 = rotate_right< \
-			Rotate_Const_<round,index>(), \
-			u64_t \
-		> (word_1); \
-	word_0 -= word_1
+#	define INVERSE_MIX(word_0,word_1,round,index) { \
+		word_1 ^= word_0; \
+		static constexpr uint64_t Rot_Const = Rotate_Const_<round,index>(); \
+		word_1 = SHIM_ROT_RIGHT (word_1, Rot_Const, 64); \
+		word_0 -= word_1; \
+	}
 
 #	define CALL_INVERSE_MIX(round,index) \
 	INVERSE_MIX (data->state[ index * 2 ],data->state[ (index * 2) + 1 ],round,index)
 
 #	define USE_SUBKEY(operation,round) \
-	SSC_MACRO_SHIELD \
+	SHIM_MACRO_SHIELD \
 		static constexpr int Subkey_Index = round / 4; \
 		if constexpr (Key_Schedule_Gen == Key_Schedule_E::Stored) { \
 			/* The key-schedule has been pre-computed, thus we can modify the state by directly accessing
@@ -332,16 +334,16 @@ namespace ssc {
 				data->state[ 15 ] operation (MAKE_WORD (data->stored_key,Subkey_Index,15) + Subkey_Index); \
 			} \
 		} \
-	SSC_MACRO_SHIELD_EXIT
+	SHIM_MACRO_SHIELD_EXIT
 
 #	define PERMUTE \
-		SSC_MACRO_SHIELD \
+		SHIM_MACRO_SHIELD \
 			if constexpr (Block_Bits == 256) { \
-				u64_t w = data->state[ 1 ]; \
+				uint64_t w = data->state[ 1 ]; \
 				data->state[ 1 ] = data->state[ 3 ]; \
 				data->state[ 3 ] = w; \
 			} else if constexpr (Block_Bits == 512) { \
-				u64_t w0,w1; \
+				uint64_t w0, w1; \
 				w0 = data->state[ 6 ]; \
 				data->state[ 6 ] = data->state[ 0 ]; \
 				w1 = data->state[ 4 ]; \
@@ -353,7 +355,7 @@ namespace ssc {
 				data->state[ 3 ] = data->state[ 7 ]; \
 				data->state[ 7 ] = w0; \
 			} else if constexpr (Block_Bits == 1024) { \
-				u64_t w0, w1; \
+				uint64_t w0, w1; \
 				w0 = data->state[ 15 ]; \
 				data->state[ 15 ] = data->state[ 1 ]; \
 				w1 = data->state[ 7 ]; \
@@ -379,14 +381,14 @@ namespace ssc {
 				data->state[ 10 ] = w1; \
 				data->state[ 8 ] = w0; \
 			} \
-		SSC_MACRO_SHIELD_EXIT
+		SHIM_MACRO_SHIELD_EXIT
 
 #	define INVERSE_PERMUTE \
-		SSC_MACRO_SHIELD \
+		SHIM_MACRO_SHIELD \
 			if constexpr (Block_Bits == 256) { \
 				PERMUTE ; \
 			} else if constexpr (Block_Bits == 512) { \
-				u64_t w0, w1; \
+				uint64_t w0, w1; \
 				w0 = data->state[ 2 ]; \
 				data->state[ 2 ] = data->state[ 0 ]; \
 				w1 = data->state[ 4 ]; \
@@ -398,7 +400,7 @@ namespace ssc {
 				data->state[ 3 ] = data->state[ 7 ]; \
 				data->state[ 7 ] = w0; \
 			} else if constexpr (Block_Bits == 1024) { \
-				u64_t w0, w1; \
+				uint64_t w0, w1; \
 				w0 = data->state[ 9 ]; \
 				data->state[ 9 ] = data->state[ 1 ]; \
 				w1 = data->state[ 7 ]; \
@@ -424,7 +426,7 @@ namespace ssc {
 				data->state[ 14 ] = w1; \
 				data->state[ 8 ] = w0; \
 			} \
-		SSC_MACRO_SHIELD_EXIT
+		SHIM_MACRO_SHIELD_EXIT
 
 #	define ENC_ROUND(round) \
 	static_assert (std::is_same<decltype(round),int>::value && round >= 0 && round < Number_Rounds, \
@@ -504,9 +506,9 @@ namespace ssc {
 	}// ~ void cipher (...)
 
 	TEMPLATE_ARGS void
-	CLASS::inverse_cipher (SSC_RESTRICT (Data_t*)     data,
-			       SSC_RESTRICT (u8_t*)       ptext,
-			       SSC_RESTRICT (u8_t const*) ctext)
+	CLASS::inverse_cipher (Data_t *        SHIM_RESTRICT data,
+			       uint8_t *       SHIM_RESTRICT ptext,
+			       uint8_t const * SHIM_RESTRICT ctext)
 	{
 		// Copy the ciphertext block into the state buffer.
 		std::memcpy( data->state, ctext, sizeof(data->state) );

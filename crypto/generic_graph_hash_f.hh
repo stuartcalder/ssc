@@ -3,6 +3,10 @@
  * See accompanying LICENSE file for licensing information.
  */
 #pragma once
+
+#include <shim/macros.h>
+#include <shim/errors.h>
+
 /* SSC General
  */
 #include <ssc/general/integers.hh>
@@ -72,31 +76,31 @@ namespace ssc {
 			       "UBI_f and Skein_f work on the same Data type.");
 
 		static inline void
-		call (SSC_RESTRICT (UBI_Data_t *) ubi_data,
-		      SSC_RESTRICT (u8_t *)       temp,
-		      SSC_RESTRICT (u8_t *)       graph_memory,
-		      u8_t const                  garlic,
-		      u8_t const                  lambda);
+		call (UBI_Data_t * SHIM_RESTRICT ubi_data,
+		      uint8_t *    SHIM_RESTRICT temp,
+		      uint8_t *    SHIM_RESTRICT graph_memory,
+		      uint8_t const              garlic,
+		      uint8_t const              lambda);
 	};
 
 	TEMPLATE_ARGS void
-	CLASS::call (SSC_RESTRICT (UBI_Data_t *) ubi_data,
-		     SSC_RESTRICT (u8_t *)       temp,
-		     SSC_RESTRICT (u8_t *)       graph_memory,
-	             u8_t const                  garlic,
-	             u8_t const                  lambda)
+	CLASS::call (UBI_Data_t * SHIM_RESTRICT ubi_data,
+		     uint8_t *    SHIM_RESTRICT temp,
+		     uint8_t *    SHIM_RESTRICT graph_memory,
+		     uint8_t const              garlic,
+		     uint8_t const              lambda)
 	{
-		u64_t const garlic_end = (static_cast<u64_t>(1) << garlic) - 1;
-		for( u8_t j = 1; j <= lambda; ++j ) {
+		uint64_t const garlic_end = (static_cast<uint64_t>(1) << garlic) - 1;
+		for( uint8_t j = 1; j <= lambda; ++j ) {
 			COPY_HASH_WORD (INDEX_HASH_WORD (temp,0),
 					INDEX_HASH_WORD (graph_memory,garlic_end));
 			COPY_HASH_WORD (INDEX_HASH_WORD (temp,1),
-					INDEX_HASH_WORD (graph_memory,Graph_f::index( static_cast<u64_t>(0), garlic )));
+					INDEX_HASH_WORD (graph_memory,Graph_f::index( static_cast<uint64_t>(0), garlic )));
 		// v0 <- H_first(v[2^g - 1], v[p(0)])
 			HASH_TWO_WORDS (ubi_data,
 					INDEX_HASH_WORD (graph_memory,0),
 					INDEX_HASH_WORD (temp,0));
-			for( u64_t i = 1; i <= garlic_end; ++i ) {
+			for( uint64_t i = 1; i <= garlic_end; ++i ) {
 			// vi <- H(v[i-1] || v[p(i)])
 				COPY_HASH_WORD (INDEX_HASH_WORD (temp,0),
 						INDEX_HASH_WORD (graph_memory,(i-1)));
